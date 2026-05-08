@@ -3,10 +3,12 @@
  * Run with: bun run db:seed
  */
 
+import { PrismaNeon } from "@prisma/adapter-neon";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
-const prisma = new PrismaClient();
+const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL ?? "" });
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log("🌱 Seeding database...");
