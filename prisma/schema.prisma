@@ -1,0 +1,594 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          String    @default("owner")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts         Account[]         @relation("AuthAccounts")
+  sessions         Session[]
+  workspaceMembers WorkspaceMember[]
+  ownedWorkspaces  Workspace[]       @relation("WorkspaceOwner")
+  auditLogs        AuditLog[]
+  aiUsageLogs      AIUsageLog[]
+  approvals        Approval[]
+  campaigns        Campaign[]
+  tasks            Task[]
+  subscriptions    Subscription[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation("AuthAccounts", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Workspace {
+  id              String   @id @default(cuid())
+  name            String
+  domain          String?
+  industry        String?
+  companySize     String?
+  website         String?
+  description     String?
+  region          String?
+  sellingMotion   String?
+  primaryGoal     String?
+  plan            String   @default("free")
+  onboardingStage String   @default("not_started")
+  healthScore     Int      @default(75)
+  ownerId         String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  owner                  User                    @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  members                WorkspaceMember[]
+  bizAccounts            BizAccount[]
+  contacts               Contact[]
+  relationshipEdges      RelationshipEdge[]
+  warmPaths              WarmPath[]
+  signals                Signal[]
+  campaigns              Campaign[]
+  campaignAssets         CampaignAsset[]
+  messages               Message[]
+  approvals              Approval[]
+  kbItems                KnowledgeBaseItem[]
+  integrations           IntegrationConnection[]
+  aiUsageLogs            AIUsageLog[]
+  auditLogs              AuditLog[]
+  subscriptions          Subscription[]
+  tasks                  Task[]
+  conversations          Conversation[]
+  pipelineMetrics        PipelineMetric[]
+  consentRecords         ConsentRecord[]
+  deliverabilityProfiles DeliverabilityProfile[]
+  aiCache                AIGenerationCache[]
+}
+
+model WorkspaceMember {
+  id               String   @id @default(cuid())
+  workspaceId      String
+  userId           String
+  role             String   @default("sales_rep")
+  seatStatus       String   @default("active")
+  title            String?
+  connectedSources String?
+  relationshipScore Int     @default(0)
+  joinedAt         DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+}
+
+model BizAccount {
+  id               String   @id @default(cuid())
+  workspaceId      String
+  name             String
+  domain           String?
+  industry         String?
+  employeeCount    Int?
+  location         String?
+  description      String?
+  stage            String   @default("prospect")
+  fitScore         Int      @default(0)
+  intentScore      Int      @default(0)
+  warmthScore      Int      @default(0)
+  opportunityScore Int      @default(0)
+  logoUrl          String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  workspace      Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  contacts       Contact[]
+  signals        Signal[]
+  warmPaths      WarmPath[]
+  messages       Message[]
+  campaignAssets CampaignAsset[]
+  tasks          Task[]
+  conversations  Conversation[]
+  pipelineMetrics PipelineMetric[]
+  consentRecords ConsentRecord[]
+}
+
+model Contact {
+  id              String   @id @default(cuid())
+  workspaceId     String
+  accountId       String?
+  name            String
+  email           String?
+  phone           String?
+  title           String?
+  linkedinUrl     String?
+  telegramHandle  String?
+  whatsappNumber  String?
+  seniority       String?
+  department      String?
+  persona         String?
+  fitScore        Int      @default(0)
+  warmthScore     Int      @default(0)
+  engagementScore Int      @default(0)
+  consentStatus   String   @default("unknown")
+  avatarUrl       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  workspace      Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account        BizAccount?     @relation(fields: [accountId], references: [id])
+  signals        Signal[]
+  warmPaths      WarmPath[]
+  messages       Message[]
+  campaignAssets CampaignAsset[]
+  tasks          Task[]
+  conversations  Conversation[]
+  consentRecords ConsentRecord[]
+}
+
+model RelationshipEdge {
+  id                String   @id @default(cuid())
+  workspaceId       String
+  fromType          String
+  fromId            String
+  fromName          String
+  toType            String
+  toId              String
+  toName            String
+  relationshipType  String
+  strengthScore     Int      @default(50)
+  evidence          String?
+  source            String?
+  lastInteractionAt DateTime @default(now())
+  createdAt         DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model WarmPath {
+  id                     String   @id @default(cuid())
+  workspaceId            String
+  accountId              String?
+  contactId              String?
+  pathJson               String
+  explanation            String?
+  warmthScore            Int      @default(0)
+  confidenceScore        Int      @default(0)
+  recommendedIntroPerson String?
+  recommendedChannel     String?
+  status                 String   @default("active")
+  createdAt              DateTime @default(now())
+
+  workspace Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   BizAccount? @relation(fields: [accountId], references: [id])
+  contact   Contact?    @relation(fields: [contactId], references: [id])
+  messages  Message[]
+}
+
+model Signal {
+  id              String   @id @default(cuid())
+  workspaceId     String
+  accountId       String?
+  contactId       String?
+  type            String
+  title           String
+  description     String?
+  source          String?
+  sourceUrl       String?
+  urgencyScore    Int      @default(50)
+  confidenceScore Int      @default(70)
+  detectedAt      DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  workspace Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   BizAccount? @relation(fields: [accountId], references: [id])
+  contact   Contact?    @relation(fields: [contactId], references: [id])
+  messages  Message[]
+}
+
+model Campaign {
+  id            String   @id @default(cuid())
+  workspaceId   String
+  ownerId       String
+  name          String
+  type          String?
+  goal          String?
+  status        String   @default("draft")
+  targetSegment String?
+  channelsJson  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  workspace       Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  owner           User            @relation(fields: [ownerId], references: [id])
+  steps           CampaignStep[]
+  assets          CampaignAsset[]
+  messages        Message[]
+  tasks           Task[]
+  pipelineMetrics PipelineMetric[]
+}
+
+model CampaignStep {
+  id               String  @id @default(cuid())
+  campaignId       String
+  stepNumber       Int
+  channel          String
+  actionType       String?
+  delayDays        Int     @default(0)
+  assetType        String?
+  approvalRequired Boolean @default(true)
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+}
+
+model CampaignAsset {
+  id               String   @id @default(cuid())
+  workspaceId      String
+  campaignId       String?
+  accountId        String?
+  contactId        String?
+  channel          String
+  type             String
+  title            String
+  content          String
+  subject          String?
+  headline         String?
+  preview          String?
+  approvalStatus   String   @default("draft")
+  launchStatus     String   @default("pending")
+  complianceStatus String   @default("pending")
+  qualityScore     Int      @default(0)
+  riskScore        Int      @default(0)
+  confidenceScore  Int      @default(0)
+  groundedFactsJson String?
+  usedKbItemsJson  String?
+  generatedByAi    Boolean  @default(true)
+  extraJson        String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  workspace Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  campaign  Campaign?   @relation(fields: [campaignId], references: [id])
+  account   BizAccount? @relation(fields: [accountId], references: [id])
+  contact   Contact?    @relation(fields: [contactId], references: [id])
+  approvals Approval[]
+}
+
+model Message {
+  id                    String    @id @default(cuid())
+  workspaceId           String
+  campaignId            String?
+  accountId             String?
+  contactId             String?
+  warmPathId            String?
+  signalId              String?
+  channel               String
+  subject               String?
+  body                  String
+  status                String    @default("draft")
+  approvalStatus        String    @default("pending")
+  scheduledAt           DateTime?
+  sentAt                DateTime?
+  generatedByAi         Boolean   @default(true)
+  confidenceScore       Int       @default(0)
+  personalizationReason String?
+  factualClaimsJson     String?
+  supportingSourcesJson String?
+  riskFlagsJson         String?
+  introRequest          String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  workspace Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  campaign  Campaign?   @relation(fields: [campaignId], references: [id])
+  account   BizAccount? @relation(fields: [accountId], references: [id])
+  contact   Contact?    @relation(fields: [contactId], references: [id])
+  warmPath  WarmPath?   @relation(fields: [warmPathId], references: [id])
+  signal    Signal?     @relation(fields: [signalId], references: [id])
+  approvals Approval[]
+}
+
+model Approval {
+  id          String    @id @default(cuid())
+  workspaceId String
+  assetId     String?
+  messageId   String?
+  userId      String
+  status      String    @default("pending")
+  editedBody  String?
+  feedback    String?
+  decidedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  workspace Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  asset     CampaignAsset? @relation(fields: [assetId], references: [id])
+  message   Message?       @relation(fields: [messageId], references: [id])
+  user      User           @relation(fields: [userId], references: [id])
+}
+
+model KnowledgeBaseItem {
+  id              String   @id @default(cuid())
+  workspaceId     String
+  title           String
+  type            String
+  content         String
+  source          String?
+  tagsJson        String?
+  confidenceScore Int      @default(80)
+  approvedForAi   Boolean  @default(true)
+  usedInMessages  Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  workspace Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  chunks    KnowledgeBaseChunk[]
+}
+
+model KnowledgeBaseChunk {
+  id                  String   @id @default(cuid())
+  workspaceId         String
+  knowledgeBaseItemId String
+  content             String
+  metadataJson        String?
+  createdAt           DateTime @default(now())
+
+  item KnowledgeBaseItem @relation(fields: [knowledgeBaseItemId], references: [id], onDelete: Cascade)
+}
+
+model IntegrationConnection {
+  id               String    @id @default(cuid())
+  workspaceId      String
+  provider         String
+  channel          String
+  displayName      String?
+  description      String?
+  status           String    @default("disconnected")
+  authType         String?
+  scopesJson       String?
+  capabilitiesJson String?
+  iconColor        String?
+  lastSyncAt       DateTime?
+  syncStatus       String?
+  errorMessage     String?
+  demoMode         Boolean   @default(false)
+  healthScore      Int?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, provider])
+}
+
+model AIUsageLog {
+  id            String   @id @default(cuid())
+  workspaceId   String
+  userId        String?
+  actionType    String
+  provider      String
+  mode          String
+  model         String
+  inputTokens   Int      @default(0)
+  outputTokens  Int      @default(0)
+  estimatedCost Float    @default(0)
+  status        String   @default("success")
+  cacheHit      Boolean  @default(false)
+  fallbackUsed  Boolean  @default(false)
+  latencyMs     Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User?     @relation(fields: [userId], references: [id])
+}
+
+model AIGenerationCache {
+  id          String   @id @default(cuid())
+  workspaceId String
+  cacheKey    String
+  inputHash   String
+  outputJson  String
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, cacheKey])
+}
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  workspaceId  String
+  actorUserId  String?
+  actorName    String?
+  action       String
+  entityType   String?
+  entityId     String?
+  entityName   String?
+  metadataJson String?
+  createdAt    DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  actor     User?     @relation(fields: [actorUserId], references: [id])
+}
+
+model Subscription {
+  id                   String    @id @default(cuid())
+  workspaceId          String    @unique
+  userId               String
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  plan                 String    @default("free")
+  status               String    @default("trialing")
+  currentPeriodEnd     DateTime?
+  usageContacts        Int       @default(0)
+  usageMessages        Int       @default(0)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id])
+}
+
+model ConsentRecord {
+  id          String    @id @default(cuid())
+  workspaceId String
+  contactId   String
+  accountId   String?
+  channel     String
+  status      String    @default("unknown")
+  source      String?
+  capturedAt  DateTime  @default(now())
+  expiresAt   DateTime?
+  notes       String?
+
+  workspace Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  contact   Contact    @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  account   BizAccount? @relation(fields: [accountId], references: [id])
+}
+
+model DeliverabilityProfile {
+  id                String   @id @default(cuid())
+  workspaceId       String   @unique
+  domain            String
+  spfStatus         String   @default("unknown")
+  dkimStatus        String   @default("unknown")
+  dmarcStatus       String   @default("unknown")
+  bounceRate        Float    @default(0)
+  spamComplaintRate Float    @default(0)
+  warmupStatus      String   @default("not_started")
+  dailySendLimit    Int      @default(50)
+  reputationScore   Int      @default(50)
+  lastCheckedAt     DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  workspaceId String
+  ownerId     String?
+  accountId   String?
+  contactId   String?
+  campaignId  String?
+  type        String
+  title       String
+  description String?
+  priority    String    @default("medium")
+  status      String    @default("pending")
+  dueAt       DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  workspace Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  owner     User?       @relation(fields: [ownerId], references: [id])
+  account   BizAccount? @relation(fields: [accountId], references: [id])
+  contact   Contact?    @relation(fields: [contactId], references: [id])
+  campaign  Campaign?   @relation(fields: [campaignId], references: [id])
+}
+
+model Conversation {
+  id          String   @id @default(cuid())
+  workspaceId String
+  accountId   String?
+  contactId   String?
+  channel     String
+  status      String   @default("active")
+  lastMessage String?
+  sentiment   String?
+  nextAction  String?
+  ownerId     String?
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  workspace Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   BizAccount?           @relation(fields: [accountId], references: [id])
+  contact   Contact?              @relation(fields: [contactId], references: [id])
+  messages  ConversationMessage[]
+}
+
+model ConversationMessage {
+  id             String   @id @default(cuid())
+  conversationId String
+  direction      String
+  body           String
+  channel        String
+  status         String   @default("sent")
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+model PipelineMetric {
+  id          String   @id @default(cuid())
+  workspaceId String
+  campaignId  String?
+  accountId   String?
+  metricType  String
+  value       Float    @default(0)
+  amount      Float    @default(0)
+  occurredAt  DateTime @default(now())
+
+  workspace Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  campaign  Campaign?   @relation(fields: [campaignId], references: [id])
+  account   BizAccount? @relation(fields: [accountId], references: [id])
+}
