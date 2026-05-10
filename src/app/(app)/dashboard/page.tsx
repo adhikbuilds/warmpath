@@ -398,70 +398,46 @@ export default function DashboardPage() {
   return (
     <div className="p-6 space-y-6 max-w-[1280px] mx-auto">
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
             {greeting}, {user?.name?.split(" ")[0] ?? "there"}
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {plays.length} warm {plays.length === 1 ? "play" : "plays"} ready to act on
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {plays.length > 0
+              ? `${plays.length} warm ${plays.length === 1 ? "play" : "plays"} ready`
+              : "No urgent plays right now"}
             {totalPending > 0 && (
               <>
                 {" · "}
                 <Link href="/approval-queue" className="text-brand hover:underline font-medium">
-                  {totalPending} pending approval
+                  {totalPending} awaiting approval
                 </Link>
               </>
             )}
           </p>
         </div>
 
-        {/* 7-day activity strip */}
-        <div className="flex flex-col items-end gap-1 flex-shrink-0">
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
-            7d activity
-          </span>
-          <div className="flex items-end gap-1.5 h-10 max-w-[120px]">
-            {weekDays.map((day, i) => {
-              const count = dayMessages(day, i);
-              const isToday = day.toDateString() === new Date().toDateString();
-              const height = Math.max(4, Math.round((count / maxDayCount) * 32));
-              const dayLabel = day.toLocaleDateString("en", { weekday: "short" }).slice(0, 1);
-              return (
-                <div key={i} className="flex flex-col items-center gap-0.5 flex-1">
-                  <div
-                    className={`w-full rounded-sm transition-all ${isToday ? "bg-brand" : "bg-brand/25"}`}
-                    style={{ height: `${height}px` }}
-                    title={`${count} messages`}
-                  />
-                  <span
-                    className={`text-[9px] ${isToday ? "font-semibold text-foreground" : "text-muted-foreground"}`}
-                  >
-                    {dayLabel}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
         <div className="flex items-center gap-2 flex-shrink-0">
           {totalPending > 0 && (
-            <Button size="sm" asChild>
+            <Button size="sm" className="bg-brand hover:bg-brand/90 text-white gap-1.5" asChild>
               <Link href="/approval-queue">
-                <Bell className="w-3.5 h-3.5 mr-1.5" />
+                <Bell className="w-3.5 h-3.5" />
                 Review {totalPending}
               </Link>
             </Button>
           )}
           <Button size="sm" variant="outline" asChild>
-            <Link href="/campaigns/new">New campaign</Link>
+            <Link href="/campaigns/new">
+              <ArrowRight className="w-3.5 h-3.5 mr-1" />
+              New campaign
+            </Link>
           </Button>
           <Button
             size="sm"
-            variant="outline"
+            variant="ghost"
             onClick={() => setTourOpen(true)}
-            className="text-muted-foreground hover:text-foreground gap-1.5"
+            className="gap-1.5 text-muted-foreground hover:text-foreground"
           >
             <HelpCircle className="w-3.5 h-3.5" />
             Tour
