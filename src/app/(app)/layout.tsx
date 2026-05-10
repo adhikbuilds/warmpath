@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { CommandBar } from "@/components/command-bar";
+import { ProductTour } from "@/components/product-tour";
 import { StoreInitializer } from "@/components/store-initializer";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuthStore } from "@/stores/authStore";
@@ -13,7 +14,7 @@ import { useSalesStore } from "@/stores/salesStore";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { logout } = useAuthStore();
-  const { messages, signals, campaignAssets, followUpTasks } = useSalesStore();
+  const { messages, signals, campaignAssets, followUpTasks, tourOpen, setTourOpen } = useSalesStore();
   const { status } = useSession();
   const router = useRouter();
   const [commandOpen, setCommandOpen] = useState(false);
@@ -106,6 +107,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <main className="flex-1 overflow-auto">{children}</main>
       </SidebarInset>
       <CommandBar open={commandOpen} onClose={() => setCommandOpen(false)} />
+      <ProductTour open={tourOpen} onClose={() => setTourOpen(false)} />
     </SidebarProvider>
   );
 }

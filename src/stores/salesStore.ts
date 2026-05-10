@@ -112,6 +112,8 @@ interface SalesState {
     | "linkedin"
     | "meta_ads";
   generatingIds: Set<string>;
+  tourOpen: boolean;
+  setTourOpen: (open: boolean) => void;
 
   // Init
   initialize: () => Promise<void>;
@@ -573,6 +575,8 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
   approvalFilter: "pending",
   approvalChannelFilter: "all",
   generatingIds: new Set<string>(),
+  tourOpen: false,
+  setTourOpen: (open) => set({ tourOpen: open }),
 
   // ─── Initialize: fetch all data from API ─────────────────────────────────
 
