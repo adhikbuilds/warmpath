@@ -24,10 +24,10 @@ import { CHANNEL_CONFIG } from "@/lib/constants";
 import { useSalesStore } from "@/stores/salesStore";
 
 const STATUS_COLORS: Record<string, string> = {
-  active: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+  active: "bg-[#5db872]/10 text-[#3a8f4e] border-[#5db872]/20",
   draft: "bg-muted text-muted-foreground border-border",
   paused: "bg-brand/10 text-brand border-brand/20",
-  completed: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+  completed: "bg-[#5db8a6]/10 text-[#3a8f7e] border-[#5db8a6]/20",
 };
 
 const CHANNEL_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -40,7 +40,7 @@ const CHANNEL_ICONS: Record<string, React.ComponentType<{ className?: string }>>
 };
 
 export default function CampaignsPage() {
-  const { campaigns, campaignRecommendations } = useSalesStore();
+  const { campaigns, campaignRecommendations, updateCampaignStatus } = useSalesStore();
   const topRec = campaignRecommendations[0];
 
   return (
@@ -268,7 +268,10 @@ export default function CampaignsPage() {
                     <Button
                       size="sm"
                       className="h-7 text-xs"
-                      onClick={() => toast.success(`${campaign.name} launched!`)}
+                      onClick={() => {
+                        updateCampaignStatus(campaign.id, "active");
+                        toast.success(`${campaign.name} is now live`);
+                      }}
                     >
                       <TrendingUp className="w-3 h-3 mr-1" /> Launch
                     </Button>
@@ -278,9 +281,24 @@ export default function CampaignsPage() {
                       size="sm"
                       variant="outline"
                       className="h-7 text-xs"
-                      onClick={() => toast.info(`${campaign.name} paused`)}
+                      onClick={() => {
+                        updateCampaignStatus(campaign.id, "paused");
+                        toast.success(`${campaign.name} paused`);
+                      }}
                     >
                       Pause
+                    </Button>
+                  )}
+                  {campaign.status === "paused" && (
+                    <Button
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => {
+                        updateCampaignStatus(campaign.id, "active");
+                        toast.success(`${campaign.name} resumed`);
+                      }}
+                    >
+                      <TrendingUp className="w-3 h-3 mr-1" /> Resume
                     </Button>
                   )}
                 </div>

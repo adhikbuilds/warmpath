@@ -1,10 +1,10 @@
-import type { NextRequest } from "next/server";
-import { proxyRequestToService, proxyToService } from "@/lib/service-proxy";
+import { NextResponse } from "next/server";
+import { DEMO_WORKSPACE } from "@/lib/demo-data-extended";
 
 export async function GET() {
-  return proxyToService("/workspaces/current");
+  return NextResponse.json(DEMO_WORKSPACE);
 }
 
-export async function PATCH(req: NextRequest) {
-  return proxyRequestToService(req, "/workspaces/current", "PATCH");
+export async function PATCH() {
+  return NextResponse.json({ error: "Not implemented in demo" }, { status: 501 });
 }
