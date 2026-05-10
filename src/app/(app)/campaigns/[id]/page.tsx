@@ -20,10 +20,10 @@ import { Progress } from "@/components/ui/progress";
 import { useSalesStore } from "@/stores/salesStore";
 
 const STATUS_COLORS: Record<string, string> = {
-  active: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+  active: "bg-[#5db872]/10 text-[#3a8f4e] border-[#5db872]/20",
   draft: "bg-muted text-muted-foreground",
   paused: "bg-brand/10 text-brand border-brand/20",
-  completed: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+  completed: "bg-[#5db8a6]/10 text-[#3a8f7e] border-[#5db8a6]/20",
 };
 
 const CHANNEL_ICONS: Record<string, React.ReactNode> = {
@@ -34,7 +34,7 @@ const CHANNEL_ICONS: Record<string, React.ReactNode> = {
 
 export default function CampaignDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const { campaigns, contacts, accounts } = useSalesStore();
+  const { campaigns, contacts, accounts, updateCampaignStatus } = useSalesStore();
 
   const campaign = campaigns.find((c) => c.id === id);
   if (!campaign)
@@ -76,14 +76,20 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {campaign.status === "draft" && (
-            <Button size="sm" onClick={() => toast.success(`${campaign.name} launched!`)}>
+            <Button size="sm" onClick={() => { updateCampaignStatus(campaign.id, "active"); toast.success(`${campaign.name} is now live`); }}>
               <Play className="w-3.5 h-3.5 mr-1.5" />
               Launch
             </Button>
           )}
           {campaign.status === "active" && (
-            <Button size="sm" variant="outline" onClick={() => toast.success("Campaign paused")}>
+            <Button size="sm" variant="outline" onClick={() => { updateCampaignStatus(campaign.id, "paused"); toast.success("Campaign paused"); }}>
               Pause
+            </Button>
+          )}
+          {campaign.status === "paused" && (
+            <Button size="sm" onClick={() => { updateCampaignStatus(campaign.id, "active"); toast.success(`${campaign.name} resumed`); }}>
+              <Play className="w-3.5 h-3.5 mr-1.5" />
+              Resume
             </Button>
           )}
         </div>

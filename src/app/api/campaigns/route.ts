@@ -1,10 +1,10 @@
-import type { NextRequest } from "next/server";
-import { proxyRequestToService, proxyToService } from "@/lib/service-proxy";
+import { NextResponse } from "next/server";
+import { DEMO_CAMPAIGNS } from "@/lib/demo-data";
 
 export async function GET() {
-  return proxyToService("/campaigns");
+  return NextResponse.json(DEMO_CAMPAIGNS);
 }
 
-export async function POST(req: NextRequest) {
-  return proxyRequestToService(req, "/campaigns", "POST");
+export async function POST() {
+  return NextResponse.json({ error: "Not implemented in demo" }, { status: 501 });
 }

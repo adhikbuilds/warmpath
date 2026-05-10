@@ -29,6 +29,8 @@ import {
 } from "recharts";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useSalesStore } from "@/stores/salesStore";
 
 // ── Analytics API response type ───────────────────────────────────────────────
@@ -181,6 +183,8 @@ export default function AnalyticsPage() {
   const [range, setRange] = useState<"30d" | "90d" | "all">("90d");
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [avgDealSize, setAvgDealSize] = useState(30000);
+  const [coldCostPerMeeting, setColdCostPerMeeting] = useState(1500);
 
   const { messages, accounts, warmPaths, workspaceMembers } = useSalesStore();
 
@@ -222,14 +226,12 @@ export default function AnalyticsPage() {
   // Meetings approximation (sent messages as proxy)
   const meetingsFromWarm = analytics ? analytics.messages_funnel.sent : sentMessages;
 
-  // ROI numbers
-  const AVG_DEAL_SIZE = 30000;
-  const COLD_COST_PER_MEETING = 1500;
+  // ROI numbers (configurable via inputs)
   const WARM_CLOSE_RATE = 0.26;
   const HOURS_PER_MEETING_COLD = 20;
-  const projectedPipeline = meetingsFromWarm * AVG_DEAL_SIZE;
+  const projectedPipeline = meetingsFromWarm * avgDealSize;
   const projectedRevenue = Math.round(projectedPipeline * WARM_CLOSE_RATE);
-  const coldCostEquivalent = meetingsFromWarm * COLD_COST_PER_MEETING;
+  const coldCostEquivalent = meetingsFromWarm * coldCostPerMeeting;
   const hoursSaved = meetingsFromWarm * HOURS_PER_MEETING_COLD;
 
   // ── Funnel from API (or store fallback) ────────────────────────────────────
@@ -831,9 +833,48 @@ export default function AnalyticsPage() {
       <div>
         <Card className="border-border/60 overflow-hidden">
           <CardHeader className="pb-3 border-b border-border/60">
-            <div className="flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-green-500" />
-              <CardTitle className="text-base font-semibold">Warm Intro ROI</CardTitle>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-brand" />
+                <CardTitle className="text-base font-semibold">ROI Calculator</CardTitle>
+              </div>
+              {/* Configurable inputs */}
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="deal-size" className="text-xs text-muted-foreground whitespace-nowrap">
+                    Avg deal size
+                  </Label>
+                  <div className="relative">
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
+                    <Input
+                      id="deal-size"
+                      type="number"
+                      min={1000}
+                      step={1000}
+                      value={avgDealSize}
+                      onChange={(e) => setAvgDealSize(Math.max(1000, Number(e.target.value)))}
+                      className="h-7 w-28 pl-5 text-xs"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="cold-cost" className="text-xs text-muted-foreground whitespace-nowrap">
+                    Cold cost / meeting
+                  </Label>
+                  <div className="relative">
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
+                    <Input
+                      id="cold-cost"
+                      type="number"
+                      min={100}
+                      step={100}
+                      value={coldCostPerMeeting}
+                      onChange={(e) => setColdCostPerMeeting(Math.max(100, Number(e.target.value)))}
+                      className="h-7 w-24 pl-5 text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="p-0">
@@ -852,11 +893,11 @@ export default function AnalyticsPage() {
                 <div className="h-px bg-border/60" />
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">
-                    vs industry cold outreach cost:{" "}
-                    <span className="font-medium text-foreground">$1,500/meeting</span>
+                    vs cold outreach cost:{" "}
+                    <span className="font-medium text-foreground">${coldCostPerMeeting.toLocaleString()}/meeting</span>
                   </p>
                   <p className="text-sm text-muted-foreground">Would have cost:</p>
-                  <p className="text-2xl font-bold text-red-500 mt-0.5">
+                  <p className="text-2xl font-bold text-brand mt-0.5">
                     ${coldCostEquivalent.toLocaleString()}
                   </p>
                 </div>
@@ -868,11 +909,11 @@ export default function AnalyticsPage() {
                   <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-1">
                     Pipeline generated
                   </p>
-                  <p className="text-3xl font-bold tracking-tight text-blue-500">
+                  <p className="text-3xl font-bold tracking-tight text-[#5db8a6]">
                     ~${projectedPipeline.toLocaleString()}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {meetingsFromWarm} messages × $30K avg deal size
+                    {meetingsFromWarm} messages × ${avgDealSize.toLocaleString()} avg deal size
                   </p>
                 </div>
                 <div className="h-px bg-border/60" />
@@ -881,7 +922,7 @@ export default function AnalyticsPage() {
                     Close rate warm: <span className="font-medium text-foreground">26%</span>
                   </p>
                   <p className="text-sm text-muted-foreground">Projected revenue:</p>
-                  <p className="text-2xl font-bold text-green-500 mt-0.5">
+                  <p className="text-2xl font-bold text-[#5db872] mt-0.5">
                     ${projectedRevenue.toLocaleString()}
                   </p>
                 </div>
@@ -914,15 +955,15 @@ export default function AnalyticsPage() {
             </div>
 
             {/* Info banner */}
-            <div className="mx-6 mb-6 mt-2 rounded-lg bg-blue-500/8 border border-blue-500/20 p-4 flex items-start gap-3">
-              <Info className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
-                These results are based on your actual warm path coverage and outreach history.
-                Increasing network coverage from{" "}
-                <strong>
+            <div className="mx-6 mb-6 mt-2 rounded-lg bg-brand/5 border border-brand/15 p-4 flex items-start gap-3">
+              <Info className="w-4 h-4 text-brand flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Based on your actual warm path coverage and outreach history. Adjust the deal size
+                and cold cost above to model your specific numbers. Increasing network coverage from{" "}
+                <strong className="text-foreground">
                   {networkCoverage}% → {Math.min(networkCoverage + 17, 100)}%
                 </strong>{" "}
-                is estimated to add <strong>4–6 more messages/month</strong>.
+                is estimated to add <strong className="text-foreground">4–6 more messages/month</strong>.
               </p>
             </div>
           </CardContent>

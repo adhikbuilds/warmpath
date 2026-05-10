@@ -182,6 +182,7 @@ interface SalesState {
 
   // Actions Campaigns
   addCampaign: (campaign: Campaign) => void;
+  updateCampaignStatus: (id: string, status: Campaign["status"]) => void;
 
   // Actions Queue a newly composed message (client-side only)
   addMessageToQueue: (
@@ -1122,6 +1123,12 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
 
   addCampaign: (campaign) => {
     set((state) => ({ campaigns: [campaign, ...state.campaigns] }));
+  },
+
+  updateCampaignStatus: (id, status) => {
+    set((state) => ({
+      campaigns: state.campaigns.map((c) => (c.id === id ? { ...c, status } : c)),
+    }));
   },
 
   addMessageToQueue: (draft) => {
