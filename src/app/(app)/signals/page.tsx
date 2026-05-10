@@ -21,6 +21,7 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -487,7 +488,8 @@ function WarmPathReveal({
 }
 
 function IntelPanel({ signalId }: { signalId: string | null }) {
-  const { signals, accounts, contacts, teamMembers, relationshipEdges } = useSalesStore();
+  const router = useRouter();
+  const { signals, accounts, contacts, warmPaths, teamMembers, relationshipEdges, addMessageToQueue } = useSalesStore();
   const [loading, setLoading] = useState(false);
   const [revealPath, setRevealPath] = useState<RevealPath | null>(null);
   const [targetContact, setTargetContact] = useState<{ name: string; title: string } | null>(null);
@@ -629,7 +631,31 @@ function IntelPanel({ signalId }: { signalId: string | null }) {
               <Button
                 className="w-full gap-2"
                 size="sm"
-                onClick={() => toast.success(`Drafting intro request for ${account?.name}…`)}
+                onClick={() => {
+                  if (!signal || !account) return;
+                  const topContact = contacts.find((c) => c.account_id === account.id);
+                  const warmPath = warmPaths.find((wp) => wp.account_id === account.id);
+                  addMessageToQueue({
+                    account_id: account.id,
+                    contact_id: topContact?.id ?? "",
+                    warm_path_id: warmPath?.id,
+                    signal_id: signal.id,
+                    channel: "warm_intro",
+                    subject: `Intro request — ${account.name}`,
+                    body: `Hi,\n\nI wanted to reach out about ${account.name} following their ${signal.title}.\n\n${signal.description}\n\nWould you be open to a quick intro?`,
+                    intro_request: `Would you mind connecting me with someone at ${account.name}? The timing looks great based on their recent activity.`,
+                    status: "draft",
+                    approval_status: "pending",
+                    generated_by_ai: true,
+                    confidence_score: 0.88,
+                    personalization_reason: signal.description ?? signal.title,
+                    factual_claims: [signal.title],
+                    supporting_sources: ["WarmPath signal monitor"],
+                    risk_flags: [],
+                  });
+                  toast.success(`Intro request drafted for ${account.name}`);
+                  router.push("/approval-queue");
+                }}
               >
                 <Bot className="w-3.5 h-3.5" />
                 Draft intro request
@@ -639,11 +665,30 @@ function IntelPanel({ signalId }: { signalId: string | null }) {
               variant={revealPath ? "outline" : "default"}
               className="w-full gap-2"
               size="sm"
-              onClick={() =>
-                toast.success(
-                  `Drafting ${revealPath ? "warm" : "cold"} outreach for ${account?.name}…`,
-                )
-              }
+              onClick={() => {
+                if (!signal || !account) return;
+                const topContact = contacts.find((c) => c.account_id === account.id);
+                const warmPath = revealPath ? warmPaths.find((wp) => wp.account_id === account.id) : undefined;
+                addMessageToQueue({
+                  account_id: account.id,
+                  contact_id: topContact?.id ?? "",
+                  warm_path_id: warmPath?.id,
+                  signal_id: signal.id,
+                  channel: revealPath ? "email" : "email",
+                  subject: `${signal.title} — ${account.name}`,
+                  body: `Hi ${topContact?.name?.split(" ")[0] ?? "there"},\n\nI noticed ${signal.title.toLowerCase()} at ${account.name} and wanted to reach out.\n\n${signal.description}\n\nWould love to connect and share how we've helped similar companies.\n\nBest,\nAdhik`,
+                  status: "draft",
+                  approval_status: "pending",
+                  generated_by_ai: true,
+                  confidence_score: revealPath ? 0.85 : 0.72,
+                  personalization_reason: signal.description ?? signal.title,
+                  factual_claims: [signal.title],
+                  supporting_sources: ["WarmPath signal monitor"],
+                  risk_flags: [],
+                });
+                toast.success(`Outreach drafted for ${account.name} — review in Approval Queue`);
+                router.push("/approval-queue");
+              }}
             >
               <MessageSquare className="w-3.5 h-3.5" />
               {revealPath ? "Draft warm email" : "Draft cold outreach"}
@@ -946,7 +991,8 @@ function getActionLine(
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function SignalsPage() {
-  const { signals, accounts, warmPaths, contacts, relationshipEdges } = useSalesStore();
+  const router = useRouter();
+  const { signals, accounts, warmPaths, contacts, relationshipEdges, addMessageToQueue } = useSalesStore();
 
   const [view, setView] = useState<"signals" | "linkedin">("signals");
   const [search, setSearch] = useState("");
@@ -1247,7 +1293,7 @@ export default function SignalsPage() {
       <Card
         key={signal.id}
         onClick={() => setSelectedSignalId(isSelected ? null : signal.id)}
-        className={`border-l-2 ${urgencyBorder} cursor-pointer transition-all ${isArchived ? "opacity-60" : ""} ${isSelected ? "border-blue-500/40 bg-blue-500/5 shadow-sm" : "border-border/60 hover:border-border"}`}
+        className={`border-l-2 ${urgencyBorder} cursor-pointer transition-all ${isArchived ? "opacity-60" : ""} ${isSelected ? "border-brand/40 bg-brand/5 shadow-sm" : "border-border/60 hover:border-border"}`}
       >
         <CardContent className="p-4">
           <div className="flex items-start gap-4">
@@ -1325,10 +1371,28 @@ export default function SignalsPage() {
                   size="sm"
                   className="h-7 text-xs gap-1"
                   onClick={() => {
-                    toast.success(
-                      `Drafting ${hasWarmPath ? "warm intro" : "outreach"} for ${account?.name ?? "account"}…`,
-                      { description: "This will appear in your approval queue." },
-                    );
+                    if (!account) return;
+                    addMessageToQueue({
+                      account_id: signal.account_id,
+                      contact_id: contact?.id ?? "",
+                      warm_path_id: warmPath?.id,
+                      signal_id: signal.id,
+                      channel: hasWarmPath ? "warm_intro" : "email",
+                      subject: `${signal.title} — ${account.name}`,
+                      body: `Hi ${contact?.name?.split(" ")[0] ?? "there"},\n\nI noticed ${signal.title.toLowerCase()} at ${account.name} and wanted to reach out.\n\n${signal.description}\n\nWould love to connect and share how we've helped similar companies.\n\nBest,\nAdhik`,
+                      status: "draft",
+                      approval_status: "pending",
+                      generated_by_ai: true,
+                      confidence_score: hasWarmPath ? 0.88 : 0.74,
+                      personalization_reason: signal.description ?? signal.title,
+                      factual_claims: [signal.title],
+                      supporting_sources: ["WarmPath signal monitor"],
+                      risk_flags: [],
+                    });
+                    toast.success(`Outreach drafted for ${account.name}`, {
+                      description: "Review and approve it in the Approval Queue.",
+                    });
+                    router.push("/approval-queue");
                   }}
                 >
                   <Sparkles className="w-3 h-3" />
@@ -1355,7 +1419,26 @@ export default function SignalsPage() {
                   className="h-6 text-[10px]"
                   onClick={(e) => {
                     e.stopPropagation();
-                    toast.success("Drafting message…");
+                    if (!account) return;
+                    addMessageToQueue({
+                      account_id: signal.account_id,
+                      contact_id: contact?.id ?? "",
+                      warm_path_id: warmPath?.id,
+                      signal_id: signal.id,
+                      channel: hasWarmPath ? "warm_intro" : "email",
+                      subject: `Re: ${signal.title} at ${account.name}`,
+                      body: `Hi ${contact?.name?.split(" ")[0] ?? "there"},\n\nSaw that ${account.name} ${signal.title.toLowerCase()} — great timing to connect.\n\n${signal.description}\n\nWould you be open to a brief call?\n\nBest,\nAdhik`,
+                      status: "draft",
+                      approval_status: "pending",
+                      generated_by_ai: true,
+                      confidence_score: 0.8,
+                      personalization_reason: signal.description ?? signal.title,
+                      factual_claims: [signal.title],
+                      supporting_sources: ["WarmPath signal monitor"],
+                      risk_flags: [],
+                    });
+                    toast.success(`Message drafted for ${account.name}`);
+                    router.push("/approval-queue");
                   }}
                 >
                   Draft message

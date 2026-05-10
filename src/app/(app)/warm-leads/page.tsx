@@ -106,52 +106,52 @@ const STAGE_THEME: Record<
   }
 > = {
   active: {
-    band: "bg-sky-500",
-    soft: "bg-sky-50",
-    border: "border-sky-200",
-    text: "text-sky-700",
-    cardBorder: "border-l-sky-500",
-    emptyBorder: "border-sky-200/70",
+    band: "bg-[#cc785c]",
+    soft: "bg-[#cc785c]/8",
+    border: "border-[#cc785c]/25",
+    text: "text-[#cc785c]",
+    cardBorder: "border-l-[#cc785c]",
+    emptyBorder: "border-[#cc785c]/20",
   },
   intro_sent: {
-    band: "bg-lime-400",
-    soft: "bg-lime-50",
-    border: "border-lime-200",
-    text: "text-lime-700",
-    cardBorder: "border-l-lime-500",
-    emptyBorder: "border-lime-200/70",
+    band: "bg-[#e8a55a]",
+    soft: "bg-[#e8a55a]/8",
+    border: "border-[#e8a55a]/25",
+    text: "text-[#b87f3a]",
+    cardBorder: "border-l-[#e8a55a]",
+    emptyBorder: "border-[#e8a55a]/20",
   },
   intro_accepted: {
-    band: "bg-green-500",
-    soft: "bg-green-50",
-    border: "border-green-200",
-    text: "text-green-700",
-    cardBorder: "border-l-green-500",
-    emptyBorder: "border-green-200/70",
+    band: "bg-[#5db872]",
+    soft: "bg-[#5db872]/8",
+    border: "border-[#5db872]/25",
+    text: "text-[#3a8f4e]",
+    cardBorder: "border-l-[#5db872]",
+    emptyBorder: "border-[#5db872]/20",
   },
   message_sent: {
-    band: "bg-orange-500",
-    soft: "bg-orange-50",
-    border: "border-orange-200",
-    text: "text-orange-700",
-    cardBorder: "border-l-orange-500",
-    emptyBorder: "border-orange-200/70",
+    band: "bg-[#5db8a6]",
+    soft: "bg-[#5db8a6]/8",
+    border: "border-[#5db8a6]/25",
+    text: "text-[#3a8f7e]",
+    cardBorder: "border-l-[#5db8a6]",
+    emptyBorder: "border-[#5db8a6]/20",
   },
   replied: {
-    band: "bg-emerald-600",
-    soft: "bg-emerald-50",
-    border: "border-emerald-200",
-    text: "text-emerald-700",
-    cardBorder: "border-l-emerald-600",
-    emptyBorder: "border-emerald-200/70",
+    band: "bg-[#4a8a6a]",
+    soft: "bg-[#4a8a6a]/8",
+    border: "border-[#4a8a6a]/25",
+    text: "text-[#2d6b4e]",
+    cardBorder: "border-l-[#4a8a6a]",
+    emptyBorder: "border-[#4a8a6a]/20",
   },
   meeting_booked: {
-    band: "bg-violet-600",
-    soft: "bg-violet-50",
-    border: "border-violet-200",
-    text: "text-violet-700",
-    cardBorder: "border-l-violet-600",
-    emptyBorder: "border-violet-200/70",
+    band: "bg-[#7b6ea8]",
+    soft: "bg-[#7b6ea8]/8",
+    border: "border-[#7b6ea8]/25",
+    text: "text-[#5c5180]",
+    cardBorder: "border-l-[#7b6ea8]",
+    emptyBorder: "border-[#7b6ea8]/20",
   },
 };
 
@@ -339,8 +339,8 @@ function ComposeSheet({ open, onClose, account, contact, signal, warmPath }: Com
                       idx === 0
                         ? "bg-brand/10 text-brand"
                         : idx === (warmPath?.path_nodes?.length ?? 0) - 1
-                          ? "bg-violet-500/10 text-violet-600"
-                          : "bg-blue-500/10 text-blue-600"
+                          ? "bg-[#7b6ea8]/10 text-[#5c5180]"
+                          : "bg-[#5db8a6]/10 text-[#3a8f7e]"
                     }`}
                   >
                     {node.name.split(" ")[0]}
@@ -352,11 +352,11 @@ function ComposeSheet({ open, onClose, account, contact, signal, warmPath }: Com
                     You
                   </span>
                   <span className="text-muted-foreground/40">→</span>
-                  <span className="px-1.5 py-0.5 rounded text-[11px] font-medium bg-blue-500/10 text-blue-600">
+                  <span className="px-1.5 py-0.5 rounded text-[11px] font-medium bg-[#5db8a6]/10 text-[#3a8f7e]">
                     {via}
                   </span>
                   <span className="text-muted-foreground/40">→</span>
-                  <span className="px-1.5 py-0.5 rounded text-[11px] font-medium bg-violet-500/10 text-violet-600">
+                  <span className="px-1.5 py-0.5 rounded text-[11px] font-medium bg-[#7b6ea8]/10 text-[#5c5180]">
                     {contact.name.split(" ")[0]}
                   </span>
                 </>
@@ -490,7 +490,7 @@ function ScorePill({ label, value }: { label: string; value: number }) {
     value >= 80
       ? "text-brand bg-brand/10 border-brand/20"
       : value >= 60
-        ? "text-blue-500 bg-blue-500/10 border-blue-500/20"
+        ? "text-[#5db8a6] bg-[#5db8a6]/10 border-[#5db8a6]/20"
         : "text-muted-foreground bg-muted/50 border-border/40";
   return (
     <div className={`flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded border ${color}`}>
@@ -505,7 +505,7 @@ function ContactAvatar({ name, warmth }: { name: string; warmth: number }) {
     warmth >= 70
       ? "bg-brand/20 text-brand"
       : warmth >= 40
-        ? "bg-blue-500/20 text-blue-600"
+        ? "bg-[#5db8a6]/20 text-[#3a8f7e]"
         : "bg-muted text-muted-foreground";
   return (
     <div
@@ -951,8 +951,8 @@ Thanks,
                                             ni === 0
                                               ? "text-brand"
                                               : ni === computedPath.nodes.length - 1
-                                                ? "text-violet-400"
-                                                : "text-blue-400"
+                                                ? "text-[#7b6ea8]"
+                                                : "text-[#5db8a6]"
                                           }`}
                                         >
                                           {n.name.split(" ")[0]}
@@ -1350,8 +1350,8 @@ Thanks,
                               idx === 0
                                 ? "bg-brand/10 text-brand border-brand/20"
                                 : idx === selectedCard.pathNodes!.length - 1
-                                  ? "bg-violet-500/10 text-violet-600 border-violet-500/20"
-                                  : "bg-blue-500/10 text-blue-600 border-blue-500/20"
+                                  ? "bg-[#7b6ea8]/10 text-[#5c5180] border-[#7b6ea8]/20"
+                                  : "bg-[#5db8a6]/10 text-[#3a8f7e] border-[#5db8a6]/20"
                             }`}
                           >
                             {node}

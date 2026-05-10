@@ -21,6 +21,7 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ProductTour } from "@/components/product-tour";
@@ -282,6 +283,7 @@ ${userFirstName}`;
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { user } = useAuthStore();
   const {
     messages,
@@ -294,6 +296,7 @@ export default function DashboardPage() {
     relationshipEdges,
     followUpTasks,
     completeFollowUpTask,
+    addMessageToQueue,
   } = useSalesStore();
 
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
@@ -511,9 +514,34 @@ export default function DashboardPage() {
                 <Button
                   size="sm"
                   className="gap-1.5 bg-brand hover:bg-brand/90 text-white"
-                  onClick={() =>
-                    toast.success(`Drafting intro request for ${topPlay.account?.name}…`)
-                  }
+                  onClick={() => {
+                    const contact = contacts.find(
+                      (c) => c.account_id === topPlay.signal.account_id,
+                    );
+                    const warmPath = warmPaths.find(
+                      (wp) => wp.account_id === topPlay.signal.account_id,
+                    );
+                    addMessageToQueue({
+                      account_id: topPlay.signal.account_id,
+                      contact_id: contact?.id ?? "",
+                      warm_path_id: warmPath?.id,
+                      signal_id: topPlay.signal.id,
+                      channel: "warm_intro",
+                      subject: `Intro request — ${topPlay.account?.name}`,
+                      body: `Hi,\n\nI noticed ${topPlay.signal.title} and wanted to reach out about ${topPlay.account?.name}.\n\n${topPlay.signal.description}\n\nWould you be open to a quick intro?`,
+                      intro_request: `Would you mind connecting me with someone at ${topPlay.account?.name}? The timing looks great based on their recent activity.`,
+                      status: "draft",
+                      approval_status: "pending",
+                      generated_by_ai: true,
+                      confidence_score: 0.85,
+                      personalization_reason: topPlay.signal.description ?? topPlay.signal.title,
+                      factual_claims: [topPlay.signal.title],
+                      supporting_sources: ["WarmPath signal monitor"],
+                      risk_flags: [],
+                    });
+                    toast.success(`Intro request drafted for ${topPlay.account?.name}`);
+                    router.push("/approval-queue");
+                  }}
                 >
                   <GitFork className="w-3.5 h-3.5" />
                   Draft intro request
