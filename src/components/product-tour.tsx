@@ -1,8 +1,22 @@
 "use client";
 
-import { X, ArrowRight, ArrowLeft, Zap, Bell, ListChecks, Megaphone, BarChart3, Network, Building2, BookOpen, Link2, LayoutDashboard } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  BarChart3,
+  Bell,
+  BookOpen,
+  Building2,
+  LayoutDashboard,
+  Link2,
+  ListChecks,
+  Megaphone,
+  Network,
+  X,
+  Zap,
+} from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useEffect, useState, useCallback } from "react";
 
 const STEPS = [
   {
@@ -11,7 +25,8 @@ const STEPS = [
     color: "#cc785c",
     title: "Dashboard",
     tagline: "Your daily command center",
-    description: "Every morning, start here. You'll see your warmest leads, messages waiting for approval, and any urgent signals — all prioritised for you.",
+    description:
+      "Every morning, start here. You'll see your warmest leads, messages waiting for approval, and any urgent signals — all prioritised so you know exactly what to do first.",
   },
   {
     href: "/warm-leads",
@@ -19,7 +34,8 @@ const STEPS = [
     color: "#cc785c",
     title: "Warm Leads",
     tagline: "Know exactly who to call today",
-    description: "Instead of guessing, WarmPath ranks every prospect by how warm your team's connection is. Each lead shows you the exact path — who to ask for the intro, and what to say.",
+    description:
+      "Instead of guessing, WarmPath ranks every prospect by how warm your team's connection is. Each lead shows you the exact path — who to ask for the intro and what to say.",
   },
   {
     href: "/approval-queue",
@@ -27,7 +43,8 @@ const STEPS = [
     color: "#5db872",
     title: "Approval Queue",
     tagline: "AI drafts — you approve before it sends",
-    description: "WarmPath writes personalised messages for each prospect. They land here first. You review, tweak if needed, then approve with one click. Nothing goes out without your sign-off.",
+    description:
+      "WarmPath writes personalised messages for each prospect. They land here first. Review, tweak if needed, then approve with one click. Nothing goes out without your sign-off.",
   },
   {
     href: "/tasks",
@@ -35,7 +52,8 @@ const STEPS = [
     color: "#e8a55a",
     title: "Tasks",
     tagline: "Your follow-up checklist",
-    description: "Overdue follow-ups, intro requests waiting on teammates, meetings to confirm — all your pending actions in one list so nothing slips.",
+    description:
+      "Overdue follow-ups, intro requests waiting on teammates, meetings to confirm — all your pending actions in one list so nothing slips through.",
   },
   {
     href: "/campaigns",
@@ -43,7 +61,8 @@ const STEPS = [
     color: "#5db8a6",
     title: "Campaigns",
     tagline: "Multi-step outreach sequences",
-    description: "Build sequences that automatically route step 1 through the warmest intro path. If no warm path exists, it falls back to high-quality cold outreach — clearly labelled.",
+    description:
+      "Build sequences that route step 1 through the warmest intro path automatically. If no warm path exists, it falls back to high-quality cold outreach — clearly labelled.",
   },
   {
     href: "/signals",
@@ -51,7 +70,8 @@ const STEPS = [
     color: "#cc785c",
     title: "Signals",
     tagline: "Know the perfect moment to reach out",
-    description: "WarmPath monitors 13 buying signals 24/7 — funding rounds, leadership changes, job postings, and more. Each signal is scored so you act when it matters most.",
+    description:
+      "WarmPath monitors 13 buying signals 24/7 — funding rounds, leadership changes, job postings, and more. Each signal is scored so you act when it matters most.",
   },
   {
     href: "/relationship-graph",
@@ -59,7 +79,8 @@ const STEPS = [
     color: "#5db8a6",
     title: "Relationship Graph",
     tagline: "Your team's entire network, visualised",
-    description: "See every connection your team has and the shortest warm path to any prospect. Click any company to find who on your team knows someone there.",
+    description:
+      "See every connection your team has and the shortest warm path to any prospect. Click any company to find who on your team knows someone there.",
   },
   {
     href: "/accounts",
@@ -67,7 +88,8 @@ const STEPS = [
     color: "#e8a55a",
     title: "Accounts",
     tagline: "Your target companies",
-    description: "Every company you're pursuing, with their warmth score, active buying signals, and relationship strength shown at a glance.",
+    description:
+      "Every company you're pursuing with their warmth score, active buying signals, and relationship strength at a glance.",
   },
   {
     href: "/knowledge-base",
@@ -75,7 +97,8 @@ const STEPS = [
     color: "#cc785c",
     title: "Knowledge Base",
     tagline: "Your company's brain for the AI",
-    description: "Add your messaging frameworks, case studies, pricing, and personas here. The AI uses these to write messages that sound exactly like your company — not like a template.",
+    description:
+      "Add your messaging frameworks, case studies, pricing, and personas here. The AI uses these to write messages that sound exactly like your company — not like a generic template.",
   },
   {
     href: "/integrations",
@@ -83,7 +106,8 @@ const STEPS = [
     color: "#5db8a6",
     title: "Integrations",
     tagline: "Connect your existing tools",
-    description: "Link LinkedIn, Gmail, Salesforce, and more. WarmPath pulls relationship data from the tools your team already uses to keep the graph accurate.",
+    description:
+      "Link LinkedIn, Gmail, Salesforce, and more. WarmPath pulls relationship data from the tools your team already uses to keep the graph accurate.",
   },
 ];
 
@@ -94,35 +118,47 @@ interface ProductTourProps {
 
 export function ProductTour({ open, onClose }: ProductTourProps) {
   const [step, setStep] = useState(0);
-  const [rect, setRect] = useState<DOMRect | null>(null);
+  const [highlightRect, setHighlightRect] = useState<{
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+  } | null>(null);
   const [mounted, setMounted] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { setMounted(true); }, []);
-  useEffect(() => { if (open) setStep(0); }, [open]);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (open) setStep(0);
+  }, [open]);
 
   const current = STEPS[step];
 
-  // Find the sidebar nav element for the current step and track its position
+  // Find and track the sidebar nav item for the current step
   useEffect(() => {
     if (!open || !mounted) return;
 
-    const update = () => {
-      // Next.js Link renders <a> tags with the href
+    const measure = () => {
       const el = document.querySelector(`a[href="${current.href}"]`) as HTMLElement | null;
       if (el) {
-        setRect(el.getBoundingClientRect());
+        const r = el.getBoundingClientRect();
+        setHighlightRect({ top: r.top, left: r.left, width: r.width, height: r.height });
+      } else {
+        setHighlightRect(null);
       }
     };
 
-    update();
-    // Small delay for layout to settle
-    const t = setTimeout(update, 50);
-    window.addEventListener("resize", update);
+    measure();
+    const timer = setTimeout(measure, 80);
+    window.addEventListener("resize", measure);
     return () => {
-      clearTimeout(t);
-      window.removeEventListener("resize", update);
+      clearTimeout(timer);
+      window.removeEventListener("resize", measure);
     };
-  }, [open, mounted, current.href, step]);
+  }, [open, mounted, step, current.href]);
 
   const next = useCallback(() => {
     if (step < STEPS.length - 1) setStep((s) => s + 1);
@@ -142,165 +178,174 @@ export function ProductTour({ open, onClose }: ProductTourProps) {
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose, next, prev]);
 
-  if (!open || !mounted) return null;
+  if (!mounted) return null;
+  if (!open) return null;
 
   const Icon = current.icon;
   const isLast = step === STEPS.length - 1;
+  const PAD = 6;
 
-  // Card positioning: right of sidebar, vertically centred on the highlighted element
-  const SIDEBAR_W = rect ? Math.max(rect.right + 20, 276) : 276;
-  const cardTop = rect
-    ? Math.max(24, Math.min(rect.top + rect.height / 2 - 140, (typeof window !== "undefined" ? window.innerHeight : 800) - 320))
-    : 120;
-
-  // Spotlight rect with padding
-  const pad = 5;
-  const sr = rect
-    ? { x: rect.x - pad, y: rect.y - pad, w: rect.width + pad * 2, h: rect.height + pad * 2 }
-    : null;
+  // Card position: just to the right of the sidebar (~256px), vertically near the highlighted item
+  const sidebarRight = highlightRect ? highlightRect.left + highlightRect.width + PAD + 16 : 272;
+  const cardY = highlightRect
+    ? Math.max(16, Math.min(highlightRect.top + highlightRect.height / 2 - 150, window.innerHeight - 360))
+    : Math.floor(window.innerHeight / 2) - 150;
 
   return createPortal(
-    <div className="fixed inset-0" style={{ zIndex: 9999 }}>
-      {/* SVG overlay with spotlight cutout */}
-      {sr && (
-        <svg
-          className="absolute inset-0 w-full h-full pointer-events-none"
-          style={{ zIndex: 0 }}
-        >
-          <defs>
-            <mask id="tour-spotlight-mask">
-              <rect width="100%" height="100%" fill="white" />
-              <rect x={sr.x} y={sr.y} width={sr.w} height={sr.h} rx="7" fill="black" />
-            </mask>
-          </defs>
-          <rect
-            width="100%"
-            height="100%"
-            fill="rgba(0,0,0,0.62)"
-            mask="url(#tour-spotlight-mask)"
-          />
-        </svg>
-      )}
+    <>
+      {/* Dark backdrop */}
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 9998,
+          background: "rgba(0,0,0,0.55)",
+          backdropFilter: "blur(2px)",
+        }}
+        onClick={onClose}
+      />
 
-      {/* Click backdrop to close */}
-      <div className="absolute inset-0" style={{ zIndex: 1 }} onClick={onClose} />
-
-      {/* Spotlight glow ring around highlighted element */}
-      {sr && (
+      {/* Spotlight ring around sidebar item */}
+      {highlightRect && (
         <div
-          className="absolute pointer-events-none"
           style={{
-            zIndex: 2,
-            top: sr.y,
-            left: sr.x,
-            width: sr.w,
-            height: sr.h,
-            borderRadius: 7,
+            position: "fixed",
+            zIndex: 9999,
+            top: highlightRect.top - PAD,
+            left: highlightRect.left - PAD,
+            width: highlightRect.width + PAD * 2,
+            height: highlightRect.height + PAD * 2,
+            borderRadius: 8,
             border: `2px solid ${current.color}`,
-            boxShadow: `0 0 0 3px ${current.color}22, 0 0 24px ${current.color}55`,
-          }}
-        />
-      )}
-
-      {/* Connecting line from spotlight to card */}
-      {sr && (
-        <div
-          className="absolute pointer-events-none"
-          style={{
-            zIndex: 2,
-            top: sr.y + sr.h / 2 - 1,
-            left: sr.x + sr.w,
-            width: Math.max(8, SIDEBAR_W - sr.x - sr.w - 4),
-            height: 2,
-            background: `linear-gradient(to right, ${current.color}88, ${current.color}22)`,
+            boxShadow: `0 0 0 4000px rgba(0,0,0,0.55), 0 0 20px ${current.color}88`,
+            pointerEvents: "none",
           }}
         />
       )}
 
       {/* Tour card */}
       <div
-        className="absolute pointer-events-auto"
+        ref={cardRef}
         style={{
-          zIndex: 3,
-          top: cardTop,
-          left: SIDEBAR_W,
+          position: "fixed",
+          zIndex: 10000,
+          top: cardY,
+          left: sidebarRight,
           width: 340,
+          pointerEvents: "auto",
         }}
         onClick={(e) => e.stopPropagation()}
       >
         <div
-          className="rounded-2xl overflow-hidden"
           style={{
-            backgroundColor: "var(--card, #efe9de)",
-            border: "1px solid var(--border, #e6dfd8)",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.25), 0 4px 16px rgba(0,0,0,0.15)",
+            borderRadius: 16,
+            overflow: "hidden",
+            background: "#faf9f5",
+            border: "1px solid #e6dfd8",
+            boxShadow: "0 24px 64px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.15)",
           }}
         >
           {/* Header */}
           <div
-            className="flex items-center justify-between px-5 py-4"
-            style={{ borderBottom: "1px solid var(--border, #e6dfd8)" }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "14px 20px",
+              borderBottom: "1px solid #e6dfd8",
+            }}
           >
-            <div className="flex items-center gap-2.5">
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <div
-                className="flex h-7 w-7 items-center justify-center rounded-lg"
-                style={{ backgroundColor: `${current.color}18` }}
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 8,
+                  background: `${current.color}18`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
               >
-                <Icon className="h-3.5 w-3.5" style={{ color: current.color }} />
+                <Icon style={{ width: 14, height: 14, color: current.color }} />
               </div>
-              <span className="text-sm font-semibold" style={{ color: "var(--foreground, #141413)" }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#141413" }}>
                 WarmPath Tour
               </span>
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="flex h-6 w-6 items-center justify-center rounded-md transition-colors hover:opacity-70"
-              style={{ color: "var(--muted-foreground, #6c6a64)" }}
+              style={{
+                width: 24,
+                height: 24,
+                borderRadius: 6,
+                border: "none",
+                background: "transparent",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#6c6a64",
+              }}
             >
-              <X className="h-3.5 w-3.5" />
+              <X style={{ width: 14, height: 14 }} />
             </button>
           </div>
 
           {/* Progress bar */}
-          <div className="h-0.5 w-full" style={{ backgroundColor: "var(--border, #e6dfd8)" }}>
+          <div style={{ height: 3, background: "#e6dfd8" }}>
             <div
-              className="h-full transition-all duration-300"
               style={{
+                height: "100%",
                 width: `${((step + 1) / STEPS.length) * 100}%`,
-                backgroundColor: current.color,
+                background: current.color,
+                transition: "width 0.3s ease",
               }}
             />
           </div>
 
-          {/* Content */}
-          <div className="p-5">
-            <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: current.color }}>
+          {/* Body */}
+          <div style={{ padding: "20px 20px 16px" }}>
+            <p
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+                color: current.color,
+                marginBottom: 4,
+              }}
+            >
               {step + 1} of {STEPS.length}
             </p>
-            <h2 className="mb-0.5 text-xl font-bold" style={{ color: "var(--foreground, #141413)" }}>
+            <h2 style={{ fontSize: 20, fontWeight: 700, color: "#141413", marginBottom: 2, lineHeight: 1.2 }}>
               {current.title}
             </h2>
-            <p className="mb-3 text-sm font-medium" style={{ color: current.color }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: current.color, marginBottom: 12 }}>
               {current.tagline}
             </p>
-            <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground, #6c6a64)" }}>
+            <p style={{ fontSize: 13, color: "#6c6a64", lineHeight: 1.65, marginBottom: 0 }}>
               {current.description}
             </p>
           </div>
 
           {/* Step dots */}
-          <div className="flex items-center justify-center gap-1.5 pb-3">
+          <div style={{ display: "flex", justifyContent: "center", gap: 5, paddingBottom: 12 }}>
             {STEPS.map((_, i) => (
               <button
                 key={i}
                 type="button"
                 onClick={() => setStep(i)}
-                className="rounded-full transition-all duration-200"
                 style={{
-                  width: i === step ? 20 : 6,
+                  width: i === step ? 18 : 6,
                   height: 6,
-                  backgroundColor: i === step ? current.color : i < step ? `${current.color}50` : "var(--border, #e6dfd8)",
+                  borderRadius: 3,
+                  border: "none",
+                  cursor: "pointer",
+                  background: i === step ? current.color : i < step ? `${current.color}55` : "#e6dfd8",
+                  transition: "width 0.2s, background 0.2s",
+                  padding: 0,
                 }}
               />
             ))}
@@ -308,48 +353,77 @@ export function ProductTour({ open, onClose }: ProductTourProps) {
 
           {/* Footer */}
           <div
-            className="flex items-center justify-between px-5 py-4"
-            style={{ borderTop: "1px solid var(--border, #e6dfd8)" }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "12px 20px",
+              borderTop: "1px solid #e6dfd8",
+            }}
           >
-            {/* Skip / Back */}
-            <div className="flex items-center gap-2">
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <button
                 type="button"
                 onClick={onClose}
-                className="text-xs font-medium transition-opacity hover:opacity-70"
-                style={{ color: "var(--muted-foreground, #6c6a64)" }}
+                style={{
+                  fontSize: 12,
+                  fontWeight: 500,
+                  color: "#6c6a64",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: 0,
+                }}
               >
                 Skip tour
               </button>
               {step > 0 && (
-                <>
-                  <span style={{ color: "var(--border)" }}>·</span>
-                  <button
-                    type="button"
-                    onClick={prev}
-                    className="flex items-center gap-1 text-xs font-medium transition-opacity hover:opacity-70"
-                    style={{ color: "var(--muted-foreground, #6c6a64)" }}
-                  >
-                    <ArrowLeft className="h-3 w-3" /> Back
-                  </button>
-                </>
+                <button
+                  type="button"
+                  onClick={prev}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                    fontSize: 12,
+                    fontWeight: 500,
+                    color: "#6c6a64",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: 0,
+                  }}
+                >
+                  <ArrowLeft style={{ width: 12, height: 12 }} />
+                  Back
+                </button>
               )}
             </div>
 
-            {/* Next / Done */}
             <button
               type="button"
               onClick={next}
-              className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-              style={{ backgroundColor: current.color }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                fontSize: 13,
+                fontWeight: 600,
+                color: "#fff",
+                background: current.color,
+                border: "none",
+                borderRadius: 8,
+                padding: "8px 16px",
+                cursor: "pointer",
+              }}
             >
               {isLast ? "Done" : "Next"}
-              {!isLast && <ArrowRight className="h-3.5 w-3.5" />}
+              {!isLast && <ArrowRight style={{ width: 13, height: 13 }} />}
             </button>
           </div>
         </div>
       </div>
-    </div>,
+    </>,
     document.body
   );
 }
