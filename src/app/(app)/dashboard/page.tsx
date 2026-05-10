@@ -24,7 +24,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ProductTour } from "@/components/product-tour";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -297,6 +296,7 @@ export default function DashboardPage() {
     followUpTasks,
     completeFollowUpTask,
     addMessageToQueue,
+    setTourOpen,
   } = useSalesStore();
 
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
@@ -305,7 +305,6 @@ export default function DashboardPage() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [champSheetSignal, setChampSheetSignal] = useState<(typeof signals)[0] | null>(null);
   const [champSheetOpen, setChampSheetOpen] = useState(false);
-  const [tourOpen, setTourOpen] = useState(false);
 
   // ── Derived counts ────────────────────────────────────────────────────────
   const pendingMessages = messages.filter((m) => m.approval_status === "pending");
@@ -983,8 +982,6 @@ export default function DashboardPage() {
         userName={user?.name ?? "You"}
       />
 
-      {/* ── Product Tour ──────────────────────────────────────────────────── */}
-      <ProductTour open={tourOpen} onClose={() => setTourOpen(false)} />
     </div>
   );
 }
