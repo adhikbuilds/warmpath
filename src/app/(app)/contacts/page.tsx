@@ -2,6 +2,7 @@
 
 import { Filter, GitFork, Mail, Sparkles, Users } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -21,14 +22,15 @@ import { useSalesStore } from "@/stores/salesStore";
 
 const SENIORITY_COLORS: Record<string, string> = {
   c_suite: "bg-brand/10 text-brand border-brand/20",
-  vp: "bg-violet-500/10 text-violet-500 border-violet-500/20",
-  director: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-  manager: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+  vp: "bg-[#7b6ea8]/10 text-[#5c5180] border-[#7b6ea8]/20",
+  director: "bg-[#5db8a6]/10 text-[#3a8f7e] border-[#5db8a6]/20",
+  manager: "bg-[#5db872]/10 text-[#3a8f4e] border-[#5db872]/20",
   ic: "bg-muted text-muted-foreground",
 };
 
 export default function ContactsPage() {
-  const { contacts, accounts, warmPaths } = useSalesStore();
+  const router = useRouter();
+  const { contacts, accounts, warmPaths, addMessageToQueue } = useSalesStore();
   const [search, setSearch] = useState("");
   const [seniorityFilter, setSeniorityFilter] = useState("all");
   const [deptFilter, setDeptFilter] = useState("all");
@@ -215,7 +217,7 @@ export default function ContactsPage() {
                         size="sm"
                         variant="ghost"
                         className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
-                        onClick={() => toast.info(`Email: ${contact.email}`)}
+                        onClick={() => window.open(`mailto:${contact.email}`, "_blank")}
                       >
                         <Mail className="w-3.5 h-3.5" />
                       </Button>
@@ -224,7 +226,29 @@ export default function ContactsPage() {
                       size="sm"
                       variant="ghost"
                       className="h-7 w-7 p-0 text-muted-foreground hover:text-brand"
-                      onClick={() => toast.success(`Outreach drafted for ${contact.name}`)}
+                      onClick={() => {
+                        const warmPath = warmPaths.find(
+                          (wp) => wp.account_id === contact.account_id,
+                        );
+                        addMessageToQueue({
+                          account_id: contact.account_id ?? "",
+                          contact_id: contact.id,
+                          warm_path_id: warmPath?.id,
+                          channel: "email",
+                          subject: `Outreach to ${contact.name}`,
+                          body: `Hi ${contact.name.split(" ")[0]},\n\nI came across your profile and wanted to reach out — your work at ${accounts.find((a) => a.id === contact.account_id)?.name ?? "your company"} looks impressive.\n\nWould love to connect and share how we're helping similar teams.\n\nBest,\nAdhik`,
+                          status: "draft",
+                          approval_status: "pending",
+                          generated_by_ai: true,
+                          confidence_score: 0.8,
+                          personalization_reason: `Direct outreach to ${contact.title ?? "contact"} at ${accounts.find((a) => a.id === contact.account_id)?.name ?? "company"}`,
+                          factual_claims: [],
+                          supporting_sources: [],
+                          risk_flags: [],
+                        });
+                        toast.success(`Outreach drafted for ${contact.name} — review in Approval Queue`);
+                        router.push("/approval-queue");
+                      }}
                     >
                       <Sparkles className="w-3.5 h-3.5" />
                     </Button>

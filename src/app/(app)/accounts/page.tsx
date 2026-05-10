@@ -2,6 +2,7 @@
 
 import { Building2, Filter, GitFork, Sparkles, Zap } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -21,15 +22,16 @@ import { useSalesStore } from "@/stores/salesStore";
 
 const STAGE_COLORS: Record<string, string> = {
   prospect: "bg-muted text-muted-foreground",
-  engaged: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-  meeting: "bg-violet-500/10 text-violet-500 border-violet-500/20",
+  engaged: "bg-[#5db8a6]/10 text-[#3a8f7e] border-[#5db8a6]/20",
+  meeting: "bg-[#7b6ea8]/10 text-[#5c5180] border-[#7b6ea8]/20",
   proposal: "bg-brand/10 text-brand border-brand/20",
-  closed_won: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+  closed_won: "bg-[#5db872]/10 text-[#3a8f4e] border-[#5db872]/20",
   closed_lost: "bg-red-500/10 text-red-500 border-red-500/20",
 };
 
 export default function AccountsPage() {
-  const { accounts, contacts, signals, warmPaths } = useSalesStore();
+  const router = useRouter();
+  const { accounts, contacts, signals, warmPaths, addMessageToQueue } = useSalesStore();
   const [search, setSearch] = useState("");
   const [stageFilter, setStageFilter] = useState("all");
   const [sortBy, setSortBy] = useState<"opportunity_score" | "intent_score" | "warmth_score">(
@@ -214,7 +216,30 @@ export default function AccountsPage() {
                       size="sm"
                       variant="ghost"
                       className="h-7 w-7 p-0 text-muted-foreground hover:text-brand"
-                      onClick={() => toast.success(`Research brief generated for ${account.name}`)}
+                      onClick={() => {
+                        const topContact = contacts.find((c) => c.account_id === account.id);
+                        const warmPath = warmPaths.find((wp) => wp.account_id === account.id);
+                        const topSignal = signals.find((s) => s.account_id === account.id);
+                        addMessageToQueue({
+                          account_id: account.id,
+                          contact_id: topContact?.id ?? "",
+                          warm_path_id: warmPath?.id,
+                          signal_id: topSignal?.id,
+                          channel: warmPath ? "warm_intro" : "email",
+                          subject: `Outreach — ${account.name}`,
+                          body: `Hi,\n\nI've been following ${account.name} and wanted to reach out about how we might help your team.\n\nWould love to find 15 minutes to share what we're working on.\n\nBest,\nAdhik`,
+                          status: "draft",
+                          approval_status: "pending",
+                          generated_by_ai: true,
+                          confidence_score: 0.82,
+                          personalization_reason: `Account-level outreach to ${account.name} (${account.industry})`,
+                          factual_claims: [],
+                          supporting_sources: [],
+                          risk_flags: [],
+                        });
+                        toast.success(`Outreach drafted for ${account.name} — review in Approval Queue`);
+                        router.push("/approval-queue");
+                      }}
                     >
                       <Sparkles className="w-3.5 h-3.5" />
                     </Button>

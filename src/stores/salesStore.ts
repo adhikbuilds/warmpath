@@ -322,6 +322,10 @@ function mapMessage(m: Record<string, unknown>): GeneratedMessage {
     factual_claims: factualClaims,
     supporting_sources: supportingSources,
     risk_flags: riskFlags,
+    contact: m.contact as Contact | undefined,
+    account: m.account as Account | undefined,
+    warm_path: (m.warm_path ?? m.warmPath) as WarmPath | undefined,
+    signal: m.signal as Signal | undefined,
   };
 }
 
@@ -671,13 +675,25 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
           }
         : DEFAULT_WORKSPACE;
 
+      const mappedContacts = rawContacts.map(mapContact);
+      const mappedAccounts = rawAccounts.map(mapAccount);
+      const mappedSignals = rawSignals.map(mapSignal);
+      const mappedWarmPaths = rawWarmPaths.map(mapWarmPath);
+      const mappedMessages = rawMessages.map(mapMessage).map((msg) => ({
+        ...msg,
+        contact: msg.contact ?? mappedContacts.find((c) => c.id === msg.contact_id),
+        account: msg.account ?? mappedAccounts.find((a) => a.id === msg.account_id),
+        warm_path: msg.warm_path ?? mappedWarmPaths.find((wp) => wp.id === msg.warm_path_id),
+        signal: msg.signal ?? mappedSignals.find((s) => s.id === msg.signal_id),
+      }));
+
       set({
-        accounts: rawAccounts.map(mapAccount),
-        contacts: rawContacts.map(mapContact),
-        signals: rawSignals.map(mapSignal),
-        warmPaths: rawWarmPaths.map(mapWarmPath),
+        accounts: mappedAccounts,
+        contacts: mappedContacts,
+        signals: mappedSignals,
+        warmPaths: mappedWarmPaths,
         campaigns: rawCampaigns.map(mapCampaign),
-        messages: rawMessages.map(mapMessage),
+        messages: mappedMessages,
         campaignAssets: [],
         kbItems: rawKB.map(mapKBItem),
         integrations: rawIntegrations.map(mapIntegration),
