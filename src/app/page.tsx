@@ -1,27 +1,18 @@
 "use client";
 
-import {
-  ArrowRight,
-  CheckCircle,
-  ChevronRight,
-  GitFork,
-  Minus,
-  Network,
-  ShieldCheck,
-  X,
-  Zap,
-} from "lucide-react";
+import { ArrowRight, CheckCircle, GitFork, Minus, X } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
 
-// DESIGN.MD tokens (WarmPath adaptation of the Claude design system)
-// Canvas: #faf9f5 | Surface-card: #efe9de | Dark: #181715
-// Ink: #141413 | Body: #3d3d3a | Muted: #6c6a64
-// Primary/Coral equivalent: WarmPath brand oklch(0.65 0.16 48) ≈ warm orange
-// Hairline: #e6dfd8
+type CompareVal = boolean | "partial";
+interface CompareRow {
+  feature: string;
+  warmpath: CompareVal;
+  apollo: CompareVal;
+  clay: CompareVal;
+  artisan: CompareVal;
+}
 
-const COMPARISON = [
+const COMPARISON: CompareRow[] = [
   {
     feature: "Relationship graph (team-wide)",
     warmpath: true,
@@ -66,298 +57,232 @@ const COMPARISON = [
   },
 ];
 
-function FaqItem({ q, a }: { q: string; a: string }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div
-      className="border-b py-5 cursor-pointer select-none"
-      style={{ borderColor: "#e6dfd8" }}
-      onClick={() => setOpen(!open)}
-    >
-      <div className="flex items-center justify-between gap-4">
-        <p className="text-sm font-medium" style={{ color: "#141413" }}>
-          {q}
-        </p>
-        <ChevronRight
-          className={`h-4 w-4 flex-shrink-0 transition-transform duration-200 ${open ? "rotate-90" : ""}`}
-          style={{ color: "#8e8b82" }}
-        />
-      </div>
-      {open && (
-        <p className="mt-3 text-sm leading-relaxed" style={{ color: "#6c6a64" }}>
-          {a}
-        </p>
-      )}
-    </div>
-  );
+function CompareCell({ val, isWarmPath }: { val: boolean | "partial"; isWarmPath?: boolean }) {
+  if (val === true) {
+    return (
+      <CheckCircle
+        className="mx-auto h-4 w-4"
+        style={{ color: isWarmPath ? "oklch(0.65 0.16 48)" : "#5db872" }}
+      />
+    );
+  }
+  if (val === "partial") {
+    return <Minus className="mx-auto h-3.5 w-3.5" style={{ color: "#c8bfb2" }} />;
+  }
+  return <X className="mx-auto h-3.5 w-3.5" style={{ color: "#d9d0c5" }} />;
 }
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#faf9f5", color: "#141413" }}>
-      {/* Nav */}
+      {/* ── Nav ── */}
       <nav
         className="sticky top-0 z-50 border-b"
         style={{
-          backgroundColor: "rgba(250,249,245,0.95)",
+          backgroundColor: "rgba(250,249,245,0.96)",
           borderColor: "#e6dfd8",
           backdropFilter: "blur(12px)",
         }}
       >
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand">
-              <GitFork className="h-3.5 w-3.5 text-white" />
+            <div
+              className="flex h-6 w-6 items-center justify-center rounded-md"
+              style={{ backgroundColor: "oklch(0.65 0.16 48)" }}
+            >
+              <GitFork className="h-3 w-3 text-white" />
             </div>
-            <span className="text-sm font-semibold tracking-tight" style={{ color: "#141413" }}>
+            <span
+              className="text-[15px] font-semibold tracking-tight"
+              style={{ fontFamily: "var(--font-display)", color: "#141413" }}
+            >
               WarmPath
             </span>
           </Link>
-
-          <div
-            className="hidden items-center gap-7 text-[13px] font-medium md:flex"
-            style={{ color: "#6c6a64" }}
-          >
-            <a href="#how" className="hover:text-[#141413] transition-colors">
-              How it works
-            </a>
-            <a href="#compare" className="hover:text-[#141413] transition-colors">
-              Compare
-            </a>
-            <a href="#faq" className="hover:text-[#141413] transition-colors">
-              FAQ
-            </a>
-          </div>
-
           <div className="flex items-center gap-2">
             <Link
               href="/login"
-              className="text-[13px] font-medium px-3 py-1.5 rounded-md transition-colors"
+              className="text-[13px] px-3 py-1.5 rounded-md transition-colors"
               style={{ color: "#6c6a64" }}
             >
               Sign in
             </Link>
             <Link
               href="/login"
-              className="text-[13px] font-medium px-4 py-2 rounded-lg text-white transition-colors bg-brand hover:opacity-90"
+              className="text-[13px] font-medium px-4 py-1.5 rounded-lg text-white transition-opacity hover:opacity-90"
+              style={{ backgroundColor: "oklch(0.65 0.16 48)" }}
             >
-              Try free
+              Try demo
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="px-6 pt-24 pb-20">
-        <div className="mx-auto max-w-6xl">
-          <div className="flex flex-col lg:flex-row gap-16 items-center">
-            {/* Left */}
-            <div className="lg:w-[48%]">
-              <div
-                className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium mb-7"
-                style={{
-                  border: "1px solid #e6dfd8",
-                  backgroundColor: "#efe9de",
-                  color: "#6c6a64",
-                }}
+      {/* ── Hero ── */}
+      <section className="px-6 pt-20 pb-16">
+        <div className="mx-auto max-w-5xl">
+          <div className="flex flex-col lg:flex-row gap-14 items-center">
+            {/* Left copy */}
+            <div className="lg:w-[46%]">
+              <p
+                className="text-[11px] font-semibold uppercase tracking-widest mb-5"
+                style={{ color: "oklch(0.65 0.16 48)" }}
               >
-                <Zap className="h-3 w-3" style={{ color: "#cc785c" }} />
                 Relationship intelligence for B2B sales
-              </div>
-
+              </p>
               <h1
-                className="text-[52px] sm:text-[60px] font-normal tracking-tight leading-[1.06] mb-6"
+                className="text-[50px] sm:text-[58px] font-normal leading-[1.08] mb-5"
                 style={{
-                  fontFamily: "var(--font-display), Georgia, serif",
+                  fontFamily: "var(--font-display)",
                   letterSpacing: "-1.5px",
                   color: "#141413",
                 }}
               >
                 Your next deal
                 <br />
-                is a warm intro
+                is one warm intro
                 <br />
-                <span className="text-brand">away.</span>
+                <span style={{ color: "oklch(0.65 0.16 48)" }}>away.</span>
               </h1>
-
-              <p
-                className="text-base leading-relaxed max-w-md mb-8"
-                style={{ color: "#6c6a64", lineHeight: "1.65" }}
-              >
-                WarmPath maps your team's real relationships, detects buying signals, and finds the
-                shortest credible path to every buyer before you send a single cold email.
+              <p className="text-[15px] leading-relaxed mb-8 max-w-sm" style={{ color: "#6c6a64" }}>
+                WarmPath maps your team's real relationships and finds the shortest path to every
+                buyer. AI drafts the intro request — your connector approves it personally.
               </p>
-
-              <div className="flex flex-col sm:flex-row gap-3 mb-10">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Link
                   href="/login"
-                  className="inline-flex items-center justify-center gap-2 h-11 px-7 rounded-lg text-[14px] font-medium text-white bg-brand hover:opacity-90 transition-opacity"
+                  className="inline-flex items-center justify-center gap-2 h-10 px-6 rounded-lg text-[13px] font-medium text-white transition-opacity hover:opacity-90"
+                  style={{ backgroundColor: "oklch(0.65 0.16 48)" }}
                 >
-                  Open demo workspace
-                  <ArrowRight className="h-4 w-4" />
+                  See it live
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
                 <a
                   href="#how"
-                  className="inline-flex items-center justify-center h-11 px-6 rounded-lg text-[14px] font-medium transition-colors"
+                  className="inline-flex items-center justify-center h-10 px-5 rounded-lg text-[13px] font-medium transition-colors"
                   style={{
                     border: "1px solid #e6dfd8",
                     color: "#3d3d3a",
                     backgroundColor: "#faf9f5",
                   }}
                 >
-                  See how it works
+                  How it works
                 </a>
-              </div>
-
-              <div className="flex flex-wrap gap-7">
-                {[
-                  { val: "3×", label: "higher reply rate" },
-                  { val: "1-hop", label: "avg intro path" },
-                  { val: "18 days", label: "faster to close" },
-                ].map((s) => (
-                  <div key={s.label} className="flex items-baseline gap-1.5">
-                    <span
-                      className="text-2xl font-semibold text-brand"
-                      style={{ fontFamily: "var(--font-display), Georgia, serif" }}
-                    >
-                      {s.val}
-                    </span>
-                    <span className="text-xs" style={{ color: "#8e8b82" }}>
-                      {s.label}
-                    </span>
-                  </div>
-                ))}
               </div>
             </div>
 
-            {/* Right Relationship graph */}
-            <div className="lg:w-[52%] w-full">
+            {/* Right: path diagram */}
+            <div className="lg:w-[54%] w-full">
               <div
                 className="rounded-2xl p-5"
                 style={{ backgroundColor: "#efe9de", border: "1px solid #e6dfd8" }}
               >
-                {/* Signal banner */}
+                {/* Signal pill */}
                 <div
-                  className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 mb-5"
+                  className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 mb-4"
                   style={{ backgroundColor: "#faf9f5", border: "1px solid #e6dfd8" }}
                 >
-                  <div className="w-2 h-2 rounded-full bg-brand flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <span className="text-[13px] font-semibold" style={{ color: "#141413" }}>
-                      Stripe raised $65B
-                    </span>
-                    <span className="text-[13px]" style={{ color: "#8e8b82" }}>
-                      {" "}
-                      · budget cycle just unlocked
-                    </span>
-                  </div>
-                  <span
-                    className="text-[11px] font-medium flex-shrink-0"
-                    style={{ color: "#8e8b82" }}
-                  >
+                  <div
+                    className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: "oklch(0.65 0.16 48)" }}
+                  />
+                  <span className="text-[13px] font-semibold" style={{ color: "#141413" }}>
+                    Stripe raised Series H
+                  </span>
+                  <span className="text-[13px]" style={{ color: "#8e8b82" }}>
+                    · budget cycle unlocked
+                  </span>
+                  <span className="ml-auto text-[11px] flex-shrink-0" style={{ color: "#a09d96" }}>
                     2h ago
                   </span>
                 </div>
 
-                {/* Relationship graph SVG */}
-                <svg viewBox="0 0 460 310" className="w-full" aria-hidden="true">
-                  {/* Warm path glow */}
+                {/* Relationship path SVG */}
+                <svg viewBox="0 0 460 240" className="w-full" aria-hidden="true">
+                  {/* Glow behind warm path */}
                   <line
                     x1="82"
-                    y1="155"
-                    x2="210"
-                    y2="80"
+                    y1="120"
+                    x2="230"
+                    y2="60"
                     stroke="#d4762a"
                     strokeWidth="10"
-                    strokeOpacity="0.12"
+                    strokeOpacity="0.10"
                     strokeLinecap="round"
                   />
                   <line
-                    x1="210"
-                    y1="80"
-                    x2="368"
-                    y2="155"
+                    x1="230"
+                    y1="60"
+                    x2="378"
+                    y2="120"
                     stroke="#d4762a"
                     strokeWidth="10"
-                    strokeOpacity="0.12"
+                    strokeOpacity="0.10"
                     strokeLinecap="round"
                   />
-
                   {/* Warm path lines */}
                   <line
                     x1="82"
-                    y1="155"
-                    x2="210"
-                    y2="80"
+                    y1="120"
+                    x2="230"
+                    y2="60"
                     stroke="#d4762a"
                     strokeWidth="2.5"
                     strokeLinecap="round"
                   />
                   <line
-                    x1="210"
-                    y1="80"
-                    x2="368"
-                    y2="155"
+                    x1="230"
+                    y1="60"
+                    x2="378"
+                    y2="120"
                     stroke="#d4762a"
                     strokeWidth="2.5"
                     strokeLinecap="round"
                   />
-
-                  {/* Cold connections */}
+                  {/* Cold connection (dashed) */}
                   <line
                     x1="82"
-                    y1="155"
-                    x2="200"
-                    y2="240"
+                    y1="120"
+                    x2="230"
+                    y2="185"
                     stroke="#e6dfd8"
                     strokeWidth="1.5"
                     strokeLinecap="round"
+                    strokeDasharray="4 3"
                   />
                   <line
-                    x1="340"
-                    y1="52"
-                    x2="368"
-                    y2="155"
+                    x1="230"
+                    y1="185"
+                    x2="378"
+                    y2="120"
                     stroke="#e6dfd8"
                     strokeWidth="1.5"
                     strokeLinecap="round"
-                    strokeDasharray="5 3"
+                    strokeDasharray="4 3"
                   />
-                  <line
-                    x1="200"
-                    y1="240"
-                    x2="368"
-                    y2="155"
-                    stroke="#e6dfd8"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeDasharray="5 3"
-                  />
-
-                  {/* Warm path label */}
+                  {/* Path label */}
                   <text
-                    x="232"
-                    y="99"
+                    x="230"
+                    y="33"
                     fontSize="9.5"
                     textAnchor="middle"
-                    fill="#8e8b82"
+                    fill="#a09d96"
                     fontFamily="Inter, sans-serif"
                   >
-                    warm path · 1 hop
+                    warm intro path · 1 hop
                   </text>
-
-                  {/* ── Node: You ── */}
+                  {/* Node: You */}
                   <circle
                     cx="82"
-                    cy="155"
-                    r="28"
+                    cy="120"
+                    r="26"
                     fill="#faf9f5"
                     stroke="#d4762a"
                     strokeWidth="1.5"
                   />
                   <text
                     x="82"
-                    y="159"
+                    y="124"
                     fontSize="11"
                     fontWeight="600"
                     textAnchor="middle"
@@ -368,71 +293,28 @@ export default function LandingPage() {
                   </text>
                   <text
                     x="82"
-                    y="196"
-                    fontSize="9.5"
+                    y="157"
+                    fontSize="9"
                     textAnchor="middle"
-                    fill="#8e8b82"
+                    fill="#a09d96"
                     fontFamily="Inter, sans-serif"
                   >
                     Account Exec
                   </text>
-
-                  {/* ── Node: Sarah Chen ── */}
+                  {/* Node: James Liu (connector) */}
                   <circle
-                    cx="210"
-                    cy="80"
-                    r="30"
+                    cx="230"
+                    cy="60"
+                    r="28"
                     fill="#faf9f5"
                     stroke="#d4762a"
                     strokeWidth="1.5"
                   />
                   <text
-                    x="210"
-                    y="76"
+                    x="230"
+                    y="56"
                     fontSize="10.5"
                     fontWeight="600"
-                    textAnchor="middle"
-                    fill="#141413"
-                    fontFamily="Inter, sans-serif"
-                  >
-                    Sarah
-                  </text>
-                  <text
-                    x="210"
-                    y="90"
-                    fontSize="10.5"
-                    fontWeight="600"
-                    textAnchor="middle"
-                    fill="#141413"
-                    fontFamily="Inter, sans-serif"
-                  >
-                    Chen
-                  </text>
-                  <text
-                    x="210"
-                    y="121"
-                    fontSize="9"
-                    textAnchor="middle"
-                    fill="#8e8b82"
-                    fontFamily="Inter, sans-serif"
-                  >
-                    Rippling · 2 yrs
-                  </text>
-
-                  {/* ── Node: James Park (target, larger) ── */}
-                  <circle
-                    cx="368"
-                    cy="155"
-                    r="34"
-                    fill="#faf9f5"
-                    stroke="#d4762a"
-                    strokeWidth="2"
-                  />
-                  <text
-                    x="368"
-                    y="150"
-                    fontSize="11"
-                    fontWeight="700"
                     textAnchor="middle"
                     fill="#141413"
                     fontFamily="Inter, sans-serif"
@@ -440,22 +322,41 @@ export default function LandingPage() {
                     James
                   </text>
                   <text
-                    x="368"
-                    y="164"
-                    fontSize="11"
-                    fontWeight="700"
+                    x="230"
+                    y="70"
+                    fontSize="10.5"
+                    fontWeight="600"
                     textAnchor="middle"
                     fill="#141413"
                     fontFamily="Inter, sans-serif"
                   >
-                    Park
+                    Liu
                   </text>
-                  {/* Warmth badge */}
-                  <rect x="344" y="108" width="48" height="18" rx="9" fill="#d4762a" />
                   <text
-                    x="368"
-                    y="120"
-                    fontSize="9.5"
+                    x="230"
+                    y="99"
+                    fontSize="9"
+                    textAnchor="middle"
+                    fill="#a09d96"
+                    fontFamily="Inter, sans-serif"
+                  >
+                    ex-Rippling · 2 yrs
+                  </text>
+                  {/* Node: CTO at Stripe (target) */}
+                  <circle
+                    cx="378"
+                    cy="120"
+                    r="32"
+                    fill="#faf9f5"
+                    stroke="#d4762a"
+                    strokeWidth="2"
+                  />
+                  {/* Warmth badge */}
+                  <rect x="354" y="76" width="48" height="17" rx="8.5" fill="#d4762a" />
+                  <text
+                    x="378"
+                    y="88"
+                    fontSize="9"
                     fontWeight="700"
                     textAnchor="middle"
                     fill="white"
@@ -464,110 +365,78 @@ export default function LandingPage() {
                     94 warm
                   </text>
                   <text
-                    x="368"
-                    y="200"
-                    fontSize="9"
+                    x="378"
+                    y="116"
+                    fontSize="11"
+                    fontWeight="700"
                     textAnchor="middle"
-                    fill="#8e8b82"
+                    fill="#141413"
                     fontFamily="Inter, sans-serif"
                   >
-                    VP Sales · Stripe
+                    CTO
                   </text>
-
-                  {/* ── Node: Marcus Lee (cold) ── */}
-                  <circle
-                    cx="200"
-                    cy="240"
-                    r="22"
-                    fill="#faf9f5"
-                    stroke="#e6dfd8"
-                    strokeWidth="1.5"
-                  />
                   <text
-                    x="200"
-                    y="236"
-                    fontSize="9.5"
-                    fontWeight="500"
+                    x="378"
+                    y="130"
+                    fontSize="10"
+                    fontWeight="600"
                     textAnchor="middle"
-                    fill="#6c6a64"
+                    fill="#141413"
                     fontFamily="Inter, sans-serif"
                   >
-                    Marcus
+                    at Stripe
                   </text>
                   <text
-                    x="200"
-                    y="248"
-                    fontSize="9.5"
-                    fontWeight="500"
-                    textAnchor="middle"
-                    fill="#6c6a64"
-                    fontFamily="Inter, sans-serif"
-                  >
-                    Lee
-                  </text>
-                  <text
-                    x="200"
-                    y="273"
+                    x="378"
+                    y="162"
                     fontSize="9"
                     textAnchor="middle"
                     fill="#a09d96"
                     fontFamily="Inter, sans-serif"
                   >
-                    ex-LinkedIn
+                    Decision maker
                   </text>
-
-                  {/* ── Node: Amy Liu (cold) ── */}
+                  {/* Cold path node */}
                   <circle
-                    cx="340"
-                    cy="52"
+                    cx="230"
+                    cy="185"
                     r="20"
                     fill="#faf9f5"
                     stroke="#e6dfd8"
                     strokeWidth="1.5"
                   />
                   <text
-                    x="340"
-                    y="48"
-                    fontSize="9.5"
-                    fontWeight="500"
-                    textAnchor="middle"
-                    fill="#6c6a64"
-                    fontFamily="Inter, sans-serif"
-                  >
-                    Amy
-                  </text>
-                  <text
-                    x="340"
-                    y="60"
-                    fontSize="9.5"
-                    fontWeight="500"
-                    textAnchor="middle"
-                    fill="#6c6a64"
-                    fontFamily="Inter, sans-serif"
-                  >
-                    Liu
-                  </text>
-                  <text
-                    x="340"
-                    y="82"
+                    x="230"
+                    y="181"
                     fontSize="9"
                     textAnchor="middle"
                     fill="#a09d96"
                     fontFamily="Inter, sans-serif"
                   >
-                    Notion
+                    Cold
+                  </text>
+                  <text
+                    x="230"
+                    y="193"
+                    fontSize="9"
+                    textAnchor="middle"
+                    fill="#a09d96"
+                    fontFamily="Inter, sans-serif"
+                  >
+                    path
                   </text>
                 </svg>
 
-                {/* Bottom bar */}
                 <div
-                  className="flex items-center justify-between pt-4 mt-1"
+                  className="flex items-center justify-between pt-3 mt-1"
                   style={{ borderTop: "1px solid #e6dfd8" }}
                 >
-                  <span className="text-xs" style={{ color: "#8e8b82" }}>
-                    5 team relationships mapped
+                  <span className="text-xs" style={{ color: "#a09d96" }}>
+                    4 team relationships mapped to Stripe
                   </span>
-                  <span className="text-xs font-semibold text-brand">Warm path found · 1 hop</span>
+                  <span className="text-xs font-semibold" style={{ color: "oklch(0.65 0.16 48)" }}>
+                    Best path: 1 hop
+                  </span>
                 </div>
               </div>
             </div>
@@ -575,113 +444,74 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* The problem surface-soft band */}
-      <section className="px-6 py-16" style={{ backgroundColor: "#f5f0e8" }}>
-        <div className="mx-auto max-w-6xl">
-          <div className="grid md:grid-cols-2 gap-5">
-            <div
-              className="rounded-2xl p-6"
-              style={{ backgroundColor: "#faf9f5", border: "1px solid #e6dfd8" }}
-            >
-              <p
-                className="text-xs font-semibold uppercase tracking-widest mb-4"
-                style={{ color: "#c64545" }}
+      {/* ── Social proof strip ── */}
+      <section className="px-6 py-10" style={{ backgroundColor: "#f5f0e8" }}>
+        <div className="mx-auto max-w-5xl">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {[
+              { val: "3×", label: "reply rate vs cold email" },
+              { val: "1-hop", label: "avg intro path" },
+              { val: "18 days", label: "avg deal velocity" },
+              { val: "100%", label: "connector-approved" },
+            ].map((s) => (
+              <div
+                key={s.label}
+                className="rounded-xl px-5 py-4 text-center"
+                style={{ backgroundColor: "#faf9f5", border: "1px solid #e6dfd8" }}
               >
-                Without WarmPath
-              </p>
-              <div className="space-y-3">
-                {[
-                  "200 cold emails. 6 replies. 1 meeting.",
-                  "Your best lead got to a competitor who knew someone inside.",
-                  "AE spent 4 hours researching an account your colleague knows personally.",
-                  "Funding round closes. You find out 3 weeks later.",
-                ].map((t) => (
-                  <div
-                    key={t}
-                    className="flex items-start gap-2.5 text-sm"
-                    style={{ color: "#6c6a64" }}
-                  >
-                    <X className="h-4 w-4 flex-shrink-0 mt-0.5" style={{ color: "#c64545" }} />
-                    {t}
-                  </div>
-                ))}
+                <div
+                  className="text-[28px] font-semibold leading-none mb-1"
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    color: "oklch(0.65 0.16 48)",
+                  }}
+                >
+                  {s.val}
+                </div>
+                <div className="text-[11px] leading-snug" style={{ color: "#8e8b82" }}>
+                  {s.label}
+                </div>
               </div>
-            </div>
-            <div
-              className="rounded-2xl p-6"
-              style={{ backgroundColor: "#faf9f5", border: "1px solid #e6dfd8" }}
-            >
-              <p
-                className="text-xs font-semibold uppercase tracking-widest mb-4"
-                style={{ color: "#5db872" }}
-              >
-                With WarmPath
-              </p>
-              <div className="space-y-3">
-                {[
-                  "Funding signal fires. Warm path surfaces in 30 seconds.",
-                  "Sarah Chen worked with the VP 2 years ago sends the intro.",
-                  "Reply in 4 hours. Meeting booked same week.",
-                  "Every ICP account has a warmth score. No more guessing who to call.",
-                ].map((t) => (
-                  <div
-                    key={t}
-                    className="flex items-start gap-2.5 text-sm"
-                    style={{ color: "#3d3d3a" }}
-                  >
-                    <CheckCircle
-                      className="h-4 w-4 flex-shrink-0 mt-0.5"
-                      style={{ color: "#5db872" }}
-                    />
-                    {t}
-                  </div>
-                ))}
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* How it works */}
-      <section id="how" className="px-6 py-24" style={{ backgroundColor: "#faf9f5" }}>
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-14">
-            <p className="text-xs font-semibold uppercase tracking-widest mb-3 text-brand">
-              How it works
-            </p>
-            <h2
-              className="text-[40px] font-normal tracking-tight"
-              style={{
-                fontFamily: "var(--font-display), Georgia, serif",
-                letterSpacing: "-0.5px",
-                color: "#141413",
-              }}
-            >
-              From signal to signed deal.
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* ── How it works ── */}
+      <section id="how" className="px-6 py-20">
+        <div className="mx-auto max-w-5xl">
+          <p
+            className="text-[11px] font-semibold uppercase tracking-widest mb-3"
+            style={{ color: "oklch(0.65 0.16 48)" }}
+          >
+            How it works
+          </p>
+          <h2
+            className="text-[38px] font-normal tracking-tight mb-12"
+            style={{
+              fontFamily: "var(--font-display)",
+              letterSpacing: "-0.5px",
+              color: "#141413",
+            }}
+          >
+            From signal to signed deal.
+          </h2>
+          <div className="grid md:grid-cols-3 gap-5">
             {[
               {
-                n: "01",
+                n: "1",
                 title: "Map your team's network",
-                body: "Every past colleague, conference contact, LinkedIn connection aggregated across your whole team. One graph, shared visibility.",
+                body: "LinkedIn connections, shared companies, alumni networks, conference contacts — aggregated across your whole team into one shared relationship graph.",
               },
               {
-                n: "02",
-                title: "Get alerted on signals",
-                body: "Funding, leadership changes, hiring surges, champion promotions. Ranked by urgency. Paired with the best warm path to act on each.",
+                n: "2",
+                title: "Find the warm path",
+                body: "AI identifies who on your team knows the decision maker and how: worked together at Rippling, met at SaaStr, same Stanford cohort. Evidence-backed, not guessed.",
               },
               {
-                n: "03",
-                title: "Route through warmth",
-                body: "BFS pathfinding finds the shortest credible intro. One hop from a trusted colleague beats 50 cold emails. Every time.",
-              },
-              {
-                n: "04",
-                title: "Review, then send",
-                body: "AI drafts the intro request and outreach message. You approve before anything leaves. Full audit trail. No surprise sends.",
+                n: "3",
+                title: "Draft the intro. Your connector approves.",
+                body: "AI writes a personalized intro request grounded in your shared history. The connector reviews and approves every single one individually — we never send under their name without their explicit OK.",
               },
             ].map((step) => (
               <div
@@ -690,15 +520,18 @@ export default function LandingPage() {
                 style={{ backgroundColor: "#efe9de", border: "1px solid #e6dfd8" }}
               >
                 <div
-                  className="text-[10px] font-bold tracking-widest mb-4"
-                  style={{ color: "#8e8b82" }}
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-bold text-white mb-4"
+                  style={{ backgroundColor: "oklch(0.65 0.16 48)" }}
                 >
                   {step.n}
                 </div>
-                <h3 className="font-semibold text-[15px] mb-2" style={{ color: "#141413" }}>
+                <h3
+                  className="font-semibold text-[14px] mb-2 leading-snug"
+                  style={{ color: "#141413" }}
+                >
                   {step.title}
                 </h3>
-                <p className="text-sm leading-relaxed" style={{ color: "#6c6a64" }}>
+                <p className="text-[13px] leading-relaxed" style={{ color: "#6c6a64" }}>
                   {step.body}
                 </p>
               </div>
@@ -707,187 +540,64 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Features surface-soft */}
-      <section className="px-6 py-24" style={{ backgroundColor: "#f5f0e8" }}>
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-14">
-            <p className="text-xs font-semibold uppercase tracking-widest mb-3 text-brand">
-              Product
-            </p>
-            <h2
-              className="text-[40px] font-normal tracking-tight max-w-xl"
-              style={{
-                fontFamily: "var(--font-display), Georgia, serif",
-                letterSpacing: "-0.5px",
-                color: "#141413",
-              }}
-            >
-              Three surfaces. One warm-outbound system.
-            </h2>
-          </div>
-
-          <div className="space-y-4">
-            {[
-              {
-                Icon: Network,
-                title: "Relationship Graph",
-                sub: "See your whole team's network not just yours.",
-                body: "WarmPath aggregates every relationship across your team into a shared graph. LinkedIn connections, past colleagues, conference contacts, email history. BFS pathfinding computes the warmest route to any buyer in your ICP including 2nd and 3rd-degree paths your reps don't know exist.",
-                tags: [
-                  "Multi-hop BFS routing",
-                  "Warmth scoring 0–100",
-                  "Coverage gap detection",
-                  "Team-wide visibility",
-                ],
-              },
-              {
-                Icon: Zap,
-                title: "Buying Signals",
-                sub: "Know the moment an account enters buying mode.",
-                body: "13+ signal types tracked in real time: funding rounds, leadership changes, hiring surges, champion job moves, competitor hiring, G2 intent spikes, product launches. Every signal is urgency-scored, paired with the warmest intro path, and surfaced before your competitors see it.",
-                tags: [
-                  "13+ signal types",
-                  "Urgency ranking",
-                  "Auto-matched warm paths",
-                  "Champion tracking",
-                ],
-              },
-              {
-                Icon: ShieldCheck,
-                title: "Approval Queue",
-                sub: "AI drafts. Humans decide. Nothing sends without a review.",
-                body: "Every intro request, follow-up email, and LinkedIn DM goes through a structured review step. WarmPath drafts with full relationship context the shared history, the reason for the intro, the ask. Your team approves or edits before it sends. Full audit trail on every decision.",
-                tags: ["Human-in-the-loop", "Multi-channel", "Full audit trail", "Risk flagging"],
-              },
-            ].map(({ Icon, title, sub, body, tags }) => (
-              <div
-                key={title}
-                className="rounded-xl p-7 grid md:grid-cols-[1fr_1.6fr] gap-8 items-start"
-                style={{ backgroundColor: "#faf9f5", border: "1px solid #e6dfd8" }}
+      {/* ── The 1:1 principle ── */}
+      <section className="px-6 pb-20">
+        <div className="mx-auto max-w-5xl">
+          <div
+            className="rounded-2xl px-8 py-10"
+            style={{ backgroundColor: "#efe9de", border: "1px solid #e6dfd8" }}
+          >
+            <div className="max-w-2xl">
+              <p
+                className="text-[11px] font-bold uppercase tracking-widest mb-4"
+                style={{ color: "oklch(0.65 0.16 48)" }}
               >
-                <div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div
-                      className="flex h-9 w-9 items-center justify-center rounded-xl"
-                      style={{
-                        backgroundColor: "rgba(204,120,92,0.1)",
-                        border: "1px solid rgba(204,120,92,0.15)",
-                      }}
-                    >
-                      <Icon className="h-4 w-4 text-brand" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-[15px]" style={{ color: "#141413" }}>
-                        {title}
-                      </h3>
-                      <p className="text-xs" style={{ color: "#8e8b82" }}>
-                        {sub}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {tags.map((t) => (
-                      <span
-                        key={t}
-                        className="text-[11px] rounded-full px-2.5 py-1"
-                        style={{
-                          border: "1px solid #e6dfd8",
-                          backgroundColor: "#efe9de",
-                          color: "#6c6a64",
-                        }}
-                      >
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <p
-                  className="text-sm leading-relaxed"
-                  style={{ color: "#6c6a64", lineHeight: "1.65" }}
-                >
-                  {body}
-                </p>
-              </div>
-            ))}
+                Our philosophy
+              </p>
+              <h2
+                className="text-[28px] font-normal tracking-tight mb-4"
+                style={{
+                  fontFamily: "var(--font-display)",
+                  letterSpacing: "-0.3px",
+                  color: "#141413",
+                }}
+              >
+                Not another outreach automation tool.
+              </h2>
+              <p className="text-[14px] leading-relaxed" style={{ color: "#3d3d3a" }}>
+                Every message WarmPath drafts is written for one specific person, grounded in their
+                company's signals and your real relationship context. Your connectors approve each
+                intro individually — we never send anything under someone's name without their
+                explicit OK. Enterprise sales is 1:1. We built for that.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Testimonials canvas */}
-      <section className="px-6 py-20" style={{ backgroundColor: "#faf9f5" }}>
-        <div className="mx-auto max-w-6xl">
-          <p className="text-xs font-semibold uppercase tracking-widest mb-10 text-brand">
-            What teams say
-          </p>
-          <div className="grid md:grid-cols-3 gap-5">
-            {[
-              {
-                quote:
-                  "We booked 11 meetings in the first month just from signals we would have missed entirely. The warm path engine is genuinely different from anything else we've tried.",
-                name: "Marcus T.",
-                role: "Head of Sales · Series B SaaS",
-              },
-              {
-                quote:
-                  "I stopped sending cold emails. Not because I had to because WarmPath kept surfacing 1-hop paths I didn't know existed. My reply rate tripled.",
-                name: "Priya K.",
-                role: "Account Executive · Enterprise GTM",
-              },
-              {
-                quote:
-                  "The approval queue alone is worth it. We used to have reps fire off LinkedIn messages with no context. Now every message has been reviewed and is on-brand.",
-                name: "James W.",
-                role: "VP Revenue · Post-Series A",
-              },
-            ].map((t) => (
-              <div
-                key={t.name}
-                className="rounded-xl p-6 flex flex-col justify-between gap-6"
-                style={{ backgroundColor: "#efe9de", border: "1px solid #e6dfd8" }}
-              >
-                <p
-                  className="text-sm leading-relaxed"
-                  style={{ color: "#3d3d3a", lineHeight: "1.65" }}
-                >
-                  "{t.quote}"
-                </p>
-                <div>
-                  <p className="text-sm font-semibold" style={{ color: "#141413" }}>
-                    {t.name}
-                  </p>
-                  <p className="text-xs" style={{ color: "#8e8b82" }}>
-                    {t.role}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Compare surface-soft */}
+      {/* ── Comparison table ── */}
       <section id="compare" className="px-6 py-20" style={{ backgroundColor: "#f5f0e8" }}>
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-10">
-            <p className="text-xs font-semibold uppercase tracking-widest mb-3 text-brand">
-              Compare
-            </p>
-            <h2
-              className="text-[40px] font-normal tracking-tight"
-              style={{
-                fontFamily: "var(--font-display), Georgia, serif",
-                letterSpacing: "-0.5px",
-                color: "#141413",
-              }}
-            >
-              Built differently.
-            </h2>
-            <p className="mt-2 text-sm" style={{ color: "#8e8b82" }}>
-              Apollo prospects. Clay enriches. Artisan auto-sends. WarmPath finds the right path
-              first.
-            </p>
-          </div>
-
+        <div className="mx-auto max-w-5xl">
+          <p
+            className="text-[11px] font-semibold uppercase tracking-widest mb-3"
+            style={{ color: "oklch(0.65 0.16 48)" }}
+          >
+            Compare
+          </p>
+          <h2
+            className="text-[38px] font-normal tracking-tight mb-2"
+            style={{
+              fontFamily: "var(--font-display)",
+              letterSpacing: "-0.5px",
+              color: "#141413",
+            }}
+          >
+            Built differently.
+          </h2>
+          <p className="text-[13px] mb-8" style={{ color: "#8e8b82" }}>
+            Apollo prospects. Clay enriches. Artisan auto-sends. WarmPath finds the right path
+            first.
+          </p>
           <div
             className="overflow-x-auto rounded-xl"
             style={{ backgroundColor: "#faf9f5", border: "1px solid #e6dfd8" }}
@@ -896,16 +606,21 @@ export default function LandingPage() {
               <thead>
                 <tr style={{ borderBottom: "1px solid #e6dfd8" }}>
                   <th
-                    className="px-5 py-4 text-left text-xs font-semibold"
+                    className="px-5 py-3.5 text-left text-[11px] font-semibold"
                     style={{ color: "#8e8b82" }}
                   >
                     Feature
                   </th>
-                  <th className="px-4 py-4 text-center text-xs font-bold text-brand">WarmPath</th>
+                  <th
+                    className="px-4 py-3.5 text-center text-[11px] font-bold"
+                    style={{ color: "oklch(0.65 0.16 48)" }}
+                  >
+                    WarmPath
+                  </th>
                   {["Apollo", "Clay", "Artisan"].map((c) => (
                     <th
                       key={c}
-                      className="px-4 py-4 text-center text-xs font-semibold"
+                      className="px-4 py-3.5 text-center text-[11px] font-semibold"
                       style={{ color: "#8e8b82" }}
                     >
                       {c}
@@ -918,30 +633,18 @@ export default function LandingPage() {
                   <tr
                     key={row.feature}
                     style={{
-                      borderBottom: i < COMPARISON.length - 1 ? "1px solid #ebe6df" : "none",
-                      backgroundColor: i % 2 === 0 ? "rgba(239,233,222,0.3)" : "transparent",
+                      borderBottom: i < COMPARISON.length - 1 ? "1px solid #ede7e0" : "none",
+                      backgroundColor: i % 2 === 0 ? "rgba(239,233,222,0.35)" : "transparent",
                     }}
                   >
-                    <td className="px-5 py-3.5 text-xs" style={{ color: "#6c6a64" }}>
+                    <td className="px-5 py-3 text-[12px]" style={{ color: "#6c6a64" }}>
                       {row.feature}
                     </td>
-                    {(["warmpath", "apollo", "clay", "artisan"] as const).map((col) => {
-                      const val = row[col];
-                      return (
-                        <td key={col} className="px-4 py-3.5 text-center">
-                          {val === true ? (
-                            <CheckCircle
-                              className={`mx-auto h-4 w-4 ${col === "warmpath" ? "text-brand" : ""}`}
-                              style={col !== "warmpath" ? { color: "#5db872" } : {}}
-                            />
-                          ) : val === "partial" ? (
-                            <Minus className="mx-auto h-4 w-4" style={{ color: "#e6dfd8" }} />
-                          ) : (
-                            <X className="mx-auto h-3.5 w-3.5" style={{ color: "#e6dfd8" }} />
-                          )}
-                        </td>
-                      );
-                    })}
+                    {(["warmpath", "apollo", "clay", "artisan"] as const).map((col) => (
+                      <td key={col} className="px-4 py-3 text-center">
+                        <CompareCell val={row[col]} isWarmPath={col === "warmpath"} />
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
@@ -950,128 +653,61 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* FAQ canvas */}
-      <section id="faq" className="px-6 py-20" style={{ backgroundColor: "#faf9f5" }}>
-        <div className="mx-auto max-w-3xl">
-          <p className="text-xs font-semibold uppercase tracking-widest mb-3 text-brand">FAQ</p>
-          <h2
-            className="text-[40px] font-normal tracking-tight mb-10"
-            style={{
-              fontFamily: "var(--font-display), Georgia, serif",
-              letterSpacing: "-0.5px",
-              color: "#141413",
-            }}
-          >
-            Common questions
-          </h2>
-          {[
-            {
-              q: "What does WarmPath replace?",
-              a: "Not your CRM. WarmPath replaces the fragmented process of manually hunting for intros, piecing together account context, and sending cold emails to people you almost know.",
-            },
-            {
-              q: "Is this a cold outbound tool?",
-              a: "No. The core is warm routing. When there's no credible path to an account, WarmPath tells you that instead of sending automated cold messages dressed up as warm outreach.",
-            },
-            {
-              q: "Why require human approval before sending?",
-              a: "Warm outreach is reputation-sensitive. One bad intro request can damage a relationship. AI handles research and drafting. You control what leaves your team.",
-            },
-            {
-              q: "Does this work for small sales teams?",
-              a: "Yes actually better. A 5-person team has a combined network of thousands. WarmPath surfaces relationships that no one person would think to check.",
-            },
-          ].map((item) => (
-            <FaqItem key={item.q} q={item.q} a={item.a} />
-          ))}
-        </div>
-      </section>
-
-      {/* CTA band brand orange (callout-card-coral equivalent) */}
-      <section className="px-6 py-6" style={{ backgroundColor: "#faf9f5" }}>
-        <div className="mx-auto max-w-6xl">
+      {/* ── CTA section ── */}
+      <section className="px-6 py-20" style={{ backgroundColor: "#faf9f5" }}>
+        <div className="mx-auto max-w-5xl">
           <div
-            className="rounded-2xl px-12 py-16 text-center"
+            className="rounded-2xl px-10 py-16 text-center"
             style={{ backgroundColor: "#181715" }}
           >
             <h2
-              className="text-[36px] sm:text-[44px] font-normal leading-tight mb-5"
+              className="text-[36px] sm:text-[42px] font-normal leading-tight mb-4"
               style={{
-                fontFamily: "var(--font-display), Georgia, serif",
+                fontFamily: "var(--font-display)",
                 letterSpacing: "-0.5px",
                 color: "#faf9f5",
               }}
             >
-              Stop sending cold emails
-              <br />
-              <span className="text-brand">to people you almost know.</span>
+              Start with the demo workspace.
             </h2>
             <p
-              className="text-base mb-10 leading-relaxed max-w-md mx-auto"
+              className="text-[14px] mb-8 max-w-sm mx-auto leading-relaxed"
               style={{ color: "#8e8b82" }}
             >
-              Open the demo workspace. See your team's relationship graph, live buying signals, and
-              warm paths to every account in your ICP.
+              Live relationship graph, real buying signals, warm paths to every account in your ICP.
+              No credit card. Demo ready in seconds.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Link
-                href="/login"
-                className="inline-flex items-center justify-center gap-2 h-11 px-8 rounded-lg text-[14px] font-medium text-white bg-brand hover:opacity-90 transition-opacity"
-              >
-                Open demo workspace
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href="/login"
-                className="inline-flex items-center justify-center h-11 px-6 rounded-lg text-[14px] font-medium transition-colors"
-                style={{
-                  border: "1px solid #252320",
-                  color: "#a09d96",
-                  backgroundColor: "#252320",
-                }}
-              >
-                Create free account
-              </Link>
-            </div>
-            <p className="text-xs mt-5" style={{ color: "#6c6a64" }}>
-              No credit card required · Demo ready in seconds
-            </p>
+            <Link
+              href="/login"
+              className="inline-flex items-center justify-center gap-2 h-10 px-7 rounded-lg text-[13px] font-medium text-white transition-opacity hover:opacity-90"
+              style={{ backgroundColor: "oklch(0.65 0.16 48)" }}
+            >
+              Open demo workspace
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Footer dark */}
-      <footer className="px-6 py-12" style={{ backgroundColor: "#181715" }}>
-        <div className="mx-auto max-w-6xl">
-          <div
-            className="flex items-center justify-between gap-4 pb-8 mb-8"
-            style={{ borderBottom: "1px solid #252320" }}
-          >
-            <div className="flex items-center gap-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-brand">
-                <GitFork className="h-3 w-3 text-white" />
-              </div>
-              <span className="text-xs font-semibold tracking-tight" style={{ color: "#faf9f5" }}>
-                WarmPath
-              </span>
+      {/* ── Footer ── */}
+      <footer className="px-6 py-10" style={{ backgroundColor: "#181715" }}>
+        <div className="mx-auto max-w-5xl flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <div
+              className="flex h-5 w-5 items-center justify-center rounded"
+              style={{ backgroundColor: "oklch(0.65 0.16 48)" }}
+            >
+              <GitFork className="h-2.5 w-2.5 text-white" />
             </div>
-            <div className="flex items-center gap-6 text-xs" style={{ color: "#6c6a64" }}>
-              <a href="#how" className="hover:text-[#a09d96] transition-colors">
-                How it works
-              </a>
-              <a href="#compare" className="hover:text-[#a09d96] transition-colors">
-                Compare
-              </a>
-              <a href="#faq" className="hover:text-[#a09d96] transition-colors">
-                FAQ
-              </a>
-              <Link href="/login" className="hover:text-[#a09d96] transition-colors">
-                Sign in
-              </Link>
-            </div>
+            <span
+              className="text-[13px] font-semibold"
+              style={{ fontFamily: "var(--font-display)", color: "#faf9f5" }}
+            >
+              WarmPath
+            </span>
           </div>
-          <p className="text-xs" style={{ color: "#6c6a64" }}>
-            © {new Date().getFullYear()} WarmPath · warmpath.ai
+          <p className="text-[12px]" style={{ color: "#6c6a64" }}>
+            © 2026 WarmPath
           </p>
         </div>
       </footer>
