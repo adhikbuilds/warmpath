@@ -2,628 +2,685 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>WarmPath Pitch Deck 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
+  --bg:#0B1623;
+  --bg2:#112133;
+  --bg3:#162C44;
+  --border:rgba(255,255,255,.08);
+  --border2:rgba(255,255,255,.04);
   --teal:#2DB89E;
-  --teal-l:#E6F7F4;
-  --navy:#11243E;
-  --navy2:#1B3A5C;
-  --muted:#5A7083;
-  --light:#94A3B8;
-  --border:#DDE3EA;
-  --bg:#FFFFFF;
-  --bg2:#F5F7FA;
-  --red:#E53E3E;
-  --amber:#D97706;
-  --green:#059669;
-  --purple:#7C3AED;
+  --teal-l:rgba(45,184,158,.1);
+  --teal-m:rgba(45,184,158,.25);
+  --teal-bright:#3DD9BC;
+  --white:#F1F5F9;
+  --text:rgba(241,245,249,.86);
+  --muted:rgba(148,163,184,.76);
+  --light:rgba(148,163,184,.4);
+  --red:#F87171;
+  --red-l:rgba(248,113,113,.08);
+  --amber:#FBBF24;
+  --green:#34D399;
 }
-html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:#EAEEF2;-webkit-font-smoothing:antialiased}
+html{width:100%;height:100%;height:-webkit-fill-available;overflow:hidden;font-family:'Inter',sans-serif;background:#060E18;-webkit-font-smoothing:antialiased}
+body{width:100%;height:100%;min-height:-webkit-fill-available;overflow:hidden;background:#060E18}
 
-/* ── Deck shell ── */
-.deck-wrap{
-  width:100vw;height:100vh;
-  display:flex;align-items:center;justify-content:center;
-  background:#EAEEF2;
-}
-.deck{
-  /* fixed 16:9 canvas that scales to fit */
-  width:1280px;height:720px;
-  position:relative;overflow:hidden;
-  transform-origin:center center;
-  background:var(--bg);
-  box-shadow:0 20px 80px rgba(0,0,0,.22);
-}
-.slide{
-  position:absolute;inset:0;
-  display:flex;flex-direction:column;
-  padding:52px 72px 44px;
-  opacity:0;pointer-events:none;
-  transition:opacity .35s ease,transform .35s ease;
-  transform:translateX(36px);
-  background:var(--bg);
-}
+.deck-wrap{width:100vw;height:100vh;height:100dvh;min-height:-webkit-fill-available;display:flex;align-items:center;justify-content:center;background:#060E18}
+.deck{width:1280px;height:720px;position:relative;overflow:hidden;transform-origin:center center;background:var(--bg);box-shadow:0 40px 120px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.05)}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;padding:52px 72px 44px;opacity:0;pointer-events:none;transition:opacity .3s ease,transform .3s ease;transform:translateX(28px);background:var(--bg)}
 .slide.active{opacity:1;pointer-events:all;transform:none}
-.slide.out{opacity:0;transform:translateX(-36px)}
+.slide.out{opacity:0;transform:translateX(-28px)}
 
-/* ── Nav ── */
-#bar{position:fixed;top:0;left:0;height:3px;background:var(--teal);transition:width .3s;z-index:200}
-#ctr{position:fixed;bottom:18px;right:24px;font-size:12px;color:#aaa;z-index:200;font-family:'Space Grotesk';letter-spacing:.12em}
-.nb{position:fixed;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;background:white;border:1px solid #DDD;color:#888;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:200;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.12);transition:all .15s;user-select:none}
-.nb:hover{border-color:var(--teal);color:var(--teal)}
+#bar{position:fixed;top:0;left:0;height:2px;background:var(--teal);transition:width .28s;z-index:200}
+#ctr{position:fixed;bottom:20px;right:26px;font-size:11px;color:rgba(255,255,255,.18);z-index:200;font-family:'Space Grotesk';letter-spacing:.18em}
+.nb{position:fixed;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);color:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:200;transition:all .18s;user-select:none}
+.nb:hover{border-color:rgba(45,184,158,.4);color:var(--teal);background:rgba(45,184,158,.06)}
 #pv{left:12px}#nx{right:12px}
 
-/* ── Shared typography ── */
-.tag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:var(--teal)}
-.slide-title{
-  font-family:'Space Grotesk';font-size:22px;font-weight:800;
-  text-transform:uppercase;letter-spacing:.05em;color:var(--navy);
-  border-left:4px solid var(--teal);padding-left:14px;
-  margin-bottom:28px;flex-shrink:0;line-height:1.2;
-}
-.big{font-family:'Space Grotesk';font-size:80px;font-weight:900;line-height:1;letter-spacing:-.02em}
+.tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.2em;color:var(--teal)}
+.slide-title{font-family:'Space Grotesk';font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--white);border-left:3px solid var(--teal);padding-left:14px;margin-bottom:30px;flex-shrink:0;line-height:1.2}
 
-/* ── Cards ── */
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:22px}
-.card-w{background:#FFF;box-shadow:0 1px 4px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04)}
+.card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:22px}
+.card-t{background:var(--teal-l);border:1px solid rgba(45,184,158,.2);border-radius:12px;padding:22px}
 
-/* ── Grid helpers ── */
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
-.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 
-/* ── Table ── */
-.ct{width:100%;border-collapse:collapse;font-size:13px}
-.ct thead th{padding:11px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--light);border-bottom:2px solid var(--border);background:var(--bg2)}
-.ct tbody td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
-.ct tbody tr.wp td{background:var(--teal-l);font-weight:600}
-.ct tbody tr.wp td:first-child{border-left:3px solid var(--teal)}
+.ct{width:100%;border-collapse:collapse;font-size:12.5px}
+.ct thead th{padding:10px 14px;text-align:left;font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--light);border-bottom:1px solid var(--border);background:rgba(255,255,255,.03)}
+.ct tbody td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;color:var(--text)}
+.ct tbody tr.wp td{background:rgba(45,184,158,.07);font-weight:600}
+.ct tbody tr.wp td:first-child{border-left:2px solid var(--teal)}
 .ok{color:var(--teal);font-weight:700}.no{color:var(--red)}.pm{color:var(--amber)}
 
-/* ── Misc ── */
 .bb{margin-bottom:10px}
-.bb-row{display:flex;justify-content:space-between;font-size:12.5px;font-weight:500;margin-bottom:4px}
-.bb-track{height:8px;background:#EEF2F7;border-radius:4px;overflow:hidden}
-.bb-fill{height:100%;border-radius:4px}
-.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.bb-row{display:flex;justify-content:space-between;font-size:12px;font-weight:500;margin-bottom:4px;color:var(--text)}
+.bb-track{height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.bb-fill{height:100%;border-radius:3px}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:10.5px;font-weight:600}
+.hr{height:1px;background:var(--border)}
+
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 .fl{animation:float 5s ease-in-out infinite}
+@keyframes flow-path{to{stroke-dashoffset:-16}}
+@keyframes pulse-ring{0%,100%{opacity:.35}50%{opacity:.07}}
+.warm-flow{animation:flow-path 1.4s linear infinite}
+.warm-flow2{animation:flow-path 1.4s linear infinite .7s}
+.pulse-r{animation:pulse-ring 2.2s ease-in-out infinite}
+
+@media print{
+  @page{size:1280px 720px;margin:0}
+  html,body{width:1280px;height:auto;overflow:visible;background:#060E18}
+  .deck-wrap{width:1280px;height:auto;display:block;background:#060E18}
+  .deck{width:1280px;height:auto;transform:none !important;overflow:visible;box-shadow:none;position:relative}
+  .slide{position:relative !important;opacity:1 !important;pointer-events:all !important;transform:none !important;height:720px;page-break-after:always;break-after:page;display:flex !important}
+  .slide.out{display:flex !important}
+  .nb,#bar,#ctr{display:none !important}
+}
 </style>
 </head>
 <body>
-<div id="bar" style="width:7.69%"></div>
-<button class="nb" id="pv" onclick="go(-1)">&#8249;</button>
-<button class="nb" id="nx" onclick="go(1)">&#8250;</button>
-<div id="ctr">01 / 13</div>
+<div id="bar" style="width:7.14%"></div>
+<button class="nb" id="pv" onclick="go(-1)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+<button class="nb" id="nx" onclick="go(1)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+<div id="ctr">01 / 14</div>
 
-<div class="deck-wrap">
-<div class="deck" id="deck">
+<div class="deck-wrap"><div class="deck" id="deck">
 
-<!-- ════════════════════════════════════
-     SLIDE 1 COVER
-════════════════════════════════════ -->
-<div class="slide active" id="s1" style="justify-content:space-between;padding-top:72px;padding-bottom:56px">
-  <div>
-    <div style="font-size:15px;color:var(--muted);font-style:italic;margin-bottom:32px;line-height:1.6;max-width:560px">
-      "Every deal I lost someone else had a warm intro I didn't.<br>So I built the tool to find it."
+<!-- ═══ S1 COVER ═══ -->
+<div class="slide active" id="s1" style="flex-direction:row;padding:0;overflow:hidden">
+  <!-- Left -->
+  <div style="flex:0 0 610px;display:flex;flex-direction:column;justify-content:space-between;padding:64px 58px 50px">
+    <div>
+      <div style="font-size:13.5px;font-style:italic;color:var(--muted);line-height:1.8;margin-bottom:40px;max-width:450px;border-left:2px solid rgba(45,184,158,.35);padding-left:18px">
+        "I cold-emailed 200 people at Zomato, CRED, and Razorpay. Got 3 replies in 2 months. My batchmate got a meeting in 2 days because he knew someone who knew someone. So I built the tool to find that someone."
+      </div>
+      <div style="font-family:'Space Grotesk';font-size:86px;font-weight:900;line-height:.92;letter-spacing:-.04em;color:var(--white);margin-bottom:16px">Warm<span style="color:var(--teal)">Path</span></div>
+      <div style="font-size:17px;font-weight:600;color:var(--teal);margin-bottom:20px;letter-spacing:-.01em">Turn your network into your pipeline. Warm intros, not cold email.</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.7">
+        Import your network once. WarmPath finds the shortest warm path<br>
+        to any prospect and sends the intro in 60 seconds.
+      </div>
     </div>
-    <div style="font-family:'Space Grotesk';font-size:78px;font-weight:900;line-height:1;letter-spacing:-.03em;color:var(--navy);margin-bottom:10px">
-      WarmPath
-    </div>
-    <div style="font-family:'Space Grotesk';font-size:26px;font-weight:600;color:var(--teal);margin-bottom:28px;letter-spacing:-.01em">
-      Relationship Intelligence for B2B Sales
-    </div>
-    <div style="font-size:15px;color:var(--muted);line-height:1.7;max-width:580px">
-      Maps your network graph. Finds the warm path to any prospect.<br>Writes the intro. Tracks the deal.
+    <div>
+      <div class="hr" style="margin-bottom:24px"></div>
+      <a href="https://warmpath-eta.vercel.app" target="_blank" rel="noopener" style="font-size:13px;font-weight:700;color:var(--teal);text-decoration:none;border-bottom:1px solid rgba(45,184,158,.35);padding-bottom:1px;white-space:nowrap">warmpath-eta.vercel.app</a>
     </div>
   </div>
-  <div>
-    <div style="height:1px;background:var(--border);margin-bottom:24px"></div>
-    <div style="display:flex;gap:60px">
-      <div>
-        <div style="font-size:11px;color:var(--light);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">Founder</div>
-        <div style="font-size:16px;font-weight:700;color:var(--navy)">Adhik Agarwal</div>
-        <div style="font-size:12px;color:var(--teal);font-weight:600">Final Year · BITS Pilani &nbsp;|&nbsp; SDE-1 @ SeedlingLabs</div>
-      </div>
-      <div>
-        <div style="font-size:11px;color:var(--light);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">Status</div>
-        <div style="font-size:16px;font-weight:700;color:var(--navy)">Functional MVP</div>
-      </div>
-      <div>
-        <div style="font-size:11px;color:var(--light);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">Capital Ask</div>
-        <div style="font-size:16px;font-weight:700;color:var(--navy)">₹20L Seed</div>
-      </div>
-    </div>
+  <!-- Right panel with network art -->
+  <div style="flex:1;background:linear-gradient(135deg,rgba(45,184,158,.07) 0%,rgba(11,22,35,.6) 100%);border-left:1px solid rgba(45,184,158,.12);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+    <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(45,184,158,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(45,184,158,.035) 1px,transparent 1px);background-size:44px 44px"></div>
+    <svg class="fl" width="415" height="395" viewBox="0 0 415 395" fill="none" style="position:relative;z-index:1">
+      <defs>
+        <filter id="gw" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="5" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <linearGradient id="wg1" x1="175" y1="188" x2="285" y2="82" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#2DB89E" stop-opacity=".55"/>
+          <stop offset="100%" stop-color="#2DB89E"/>
+        </linearGradient>
+        <linearGradient id="wg2" x1="285" y1="82" x2="355" y2="188" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#2DB89E"/>
+          <stop offset="100%" stop-color="#3DD9BC"/>
+        </linearGradient>
+      </defs>
+
+      <!-- Orbital rings -->
+      <circle cx="188" cy="192" r="166" stroke="rgba(45,184,158,.05)" stroke-width="1" stroke-dasharray="4,12"/>
+      <circle cx="188" cy="192" r="110" stroke="rgba(45,184,158,.04)" stroke-width="1" stroke-dasharray="3,14"/>
+
+      <!-- Background grey edges -->
+      <line x1="175" y1="188" x2="72" y2="82" stroke="rgba(255,255,255,.06)" stroke-width="1.5"/>
+      <line x1="175" y1="188" x2="46" y2="198" stroke="rgba(255,255,255,.06)" stroke-width="1.5"/>
+      <line x1="175" y1="188" x2="152" y2="322" stroke="rgba(255,255,255,.05)" stroke-width="1.5"/>
+      <line x1="175" y1="188" x2="200" y2="38" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+      <line x1="175" y1="188" x2="268" y2="292" stroke="rgba(45,184,158,.15)" stroke-width="1.5" stroke-dasharray="5,8"/>
+      <line x1="72" y1="82" x2="30" y2="132" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+      <line x1="46" y1="198" x2="30" y2="265" stroke="rgba(255,255,255,.03)" stroke-width="1"/>
+      <line x1="152" y1="322" x2="268" y2="292" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+      <!-- Secondary weak path: Vikram → Rahul -->
+      <line x1="268" y1="292" x2="355" y2="188" stroke="rgba(45,184,158,.16)" stroke-width="1.5" stroke-dasharray="5,9"/>
+
+      <!-- Primary warm path (glowing, animated dashes) -->
+      <line class="warm-flow" x1="175" y1="188" x2="285" y2="82" stroke="url(#wg1)" stroke-width="3.5" stroke-dasharray="10,6" filter="url(#gw)"/>
+      <line class="warm-flow2" x1="285" y1="82" x2="355" y2="188" stroke="url(#wg2)" stroke-width="3.5" stroke-dasharray="10,6" filter="url(#gw)"/>
+
+      <!-- Edge relationship labels -->
+      <rect x="188" y="108" width="78" height="16" rx="4" fill="rgba(4,10,20,.85)" stroke="rgba(45,184,158,.32)" stroke-width=".8"/>
+      <text x="227" y="119" text-anchor="middle" fill="rgba(45,184,158,.92)" font-size="7.5" font-family="Inter" font-weight="700" letter-spacing=".05em">BITS BATCHMATE</text>
+      <rect x="300" y="112" width="72" height="16" rx="4" fill="rgba(4,10,20,.85)" stroke="rgba(45,184,158,.32)" stroke-width=".8"/>
+      <text x="336" y="123" text-anchor="middle" fill="rgba(45,184,158,.92)" font-size="7.5" font-family="Inter" font-weight="700" letter-spacing=".05em">EX-COLLEAGUE</text>
+
+      <!-- Dim named nodes -->
+      <circle cx="72" cy="82" r="16" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.1)" stroke-width="1.5"/>
+      <text x="72" y="86" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="9" font-family="Inter" font-weight="700">AS</text>
+      <text x="72" y="103" text-anchor="middle" fill="rgba(255,255,255,.18)" font-size="7" font-family="Inter">IIT Delhi</text>
+
+      <circle cx="46" cy="198" r="13" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.08)" stroke-width="1.5"/>
+      <text x="46" y="202" text-anchor="middle" fill="rgba(255,255,255,.32)" font-size="9" font-family="Inter" font-weight="700">SK</text>
+      <text x="46" y="218" text-anchor="middle" fill="rgba(255,255,255,.16)" font-size="7" font-family="Inter">IIMB</text>
+
+      <circle cx="152" cy="322" r="11" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+      <text x="152" y="326" text-anchor="middle" fill="rgba(255,255,255,.28)" font-size="9" font-family="Inter" font-weight="700">MR</text>
+
+      <!-- Ghost dots -->
+      <circle cx="200" cy="38" r="7" fill="rgba(255,255,255,.03)" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+      <circle cx="30" cy="132" r="5" fill="rgba(255,255,255,.03)" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+      <circle cx="30" cy="265" r="5" fill="rgba(255,255,255,.03)" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+
+      <!-- Vikram (secondary path connector) -->
+      <circle cx="268" cy="292" r="18" fill="rgba(45,184,158,.07)" stroke="rgba(45,184,158,.22)" stroke-width="1.5"/>
+      <text x="268" y="296" text-anchor="middle" fill="rgba(45,184,158,.58)" font-size="9" font-family="Inter" font-weight="700">Vikram</text>
+      <text x="268" y="310" text-anchor="middle" fill="rgba(45,184,158,.32)" font-size="7.5" font-family="Inter">ex-Razorpay</text>
+
+      <!-- Priya (connector) -->
+      <circle cx="285" cy="82" r="22" fill="rgba(45,184,158,.12)" stroke="var(--teal)" stroke-width="2"/>
+      <text x="285" y="86" text-anchor="middle" fill="var(--teal-bright)" font-size="10" font-family="Inter" font-weight="700">Priya</text>
+      <text x="285" y="109" text-anchor="middle" fill="rgba(45,184,158,.55)" font-size="7.5" font-family="Inter">BITS '22 · Zomato</text>
+
+      <!-- Rahul (prospect) with pulsing outer ring -->
+      <circle class="pulse-r" cx="355" cy="188" r="38" fill="none" stroke="rgba(45,184,158,.22)" stroke-width="1.5"/>
+      <circle cx="355" cy="188" r="26" fill="var(--teal)"/>
+      <text x="355" y="192" text-anchor="middle" fill="white" font-size="11" font-family="Inter" font-weight="700">Rahul</text>
+      <text x="355" y="220" text-anchor="middle" fill="rgba(45,184,158,.68)" font-size="7.5" font-family="Inter">VP Sales · Zomato</text>
+
+      <!-- YOU node -->
+      <circle cx="175" cy="188" r="30" fill="rgba(45,184,158,.12)" stroke="var(--teal)" stroke-width="2"/>
+      <circle cx="175" cy="188" r="39" fill="none" stroke="var(--teal)" stroke-width="1" opacity=".12"/>
+      <text x="175" y="192" text-anchor="middle" fill="var(--teal-bright)" font-size="10" font-family="Space Grotesk" font-weight="800">YOU</text>
+
+      <!-- Warmth badge -->
+      <rect x="222" y="152" width="148" height="28" rx="7" fill="rgba(3,8,18,.85)" stroke="rgba(45,184,158,.42)" stroke-width="1"/>
+      <circle cx="238" cy="166" r="5" fill="var(--teal)"/>
+      <text x="306" y="170" text-anchor="middle" fill="var(--teal)" font-size="11" font-family="Inter" font-weight="700">2 hops · 91% warmth</text>
+    </svg>
   </div>
 </div>
 
-<!-- ════════════════════════════════════
-     SLIDE 2 PROBLEM
-════════════════════════════════════ -->
+<!-- ═══ S2 PROBLEM ═══ -->
 <div class="slide" id="s2">
-  <div class="slide-title">Outbound Entropy Is Terminal</div>
-  <div class="g2" style="flex:1;gap:40px;align-items:center">
-    <div>
-      <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:8px">The Decay of Cold Channels</div>
-      <div style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:24px">Typical B2B response rates have collapsed to <strong style="color:var(--navy)">&lt; 2%</strong>. Spam filters are ruthlessly predictive. Manual research is unscalable.</div>
-      <div style="background:#FFF5F5;border-left:4px solid var(--red);border-radius:0 8px 8px 0;padding:18px 20px;margin-bottom:20px">
-        <div style="font-size:14px;line-height:1.6;color:var(--navy)"><strong>65% of Rep Time</strong> is wasted on "Relationship Discovery" manually scanning LinkedIn instead of high-value selling.</div>
-      </div>
-      <div style="background:var(--teal-l);border-left:4px solid var(--teal);border-radius:0 8px 8px 0;padding:18px 20px">
-        <div style="font-size:14px;color:var(--navy)">Warm introductions generate <strong>5× more replies</strong> than cold outreach. The path exists nobody finds it automatically.</div>
-      </div>
-    </div>
-    <!-- 3 stats replacing stock image -->
-    <div style="display:flex;flex-direction:column;gap:18px">
-      <div style="text-align:center;padding:30px;background:var(--bg2);border-radius:16px;border:1px solid #FEE2E2">
-        <div class="big" style="color:var(--red)">95%</div>
-        <div style="font-size:14px;font-weight:600;color:var(--navy);margin-top:10px">cold emails never replied</div>
-      </div>
-      <div style="text-align:center;padding:30px;background:var(--bg2);border-radius:16px;border:1px solid #FEF3C7">
-        <div class="big" style="color:var(--amber)">65%</div>
-        <div style="font-size:14px;font-weight:600;color:var(--navy);margin-top:10px">SDR time wasted on research</div>
-      </div>
-      <div style="text-align:center;padding:30px;background:var(--teal-l);border-radius:16px;border:1px solid rgba(45,184,158,.3)">
-        <div class="big" style="color:var(--teal)">5×</div>
-        <div style="font-size:14px;font-weight:600;color:var(--navy);margin-top:10px">more replies via warm intro</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ════════════════════════════════════
-     SLIDE 3 WHY NOW
-════════════════════════════════════ -->
-<div class="slide" id="s3">
-  <div class="slide-title">The Relationship Window</div>
-  <div class="g3" style="flex:1;align-items:stretch;gap:20px">
-    <div class="card card-w" style="padding:28px">
-      <div style="width:40px;height:40px;border-radius:10px;background:var(--teal-l);display:flex;align-items:center;justify-content:center;margin-bottom:16px">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2l2.4 4.8 5.3.77-3.85 3.75.91 5.3L10 14.1l-4.76 2.52.91-5.3L2.3 7.57l5.3-.77z" stroke="#2DB89E" stroke-width="1.5" stroke-linejoin="round"/></svg>
-      </div>
-      <div style="font-size:17px;font-weight:700;color:var(--navy);margin-bottom:10px">Cheap Personalization</div>
-      <div style="font-size:13px;color:var(--muted);line-height:1.7">LLMs have commoditized message drafting. The bottleneck is no longer "writing" it is finding the <strong style="color:var(--navy)">right intro path</strong>.</div>
-    </div>
-    <div class="card card-w" style="padding:28px">
-      <div style="width:40px;height:40px;border-radius:10px;background:#FEF3C7;display:flex;align-items:center;justify-content:center;margin-bottom:16px">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V5z" stroke="#D97706" stroke-width="1.5"/><path d="M7 9h6M7 12h4" stroke="#D97706" stroke-width="1.3" stroke-linecap="round"/><path d="M8 2v3M12 2v3" stroke="#D97706" stroke-width="1.3" stroke-linecap="round"/></svg>
-      </div>
-      <div style="font-size:17px;font-weight:700;color:var(--navy);margin-bottom:10px">Filter Armageddon</div>
-      <div style="font-size:13px;color:var(--muted);line-height:1.7">New Gmail/Outlook authentication mandates (2025–2026) make cold outbound <strong style="color:var(--navy)">functionally impossible</strong> for startups at scale.</div>
-    </div>
-    <div class="card card-w" style="padding:28px">
-      <div style="width:40px;height:40px;border-radius:10px;background:#EDE9FE;display:flex;align-items:center;justify-content:center;margin-bottom:16px">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" rx="1.5" stroke="#7C3AED" stroke-width="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5" stroke="#7C3AED" stroke-width="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5" stroke="#7C3AED" stroke-width="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5" stroke="#7C3AED" stroke-width="1.5"/></svg>
-      </div>
-      <div style="font-size:17px;font-weight:700;color:var(--navy);margin-bottom:10px">Consolidation Wave</div>
-      <div style="font-size:13px;color:var(--muted);line-height:1.7">Modern GTM teams are cutting "Point Solutions" Apollo, Clay, SalesNav in favour of unified <strong style="color:var(--navy)">Workflow Platforms</strong>.</div>
-    </div>
-  </div>
-  <div style="margin-top:20px;padding:14px 22px;background:var(--navy);border-radius:10px;color:white;font-size:14px">
-    <strong style="color:var(--teal)">First-mover window:</strong>&nbsp; No Indian competitor has built warm-path finding. 12–18 months before the category is claimed.
-  </div>
-</div>
-
-<!-- ════════════════════════════════════
-     SLIDE 4 PATHFINDING ENGINE
-════════════════════════════════════ -->
-<div class="slide" id="s4">
-  <div class="slide-title">Proprietary Pathfinding Engine</div>
-  <div class="g2" style="flex:1;gap:48px;align-items:center">
-    <div>
-      <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:8px">Weighted BFS Graph Analysis</div>
-      <div style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:22px">WarmPath calculates <strong style="color:var(--navy)">Relationship Strength</strong> across team, advisor, and investor networks then finds the path of least resistance to any prospect in milliseconds.</div>
-      <div style="background:var(--navy);border-radius:14px;padding:28px 32px;text-align:center;margin-bottom:20px">
-        <div style="font-family:'Space Grotesk';font-size:30px;font-weight:700;color:white;letter-spacing:.02em">
-          W<sub style="font-size:.55em;color:var(--teal)">Path</sub> &nbsp;=&nbsp;
-          <span style="font-size:22px">&#8721;</span><sub style="font-size:.45em">i=1</sub><sup style="font-size:.45em">n</sup>
-          &nbsp;<span style="color:var(--teal)">(R<sub style="font-size:.55em">i</sub> &middot; F<sub style="font-size:.55em">i</sub>)</span>
-          &nbsp;/&nbsp; D<sup style="font-size:.55em">2</sup>
+  <div class="slide-title">Founders Are Paying to Fix the Wrong Problem</div>
+  <div class="g2" style="flex:1;gap:22px;align-items:stretch">
+    <!-- Left: the email warming stack -->
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:2px">The "Cold Email Stack" most founders run today</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.14);border-radius:9px">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--white)">Lemwarm / Instantly</div>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:2px">Domain warming inbox placement</div>
         </div>
+        <div style="font-size:13px;font-weight:700;color:var(--red)">$97 / mo</div>
       </div>
-      <div style="font-size:12px;color:var(--light);line-height:1.9;background:var(--bg2);padding:12px 16px;border-radius:8px">
-        <strong style="color:var(--muted)">R</strong> = Interaction Recency &nbsp;&nbsp;
-        <strong style="color:var(--muted)">F</strong> = Contact Frequency &nbsp;&nbsp;
-        <strong style="color:var(--muted)">D</strong> = Degree of Separation
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.14);border-radius:9px">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--white)">Apollo.io + Clay</div>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:2px">Contact lists data enrichment</div>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:var(--red)">$149 / mo</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.14);border-radius:9px">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--white)">LinkedIn Sales Navigator</div>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:2px">Prospecting InMail credits</div>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:var(--red)">$80 / mo</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.14);border-radius:9px">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--white)">AI Copywriting (Lavender etc.)</div>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:2px">Personalised subject lines A/B tests</div>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:var(--red)">$49 / mo</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.22);border-radius:9px">
+        <div style="font-size:13.5px;font-weight:800;color:var(--white)">Total monthly spend</div>
+        <div style="font-size:18px;font-weight:900;color:var(--red);font-family:'Space Grotesk'">$375 / mo</div>
       </div>
     </div>
-    <!-- Proper network graph SVG (replaces broken image) -->
-    <div style="display:flex;justify-content:center;align-items:center">
-      <svg class="fl" width="360" height="320" viewBox="0 0 360 320" fill="none">
-        <!-- Regular edges -->
-        <line x1="180" y1="158" x2="88" y2="78" stroke="#DDE3EA" stroke-width="1.5"/>
-        <line x1="180" y1="158" x2="68" y2="202" stroke="#DDE3EA" stroke-width="1.5"/>
-        <line x1="180" y1="158" x2="188" y2="268" stroke="#DDE3EA" stroke-width="1.5"/>
-        <line x1="180" y1="158" x2="180" y2="38" stroke="#DDE3EA" stroke-width="1.2"/>
-        <line x1="88" y1="78" x2="32" y2="118" stroke="#EEF2F7" stroke-width="1"/>
-        <line x1="68" y1="202" x2="30" y2="240" stroke="#EEF2F7" stroke-width="1"/>
-        <!-- Warm path teal dashed -->
-        <line x1="180" y1="158" x2="276" y2="76" stroke="#2DB89E" stroke-width="3" stroke-dasharray="9,5"/>
-        <line x1="276" y1="76" x2="318" y2="160" stroke="#2DB89E" stroke-width="3" stroke-dasharray="9,5"/>
-        <!-- Regular nodes -->
-        <circle cx="88" cy="78" r="14" fill="white" stroke="#DDE3EA" stroke-width="1.5"/>
-        <circle cx="68" cy="202" r="12" fill="white" stroke="#DDE3EA" stroke-width="1.5"/>
-        <circle cx="188" cy="268" r="10" fill="white" stroke="#DDE3EA" stroke-width="1.5"/>
-        <circle cx="180" cy="38" r="10" fill="white" stroke="#DDE3EA" stroke-width="1.5"/>
-        <circle cx="32" cy="118" r="8" fill="#F5F7FA" stroke="#EEF2F7" stroke-width="1"/>
-        <circle cx="30" cy="240" r="8" fill="#F5F7FA" stroke="#EEF2F7" stroke-width="1"/>
-        <!-- Connector node (mutual contact) -->
-        <circle cx="276" cy="76" r="18" fill="var(--teal-l)" stroke="#2DB89E" stroke-width="2.5"/>
-        <text x="276" y="81" text-anchor="middle" fill="#1A9E87" font-size="10" font-family="Inter" font-weight="700">Priya</text>
-        <!-- Prospect node -->
-        <circle cx="318" cy="160" r="22" fill="#2DB89E"/>
-        <text x="318" y="165" text-anchor="middle" fill="white" font-size="10" font-family="Inter" font-weight="700">Rahul</text>
-        <!-- YOU center node -->
-        <circle cx="180" cy="158" r="24" fill="var(--navy)"/>
-        <circle cx="180" cy="158" r="30" fill="none" stroke="var(--navy)" stroke-width="1.5" opacity=".2"/>
-        <text x="180" y="163" text-anchor="middle" fill="white" font-size="10" font-family="Space Grotesk" font-weight="700">YOU</text>
-        <!-- Warmth badge -->
-        <rect x="230" y="96" width="106" height="22" rx="5" fill="var(--navy)"/>
-        <text x="283" y="111" text-anchor="middle" fill="#2DB89E" font-size="10" font-family="Inter" font-weight="600">2 hops · 91% warmth</text>
-      </svg>
+    <!-- Right: what they get for it -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:2px">What $375/month buys you</div>
+      <div style="padding:20px 22px;background:var(--red-l);border:1px solid rgba(248,113,113,.14);border-radius:12px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:14px">
+        <!-- reply rate comparison bars -->
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:11.5px;font-weight:600;margin-bottom:6px"><span style="color:var(--muted)">Cold Email (after 90 days warming)</span><span style="color:var(--red)">&lt;2%</span></div>
+          <div style="height:9px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden"><div style="width:2%;height:100%;background:var(--red);border-radius:4px"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:11.5px;font-weight:600;margin-bottom:6px"><span style="color:var(--muted)">Warm Intro (first-degree referral)</span><span style="color:var(--teal)">~18%</span></div>
+          <div style="height:9px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden"><div style="width:18%;height:100%;background:var(--teal);border-radius:4px"></div></div>
+        </div>
+        <div style="text-align:center;padding-top:6px">
+          <div style="font-family:'Space Grotesk';font-size:54px;font-weight:900;color:var(--red);line-height:1">9×</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-top:4px">more replies with a warm intro — zero cold email spend</div>
+        </div>
+        <div style="font-size:11.5px;color:var(--muted);line-height:1.6;text-align:center">Gmail bulk-sender rules tightened. AI spam filters learn fast.<br>Domains burn in weeks. The tools aren't the problem.</div>
+      </div>
+      <div style="padding:16px 20px;background:rgba(45,184,158,.08);border:1px solid rgba(45,184,158,.2);border-radius:10px">
+        <div style="font-size:12.5px;font-weight:700;color:var(--white);margin-bottom:5px">Email warming treats the symptom.</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.6">The disease is cold outreach itself. Nobody wants email from strangers. The fix isn't better warming. The fix is never sending cold email.</div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- ════════════════════════════════════
-     SLIDE 5 PRODUCT (APPROVAL QUEUE)
-════════════════════════════════════ -->
+<!-- ═══ S3 THE INSIGHT ═══ -->
+<div class="slide" id="s3" style="align-items:center;justify-content:center">
+  <div style="text-align:center;max-width:860px">
+    <div class="tag" style="margin-bottom:24px">The Fundamental Shift</div>
+    <div style="font-family:'Space Grotesk';font-size:118px;font-weight:900;line-height:.9;letter-spacing:-.04em;color:var(--teal);margin-bottom:20px">70%</div>
+    <div style="font-family:'Space Grotesk';font-size:28px;font-weight:700;line-height:1.3;color:var(--white);margin-bottom:10px">
+      of enterprise deals close through<br>a warm introduction, not a cold email.
+    </div>
+    <div style="font-size:12.5px;color:var(--muted);margin-bottom:46px;letter-spacing:.04em">FORRESTER RESEARCH + HUBSPOT STATE OF SALES, 2025</div>
+    <div style="display:flex;border-radius:12px;overflow:hidden;border:1px solid var(--border)">
+      <div style="flex:1;padding:20px 28px;background:var(--red-l);text-align:center">
+        <div style="font-size:10px;font-weight:700;color:var(--red);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Cold Outreach</div>
+        <div style="font-size:13.5px;color:var(--muted)">You &nbsp;›&nbsp; Inbox &nbsp;›&nbsp; <span style="color:var(--red);font-weight:600">Spam / Ignored</span></div>
+      </div>
+      <div style="width:1px;background:var(--border)"></div>
+      <div style="flex:1;padding:20px 28px;background:var(--teal-l);text-align:center">
+        <div style="font-size:10px;font-weight:700;color:var(--teal);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Warm Path</div>
+        <div style="font-size:13.5px;color:var(--muted)">You &nbsp;›&nbsp; Mutual &nbsp;›&nbsp; <span style="color:var(--teal);font-weight:700">VP replies in 4 hrs ✓</span></div>
+      </div>
+    </div>
+    <div style="margin-top:22px;font-size:14px;color:var(--muted);font-style:italic;line-height:1.7">
+      The warm path exists inside every professional network.<br>The problem is finding it systematically and fast.
+    </div>
+  </div>
+</div>
+
+<!-- ═══ S4 HOW WE SOLVE IT ═══ -->
+<div class="slide" id="s4" style="justify-content:center">
+  <div class="slide-title" style="margin-bottom:32px">How WarmPath Solves It</div>
+  <!-- 4-step horizontal flow -->
+  <div style="display:flex;align-items:flex-start;gap:0;width:100%;max-width:1020px;margin:0 auto">
+
+    <!-- Step 1 -->
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 12px">
+      <div style="width:56px;height:56px;border-radius:14px;background:rgba(241,245,249,.06);border:1px solid rgba(241,245,249,.15);display:flex;align-items:center;justify-content:center;margin-bottom:14px">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F1F5F9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Step 1</div>
+      <div style="font-size:15px;font-weight:700;color:var(--white);margin-bottom:8px">You want to reach<br>Rahul at Zomato</div>
+      <div style="font-size:12.5px;color:var(--muted);line-height:1.6">Enter the prospect. WarmPath takes it from here.</div>
+    </div>
+
+    <!-- Arrow -->
+    <div style="flex-shrink:0;display:flex;align-items:center;padding-top:28px">
+      <svg width="40" height="20" viewBox="0 0 40 20" fill="none"><path d="M0 10h34" stroke="rgba(45,184,158,.55)" stroke-width="2" stroke-linecap="round"/><path d="M27 4l7 6-7 6" stroke="rgba(45,184,158,.55)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+
+    <!-- Step 2 -->
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 12px">
+      <div style="width:56px;height:56px;border-radius:14px;background:var(--teal-l);border:1px solid rgba(45,184,158,.3);display:flex;align-items:center;justify-content:center;margin-bottom:14px">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="7" y1="7.5" x2="11" y2="16.5"/><line x1="17" y1="7.5" x2="13" y2="16.5"/></svg>
+      </div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--teal);text-transform:uppercase;margin-bottom:8px">Step 2</div>
+      <div style="font-size:15px;font-weight:700;color:var(--white);margin-bottom:8px">WarmPath maps<br>every connection</div>
+      <div style="font-size:12.5px;color:var(--muted);line-height:1.6">LinkedIn, Gmail, alumni, investors. Every connection graphed and scored automatically.</div>
+    </div>
+
+    <!-- Arrow -->
+    <div style="flex-shrink:0;display:flex;align-items:center;padding-top:28px">
+      <svg width="40" height="20" viewBox="0 0 40 20" fill="none"><path d="M0 10h34" stroke="rgba(45,184,158,.55)" stroke-width="2" stroke-linecap="round"/><path d="M27 4l7 6-7 6" stroke="rgba(45,184,158,.55)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+
+    <!-- Step 3 -->
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 12px">
+      <div style="width:56px;height:56px;border-radius:14px;background:var(--teal-l);border:1px solid rgba(45,184,158,.3);display:flex;align-items:center;justify-content:center;margin-bottom:14px">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--teal);text-transform:uppercase;margin-bottom:8px">Step 3</div>
+      <div style="font-size:15px;font-weight:700;color:var(--white);margin-bottom:8px">Priya knows Rahul<br><span style="color:var(--teal)">2 hops. 91% warmth.</span></div>
+      <div style="font-size:12.5px;color:var(--muted);line-height:1.6">Best path ranked by warmth score. You see exactly who to ask and why.</div>
+    </div>
+
+    <!-- Arrow -->
+    <div style="flex-shrink:0;display:flex;align-items:center;padding-top:28px">
+      <svg width="40" height="20" viewBox="0 0 40 20" fill="none"><path d="M0 10h34" stroke="rgba(45,184,158,.55)" stroke-width="2" stroke-linecap="round"/><path d="M27 4l7 6-7 6" stroke="rgba(45,184,158,.55)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+
+    <!-- Step 4 -->
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 12px">
+      <div style="width:56px;height:56px;border-radius:14px;background:var(--teal);display:flex;align-items:center;justify-content:center;margin-bottom:14px">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0B1623" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--teal);text-transform:uppercase;margin-bottom:8px">Step 4</div>
+      <div style="font-size:15px;font-weight:700;color:var(--white);margin-bottom:8px">Intro drafted<br>and sent in 60 sec</div>
+      <div style="font-size:12.5px;color:var(--muted);line-height:1.6">AI writes the ask. You approve. No cold email. No domain burning.</div>
+    </div>
+
+  </div>
+
+  <!-- Bottom stats bar -->
+  <div style="display:flex;gap:40px;justify-content:center;margin-top:36px;padding-top:28px;border-top:1px solid var(--border)">
+    <div style="text-align:center">
+      <div style="font-size:28px;font-weight:800;color:var(--teal);letter-spacing:-.02em">60 sec</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">prospect to intro sent</div>
+    </div>
+    <div style="width:1px;background:var(--border)"></div>
+    <div style="text-align:center">
+      <div style="font-size:28px;font-weight:800;color:var(--teal);letter-spacing:-.02em">9×</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">higher reply rate vs cold email</div>
+    </div>
+    <div style="width:1px;background:var(--border)"></div>
+    <div style="text-align:center">
+      <div style="font-size:28px;font-weight:800;color:var(--teal);letter-spacing:-.02em">Zero</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">domain risk</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ S5 PRODUCT DEEP DIVE ═══ -->
 <div class="slide" id="s5">
   <div class="slide-title">The WarmPath OS</div>
-  <div class="g2" style="flex:1;gap:36px;align-items:center">
-    <!-- Real product mockup replacing the e-commerce dashboard -->
-    <div style="background:white;border-radius:14px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.14);border:1px solid var(--border)">
-      <!-- Browser chrome -->
-      <div style="height:36px;background:#F1F4F8;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;padding:0 14px">
-        <div style="width:11px;height:11px;border-radius:50%;background:#FC8181"></div>
-        <div style="width:11px;height:11px;border-radius:50%;background:#F6E05E"></div>
-        <div style="width:11px;height:11px;border-radius:50%;background:#68D391"></div>
-        <div style="flex:1;margin:0 18px;background:white;border-radius:5px;height:22px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border)">
-          <span style="font-size:10.5px;color:var(--light)">warmpath.ai / approval-queue</span>
+  <div class="g2" style="flex:1;gap:34px;align-items:stretch">
+    <!-- Full mockup -->
+    <div style="border-radius:14px;overflow:hidden;border:1px solid var(--border);background:rgba(255,255,255,.02);display:flex;flex-direction:column">
+      <div style="height:32px;background:rgba(255,255,255,.03);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;padding:0 12px;flex-shrink:0">
+        <div style="width:9px;height:9px;border-radius:50%;background:rgba(248,113,113,.45)"></div>
+        <div style="width:9px;height:9px;border-radius:50%;background:rgba(251,191,36,.35)"></div>
+        <div style="width:9px;height:9px;border-radius:50%;background:rgba(52,211,153,.35)"></div>
+        <div style="flex:1;margin:0 10px;background:rgba(255,255,255,.04);border-radius:4px;height:18px;display:flex;align-items:center;justify-content:center">
+          <span style="font-size:9.5px;color:var(--light)">warmpath-eta.vercel.app/approval-queue</span>
         </div>
       </div>
-      <!-- App layout -->
-      <div style="display:grid;grid-template-columns:162px 1fr;height:272px">
-        <!-- Sidebar -->
-        <div style="background:#F8FAFB;border-right:1px solid var(--border);padding:0">
-          <div style="padding:10px 12px 6px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--light)">Channels</div>
-          <!-- Email active -->
-          <div style="padding:9px 12px;background:white;border-right:2px solid var(--teal);display:flex;justify-content:space-between;align-items:center">
-            <span style="font-size:12.5px;font-weight:600;color:var(--navy)">✉ Email</span>
-            <span style="font-size:10px;font-weight:700;background:#FEE2E2;color:var(--red);padding:2px 7px;border-radius:10px">3</span>
+      <div style="display:grid;grid-template-columns:148px 1fr;flex:1">
+        <div style="background:rgba(255,255,255,.02);border-right:1px solid var(--border)">
+          <div style="padding:9px 11px 5px;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--light)">Channels</div>
+          <div style="padding:9px 11px;background:var(--teal-l);border-right:2px solid var(--teal);display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:12px;font-weight:600;color:var(--white)">✉ Email</span>
+            <span style="font-size:9px;font-weight:700;background:rgba(248,113,113,.18);color:var(--red);padding:2px 6px;border-radius:8px">3</span>
           </div>
-          <div style="padding:9px 12px;display:flex;justify-content:space-between;align-items:center">
-            <span style="font-size:12.5px;color:var(--muted)">in LinkedIn</span>
-            <span style="font-size:10px;color:var(--light)">2</span>
+          <div style="padding:9px 11px;display:flex;justify-content:space-between"><span style="font-size:12px;color:var(--muted)">🔗 LinkedIn</span><span style="font-size:10px;color:var(--light)">2</span></div>
+          <div style="padding:9px 11px;display:flex;justify-content:space-between"><span style="font-size:12px;color:var(--muted)">💬 WhatsApp</span><span style="font-size:10px;color:var(--light)">1</span></div>
+          <div style="padding:9px 11px;display:flex;justify-content:space-between"><span style="font-size:12px;color:var(--muted)">Telegram</span><span style="font-size:10px;color:var(--light)">0</span></div>
+          <div style="padding:9px 11px;display:flex;justify-content:space-between"><span style="font-size:12px;color:var(--muted)">Meta Ads</span><span style="font-size:10px;color:var(--light)">1</span></div>
+          <div style="margin:9px 9px 0;padding:9px 10px;background:var(--teal-l);border-radius:7px;border:1px solid rgba(45,184,158,.18)">
+            <div style="font-size:8px;font-weight:700;color:var(--teal);text-transform:uppercase;margin-bottom:2px">Queue Total</div>
+            <div style="font-size:21px;font-weight:900;font-family:'Space Grotesk';color:var(--white)">7</div>
           </div>
-          <div style="padding:9px 12px;display:flex;justify-content:space-between;align-items:center">
-            <span style="font-size:12.5px;color:var(--muted)">💬 WhatsApp</span>
-            <span style="font-size:10px;color:var(--light)">1</span>
-          </div>
-          <div style="padding:9px 12px;display:flex;justify-content:space-between;align-items:center">
-            <span style="font-size:12.5px;color:var(--muted)">Telegram</span>
-            <span style="font-size:10px;color:var(--light)">0</span>
-          </div>
-          <div style="padding:9px 12px;display:flex;justify-content:space-between;align-items:center">
-            <span style="font-size:12.5px;color:var(--muted)">Meta Ads</span>
-            <span style="font-size:10px;color:var(--light)">1</span>
-          </div>
-          <div style="margin:10px 12px 0;padding:8px 10px;background:var(--teal-l);border-radius:7px">
-            <div style="font-size:9px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.08em">Queue Total</div>
-            <div style="font-size:18px;font-weight:800;font-family:'Space Grotesk';color:var(--navy)">7</div>
+          <div style="margin:8px 9px 0;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:7px;border:1px solid var(--border)">
+            <div style="font-size:8px;color:var(--light);margin-bottom:2px">Avg Warmth</div>
+            <div style="font-size:17px;font-weight:800;color:var(--teal);font-family:'Space Grotesk'">87%</div>
           </div>
         </div>
-        <!-- Main panel -->
-        <div style="padding:14px 16px">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)">
-            <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#2DB89E,#11243E);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:white;flex-shrink:0">RS</div>
+        <div style="padding:15px 17px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:13px;padding-bottom:13px;border-bottom:1px solid var(--border)">
+            <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#0B1623);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;flex-shrink:0">RS</div>
             <div style="flex:1">
-              <div style="font-size:13.5px;font-weight:700;color:var(--navy)">Rahul Sharma &nbsp;·&nbsp; Zomato</div>
-              <div style="font-size:11px;color:var(--teal);font-weight:600">via Priya Mehta · 2 hops · 91% warmth score</div>
+              <div style="font-size:13px;font-weight:700;color:var(--white)">Rahul Sharma  /  VP Supply Chain, Zomato</div>
+              <div style="font-size:10.5px;color:var(--teal);font-weight:600">via Priya Mehta (ex-Swiggy) 2 hops 91% warmth score</div>
             </div>
-            <div style="padding:4px 9px;background:var(--teal-l);border-radius:6px;font-size:10px;color:#1A9E87;font-weight:700">warm ✓</div>
+            <div style="padding:3px 8px;background:var(--teal-l);border-radius:5px;font-size:9.5px;color:var(--teal);font-weight:700;white-space:nowrap">warm ✓</div>
           </div>
-          <div style="border:1px solid var(--border);border-radius:9px;padding:12px;background:#FAFBFC;margin-bottom:12px;font-size:12px;line-height:1.7;color:var(--navy)">
-            Hi Rahul, Priya Mehta suggested I reach out she mentioned your expansion into Zomato's B2B supply chain. I'm building WarmPath, a relationship intelligence tool that could cut your BD cycle by 60%...
-            <span style="color:var(--teal);font-weight:500">&nbsp;[AI drafted · 94% personalization score]</span>
+          <div style="padding:8px 12px;background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.14);border-radius:7px;margin-bottom:11px;font-size:11px;color:var(--amber)">
+            ⚡ Signal: Zomato posted "Expanding B2B supply chain platform" 3 days ago
           </div>
-          <div style="display:flex;gap:8px">
-            <button style="padding:8px 18px;background:var(--teal);color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter'">✓ Approve &amp; Send</button>
-            <button style="padding:8px 14px;background:white;border:1px solid var(--border);border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;color:var(--navy);font-family:'Inter'">✎ Edit</button>
-            <button style="padding:8px 14px;background:white;border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted);cursor:pointer;font-family:'Inter'">Skip →</button>
+          <div style="border:1px solid var(--border);border-radius:9px;padding:12px;background:rgba(255,255,255,.02);margin-bottom:12px;font-size:11.5px;line-height:1.7;color:var(--text)">
+            Hi Rahul, Priya Mehta suggested I reach out she mentioned your expansion into Zomato's B2B supply chain and the vendor onboarding bottleneck you're solving. I'm building WarmPath, a relationship intelligence platform that helps BD teams cut enterprise outreach cycles by 60%. Worth a 20-min call?
+            <span style="color:var(--teal);font-weight:500"> [AI drafted 94% personalisation score]</span>
+          </div>
+          <div style="display:flex;gap:7px">
+            <button style="padding:7px 16px;background:var(--teal);color:white;border:none;border-radius:7px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:'Inter'">✓ Approve &amp; Send</button>
+            <button style="padding:7px 13px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:7px;font-size:11.5px;cursor:pointer;color:var(--text);font-family:'Inter'">✎ Edit</button>
+            <button style="padding:7px 13px;background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:7px;font-size:11.5px;color:var(--muted);cursor:pointer;font-family:'Inter'">Skip →</button>
           </div>
         </div>
       </div>
     </div>
-    <!-- Right panel -->
-    <div style="display:flex;flex-direction:column;gap:20px">
+    <!-- Features -->
+    <div style="display:flex;flex-direction:column;gap:18px;justify-content:center">
       <div>
-        <div style="font-size:17px;font-weight:700;color:var(--teal);margin-bottom:6px">1. Discovery Engine</div>
-        <div style="font-size:13px;color:var(--muted);line-height:1.65">Maps 1st, 2nd, and alumni nodes to find the path of least resistance to any prospect in your network.</div>
+        <div style="font-size:15.5px;font-weight:700;color:var(--teal);margin-bottom:6px">Discovery Engine</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.65">Graph pathfinding maps 1st, 2nd-degree and alumni nodes. Ranks every path by warmth score. Surfaces the strongest intro chain in &lt;100ms.</div>
       </div>
-      <div style="height:1px;background:var(--border)"></div>
+      <div class="hr"></div>
       <div>
-        <div style="font-size:17px;font-weight:700;color:var(--teal);margin-bottom:6px">2. AI Personalization</div>
-        <div style="font-size:13px;color:var(--muted);line-height:1.65">Claude RAG drafts intro requests using mutual context, company signals, and your knowledge base.</div>
+        <div style="font-size:15.5px;font-weight:700;color:var(--teal);margin-bottom:6px">AI Personalisation</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.65">Claude AI uses live company signals, mutual connection history, and your knowledge base to draft intros that feel human, not templated.</div>
       </div>
-      <div style="height:1px;background:var(--border)"></div>
+      <div class="hr"></div>
       <div>
-        <div style="font-size:17px;font-weight:700;color:var(--teal);margin-bottom:6px">3. Omnichannel Queue</div>
-        <div style="font-size:13px;color:var(--muted);line-height:1.65">One-click approval for Email, LinkedIn, WhatsApp, Telegram &amp; Meta Ads unified inbox.</div>
+        <div style="font-size:15.5px;font-weight:700;color:var(--teal);margin-bottom:6px">Omnichannel Queue</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.65">Unified inbox across Email, LinkedIn, WhatsApp, Telegram, and Meta Ads. One approval flow no tab-switching between 5 tools.</div>
       </div>
-      <div style="padding:12px 16px;background:var(--navy);border-radius:10px;color:white;font-size:12.5px">
-        <strong style="color:var(--teal)">MVP Status:</strong>&nbsp; Built solo · 3 months · functional prototype with all 3 engines live
+      <div style="padding:13px 16px;background:rgba(45,184,158,.07);border:1px solid rgba(45,184,158,.18);border-radius:9px;font-size:12px;color:var(--muted)">
+        <strong style="color:var(--white)">MVP Status:</strong>&nbsp; All 3 engines live Built solo in 3 months
       </div>
     </div>
   </div>
 </div>
 
-<!-- ════════════════════════════════════
-     SLIDE 6 FOUNDER / TEAM
-════════════════════════════════════ -->
+<!-- ═══ S6 THE ENGINE ═══ -->
 <div class="slide" id="s6">
-  <div class="slide-title">The Builder</div>
-  <div class="g2" style="flex:1;gap:36px;align-items:start">
-    <!-- Founder card -->
+  <div class="slide-title">The Pathfinding Engine</div>
+  <div class="g2" style="flex:1;gap:52px;align-items:center">
     <div>
-      <div class="card card-w" style="padding:28px;margin-bottom:18px">
-        <div style="display:flex;align-items:center;gap:18px;margin-bottom:20px">
-          <!-- Avatar (replace src with LinkedIn photo URL) -->
-          <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#2DB89E 0%,#11243E 100%);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;font-family:'Space Grotesk';color:white;flex-shrink:0;border:3px solid var(--teal-l)">AA</div>
-          <div>
-            <div style="font-size:20px;font-weight:800;font-family:'Space Grotesk';color:var(--navy)">Adhik Agarwal</div>
-            <div style="font-size:13px;color:var(--teal);font-weight:600;margin-top:2px">Founder &amp; Full-Stack Engineer</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:2px">B.E. · BITS Pilani (Class of 2026)</div>
-            <div style="font-size:12px;color:var(--muted)">SDE-1 @ SeedlingLabs Private Limited</div>
-          </div>
+      <div style="font-size:14px;font-weight:600;color:var(--white);margin-bottom:8px">How the Engine Scores Paths</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:24px">Most tools give you a list. WarmPath runs a real graph traversal scoring every path by relationship warmth, then ranking by the weakest link in the chain. Not a recommendation engine. An actual path.</div>
+      <div style="background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;padding:26px 32px;text-align:center;margin-bottom:18px">
+        <div style="font-family:'Space Grotesk';font-size:22px;font-weight:700;color:var(--white);letter-spacing:.01em;line-height:1.5">
+          W<sub style="font-size:.55em;color:var(--teal)">path</sub> &nbsp;=&nbsp;
+          <span style="color:var(--teal)">min(W<sub style="font-size:.55em">1</sub>, W<sub style="font-size:.55em">2</sub> … W<sub style="font-size:.55em">n</sub>)</span>
+          &nbsp;&times;&nbsp;
+          <span style="font-size:.7em;color:rgba(241,245,249,.6)">(1 / hops<sup style="font-size:.65em">0.5</sup>)</span>
         </div>
-        <div style="display:flex;flex-direction:column;gap:9px">
-          <div style="display:flex;gap:10px;align-items:flex-start">
-            <span style="color:var(--teal);font-weight:700;flex-shrink:0">→</span>
-            <span style="font-size:13px;color:var(--navy)">Full-stack: Next.js 15, React 19, TypeScript, Tailwind v4</span>
-          </div>
-          <div style="display:flex;gap:10px;align-items:flex-start">
-            <span style="color:var(--teal);font-weight:700;flex-shrink:0">→</span>
-            <span style="font-size:13px;color:var(--navy)">Graph algorithms: BFS pathfinding, warmth scoring built in-house</span>
-          </div>
-          <div style="display:flex;gap:10px;align-items:flex-start">
-            <span style="color:var(--teal);font-weight:700;flex-shrink:0">→</span>
-            <span style="font-size:13px;color:var(--navy)">AI: Claude AI, GPT-4, RAG, multi-modal workflows</span>
-          </div>
-          <div style="display:flex;gap:10px;align-items:flex-start">
-            <span style="color:var(--teal);font-weight:700;flex-shrink:0">→</span>
-            <span style="font-size:13px;color:var(--navy)">Built the full MVP solo in 3 months while working full-time at SeedlingLabs</span>
-          </div>
+        <div style="margin-top:10px;font-size:11px;color:var(--muted)">each W<sub style="font-size:.8em">i</sub> = relationship_type &nbsp;&times;&nbsp; recency &nbsp;&times;&nbsp; strength</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;background:rgba(255,255,255,.03);border-radius:8px">
+          <span style="font-size:13px;font-weight:800;color:var(--teal);font-family:'Space Grotesk';white-space:nowrap;margin-right:14px">W<sub style="font-size:.7em">i</sub></span>
+          <span style="font-size:12px;color:var(--muted)">Recency × Frequency × Relationship type — scored per edge</span>
         </div>
-        <div style="margin-top:18px;padding:10px 16px;background:var(--bg2);border-radius:8px;display:flex;gap:16px">
-          <div style="font-size:12px;color:var(--muted)">linkedin.com/in/adhik-agarwal</div>
-          <div style="font-size:12px;color:var(--navy);font-weight:600">adhikagarwal16@gmail.com</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;background:rgba(255,255,255,.03);border-radius:8px">
+          <span style="font-size:13px;font-weight:800;color:var(--teal);font-family:'Space Grotesk';white-space:nowrap;margin-right:14px">min()</span>
+          <span style="font-size:12px;color:var(--muted)">Weakest link wins — one cold handoff kills the entire path</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;background:rgba(255,255,255,.03);border-radius:8px">
+          <span style="font-size:13px;font-weight:800;color:var(--teal);font-family:'Space Grotesk';white-space:nowrap;margin-right:14px">hops<sup style="font-size:.65em">0.5</sup></span>
+          <span style="font-size:12px;color:var(--muted)">Length penalty — shorter paths rank higher, all else equal</span>
         </div>
       </div>
     </div>
-    <!-- Open roles -->
-    <div>
-      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--light);margin-bottom:14px">We're Hiring</div>
-      <div style="display:flex;flex-direction:column;gap:12px">
-        <div class="card" style="padding:16px 18px;border-left:3px solid var(--teal)">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
-            <div style="font-size:14px;font-weight:700;color:var(--navy)">Co-Founder GTM &amp; Sales</div>
-            <span class="chip" style="background:#FEF3C7;color:#92400E">5–15% equity</span>
+    <!-- Path ranking visualization — shows how 3 candidate paths get evaluated and the winner selected -->
+    <div style="display:flex;flex-direction:column;gap:10px;justify-content:center">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--light);margin-bottom:4px">Live path ranking: "Reach Rahul at Zomato"</div>
+      <!-- Path A — winner -->
+      <div style="padding:14px 18px;background:rgba(45,184,158,.1);border:1.5px solid rgba(45,184,158,.4);border-radius:11px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="font-size:12.5px;font-weight:700;color:var(--white)">You › Priya Mehta › Rahul</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span style="font-size:10px;font-weight:700;background:var(--teal);color:#0B1623;padding:2px 8px;border-radius:5px">SELECTED</span>
           </div>
-          <div style="font-size:12px;color:var(--muted)">Own all revenue from day one. Founder calls, BD, early partnerships. IIM / MBA background preferred.</div>
         </div>
-        <div class="card" style="padding:16px 18px">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
-            <div style="font-size:14px;font-weight:700;color:var(--navy)">Marketing Interns 3 roles</div>
-            <span class="chip" style="background:var(--teal-l);color:#1A9E87">₹20–25K/mo</span>
-          </div>
-          <div style="font-size:12px;color:var(--muted)">Content, SEO, social media &amp; community. BITS / IIT preferred. 6 months, full-time potential.</div>
+        <div style="display:flex;gap:20px">
+          <div style="font-size:11.5px;color:var(--muted)">Hops: <span style="color:var(--teal);font-weight:700">2</span></div>
+          <div style="font-size:11.5px;color:var(--muted)">Recency: <span style="color:var(--teal);font-weight:700">14d</span></div>
+          <div style="font-size:11.5px;color:var(--muted)">Freq: <span style="color:var(--teal);font-weight:700">High</span></div>
+          <div style="font-size:12px;font-weight:800;color:var(--teal)">W = 91%</div>
         </div>
-        <div class="card" style="padding:16px 18px">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
-            <div style="font-size:14px;font-weight:700;color:var(--navy)">GTM / Sales Interns 2 roles</div>
-            <span class="chip" style="background:var(--teal-l);color:#1A9E87">₹20–25K/mo</span>
-          </div>
-          <div style="font-size:12px;color:var(--muted)">Startup outreach, demo calls, BD. Work directly with the founder. Great pre-MBA GTM exposure.</div>
+      </div>
+      <!-- Path B -->
+      <div style="padding:14px 18px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:11px;opacity:.7">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="font-size:12.5px;font-weight:600;color:var(--muted)">You › Raj Sharma › Ankit › Rahul</div>
         </div>
-        <div class="card" style="padding:16px 18px;background:#1B3A5C;border:none">
-          <div style="font-size:12px;font-weight:700;color:var(--teal);margin-bottom:3px">Advisors</div>
-          <div style="font-size:12px;color:rgba(255,255,255,.65)">0.1–0.5% equity · B2B SaaS founders &amp; India-focused VCs</div>
+        <div style="display:flex;gap:20px">
+          <div style="font-size:11.5px;color:var(--muted)">Hops: <span style="color:var(--light);font-weight:700">3</span></div>
+          <div style="font-size:11.5px;color:var(--muted)">Recency: <span style="color:var(--light);font-weight:700">62d</span></div>
+          <div style="font-size:11.5px;color:var(--muted)">Freq: <span style="color:var(--light);font-weight:700">Low</span></div>
+          <div style="font-size:12px;font-weight:700;color:var(--light)">W = 54%</div>
         </div>
+      </div>
+      <!-- Path C -->
+      <div style="padding:14px 18px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);border-radius:11px;opacity:.5">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="font-size:12.5px;font-weight:600;color:var(--muted)">You › LinkedIn contact › Unknown › Rahul</div>
+        </div>
+        <div style="display:flex;gap:20px">
+          <div style="font-size:11.5px;color:var(--muted)">Hops: <span style="font-weight:700">3</span></div>
+          <div style="font-size:11.5px;color:var(--muted)">Recency: <span style="font-weight:700">180d+</span></div>
+          <div style="font-size:11.5px;color:var(--muted)">Freq: <span style="font-weight:700">None</span></div>
+          <div style="font-size:12px;font-weight:700;color:var(--red)">W = 18%</div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);padding:10px 14px;background:rgba(255,255,255,.03);border-radius:8px;margin-top:4px">
+        Algorithm evaluates every candidate path in &lt;100ms. Only the strongest warm path reaches your approval queue.
       </div>
     </div>
   </div>
 </div>
 
-<!-- ════════════════════════════════════
-     SLIDE 7 WHO WE SERVE
-════════════════════════════════════ -->
+<!-- ═══ S7 WHO WE SERVE ═══ -->
 <div class="slide" id="s7">
-  <div class="slide-title">Built for Trust-First Selling</div>
-  <div class="g4" style="flex:1;align-items:stretch;gap:16px">
-
-    <!-- Card 1: Startup Founders -->
-    <div class="card card-w" style="padding:22px 20px;display:flex;flex-direction:column;gap:0">
-      <div style="width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#2DB89E22,#2DB89E44);display:flex;align-items:center;justify-content:center;margin-bottom:14px;flex-shrink:0">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2DB89E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 2L8 8H3l4 4-1.5 6L12 15l6.5 3L17 12l4-4h-5z"/>
-          <circle cx="12" cy="12" r="2" fill="#2DB89E" stroke="none"/>
-        </svg>
+  <div class="slide-title">Who We Serve First</div>
+  <div class="g2" style="flex:1;gap:34px;align-items:stretch">
+    <div style="background:var(--teal-l);border:1px solid rgba(45,184,158,.2);border-radius:16px;padding:32px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--teal);margin-bottom:18px">Primary ICP Seed Wedge</div>
+      <div style="font-family:'Space Grotesk';font-size:26px;font-weight:800;color:var(--white);line-height:1.25;margin-bottom:10px">Indian B2B Founders<br>Selling into US &amp; Singapore Enterprise</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:28px">Seed · Series B Founder-led sales High-value enterprise deals</div>
+      <div class="hr" style="margin-bottom:24px"></div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;gap:14px;align-items:flex-start">
+          <div style="width:6px;height:6px;background:var(--red);border-radius:50%;margin-top:5px;flex-shrink:0"></div>
+          <div style="font-size:13px;color:var(--text)"><strong style="color:var(--white)">10+ hrs/week</strong> on manual research and cold outreach with &lt;2% reply rates</div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start">
+          <div style="width:6px;height:6px;background:var(--red);border-radius:50%;margin-top:5px;flex-shrink:0"></div>
+          <div style="font-size:13px;color:var(--text)">No systematic way to find who in their BITS/IIT/investor network connects to the target VP</div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start">
+          <div style="width:6px;height:6px;background:var(--red);border-radius:50%;margin-top:5px;flex-shrink:0"></div>
+          <div style="font-size:13px;color:var(--text)">US tools Apollo, Clay, SalesNav cost $150–500/month and ignore Indian relationship networks entirely</div>
+        </div>
       </div>
-      <div style="font-size:14px;font-weight:800;color:var(--navy);margin-bottom:3px;font-family:'Space Grotesk'">Startup Founders</div>
-      <div style="font-size:10px;color:var(--teal);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px">Seed → Series B</div>
-      <div style="font-size:22px;font-weight:900;color:var(--navy);font-family:'Space Grotesk';line-height:1;margin-bottom:4px">70%</div>
-      <div style="font-size:10.5px;color:var(--muted);margin-bottom:12px;line-height:1.55">of enterprise deals close through a warm intro. Meanwhile founders spend 10+ hrs/week on cold outreach seeing &lt;2% reply rates. <em>(Gartner 2024)</em></div>
-      <div style="font-size:11px;color:var(--teal);font-weight:600;line-height:1.5;margin-top:auto">WarmPath maps the entire network graph and surfaces the shortest warm path to any VP or CXO in seconds.</div>
     </div>
-
-    <!-- Card 2: SDRs & AEs -->
-    <div class="card card-w" style="padding:22px 20px;display:flex;flex-direction:column;gap:0">
-      <div style="width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#6366F122,#6366F144);display:flex;align-items:center;justify-content:center;margin-bottom:14px;flex-shrink:0">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <circle cx="12" cy="12" r="5"/>
-          <circle cx="12" cy="12" r="1" fill="#6366F1" stroke="none"/>
-          <line x1="12" y1="2" x2="12" y2="7"/>
-          <line x1="12" y1="17" x2="12" y2="22"/>
-          <line x1="2" y1="12" x2="7" y2="12"/>
-          <line x1="17" y1="12" x2="22" y2="12"/>
-        </svg>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--light);margin-bottom:2px">Year 2 Expansion</div>
+      <div class="card" style="padding:18px 20px">
+        <div style="font-size:14px;font-weight:700;color:var(--white);margin-bottom:4px">SDRs &amp; AEs B2B SaaS Teams</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.6">1–2 replies per 100 cold emails. 65% of quota misses are an access problem, not an effort problem.</div>
       </div>
-      <div style="font-size:14px;font-weight:800;color:var(--navy);margin-bottom:3px;font-family:'Space Grotesk'">SDRs &amp; AEs</div>
-      <div style="font-size:10px;color:#6366F1;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px">B2B SaaS Sales Teams</div>
-      <div style="font-size:22px;font-weight:900;color:var(--navy);font-family:'Space Grotesk';line-height:1;margin-bottom:4px">1–2 replies</div>
-      <div style="font-size:10.5px;color:var(--muted);margin-bottom:12px;line-height:1.55">per 100 cold emails sent 65% of quota misses aren't a rep problem, they're an access problem. <em>(Salesloft 2024)</em></div>
-      <div style="font-size:11px;color:#6366F1;font-weight:600;line-height:1.5;margin-top:auto">WarmPath replaces spray-and-pray with AI-ranked warm paths and auto-drafted intros across every channel.</div>
-    </div>
-
-    <!-- Card 3: Sales Leaders -->
-    <div class="card card-w" style="padding:22px 20px;display:flex;flex-direction:column;gap:0">
-      <div style="width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#F59E0B22,#F59E0B44);display:flex;align-items:center;justify-content:center;margin-bottom:14px;flex-shrink:0">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-        </svg>
+      <div class="card" style="padding:18px 20px">
+        <div style="font-size:14px;font-weight:700;color:var(--white);margin-bottom:4px">Sales Leaders VP Sales / Head of Growth</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.6">6.8 stakeholders per enterprise deal, no shared graph, 3 subscriptions still no warm path.</div>
       </div>
-      <div style="font-size:14px;font-weight:800;color:var(--navy);margin-bottom:3px;font-family:'Space Grotesk'">Sales Leaders</div>
-      <div style="font-size:10px;color:#F59E0B;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px">VP Sales / Head of Growth</div>
-      <div style="font-size:22px;font-weight:900;color:var(--navy);font-family:'Space Grotesk';line-height:1;margin-bottom:4px">6.8 people</div>
-      <div style="font-size:10.5px;color:var(--muted);margin-bottom:12px;line-height:1.55">avg stakeholders in an enterprise deal yet reps hoard contacts in silos across Apollo, Clay, and SalesNav with no shared graph. <em>(Forrester)</em></div>
-      <div style="font-size:11px;color:#F59E0B;font-weight:600;line-height:1.5;margin-top:auto">WarmPath gives the whole team one live graph, full pipeline visibility, and AI playbooks per account.</div>
-    </div>
-
-    <!-- Card 4: IT & Agencies -->
-    <div class="card card-w" style="padding:22px 20px;display:flex;flex-direction:column;gap:0">
-      <div style="width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#11243E22,#11243E44);display:flex;align-items:center;justify-content:center;margin-bottom:14px;flex-shrink:0">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#11243E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="5" r="2"/>
-          <circle cx="5" cy="19" r="2"/>
-          <circle cx="19" cy="19" r="2"/>
-          <line x1="12" y1="7" x2="5" y2="17"/>
-          <line x1="12" y1="7" x2="19" y2="17"/>
-          <line x1="5" y1="19" x2="19" y2="19"/>
-        </svg>
+      <div class="card" style="padding:18px 20px">
+        <div style="font-size:14px;font-weight:700;color:var(--white);margin-bottom:4px">IT Services &amp; Agencies ₹10Cr–₹100Cr</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.6">60% of IT revenue comes from referrals but that network lives in WhatsApp chats, not any system.</div>
       </div>
-      <div style="font-size:14px;font-weight:800;color:var(--navy);margin-bottom:3px;font-family:'Space Grotesk'">IT &amp; Agencies</div>
-      <div style="font-size:10px;color:var(--navy);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;opacity:.6">₹10Cr – ₹100Cr Revenue</div>
-      <div style="font-size:22px;font-weight:900;color:var(--navy);font-family:'Space Grotesk';line-height:1;margin-bottom:4px">60%</div>
-      <div style="font-size:10.5px;color:var(--muted);margin-bottom:12px;line-height:1.55">of IT revenue comes from referrals but that network lives in WhatsApp chats and founders' heads, never in a system. <em>(Nasscom 2023)</em></div>
-      <div style="font-size:11px;color:var(--navy);font-weight:600;line-height:1.5;margin-top:auto;opacity:.85">WarmPath turns the hidden referral graph into a structured, searchable pipeline for enterprise client acquisition.</div>
+      <div style="padding:12px 16px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:9px;font-size:12px;color:var(--muted)">
+        <strong style="color:var(--teal)">Why this wedge:</strong> First 100 users from BITS/IIT/IIM alumni networks. Direct founder access, high trust, high deal value.
+      </div>
     </div>
-
-  </div>
-  <div style="margin-top:14px;padding:12px 22px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;text-align:center">
-    <span style="font-size:13px;font-weight:700;color:var(--teal)">Wedge Focus: </span>
-    <span style="font-size:13px;color:var(--navy)">Indian Founders targeting US / Singapore Enterprise Markets &nbsp;·&nbsp; First 100 users from BITS / IIT / IIM networks</span>
   </div>
 </div>
 
-<!-- ════════════════════════════════════
-     SLIDE 8 MARKET SIZE
-════════════════════════════════════ -->
+<!-- ═══ S8 MARKET ═══ -->
 <div class="slide" id="s8">
   <div class="slide-title">Market Size &amp; Opportunity</div>
-  <div class="g2" style="flex:1;gap:52px;align-items:center">
-    <!-- Concentric circles replacing stock bar chart -->
-    <div style="display:flex;justify-content:center;align-items:center">
-      <svg viewBox="0 0 360 360" width="320" height="320" fill="none">
-        <!-- TAM -->
-        <circle cx="180" cy="180" r="164" fill="rgba(5,150,105,0.05)" stroke="#D1FAE5" stroke-width="1.5" stroke-dasharray="8,5"/>
-        <!-- SAM -->
-        <circle cx="180" cy="180" r="110" fill="rgba(45,184,158,0.07)" stroke="#2DB89E" stroke-width="1.5" stroke-dasharray="5,4" opacity=".65"/>
-        <!-- SOM -->
-        <circle cx="180" cy="180" r="60" fill="rgba(45,184,158,0.2)" stroke="#2DB89E" stroke-width="2.5"/>
-        <!-- TAM label -->
-        <text x="180" y="22" text-anchor="middle" fill="#94A3B8" font-size="11" font-family="Inter" font-weight="600">TAM Global</text>
-        <text x="180" y="46" text-anchor="middle" fill="#059669" font-size="28" font-weight="900" font-family="Space Grotesk">$8.3B</text>
-        <!-- SAM label -->
-        <text x="180" y="90" text-anchor="middle" fill="#94A3B8" font-size="10" font-family="Inter" font-weight="600">SAM India + SE Asia</text>
-        <text x="180" y="112" text-anchor="middle" fill="#2DB89E" font-size="22" font-weight="800" font-family="Space Grotesk">$650M</text>
-        <!-- SOM label -->
-        <text x="180" y="166" text-anchor="middle" fill="#1B2E44" font-size="10" font-family="Inter" font-weight="600">SOM · Year 1–3</text>
-        <text x="180" y="190" text-anchor="middle" fill="#2DB89E" font-size="22" font-weight="800" font-family="Space Grotesk">$32M</text>
-        <!-- annotation -->
-        <text x="314" y="72" fill="#2DB89E" font-size="11" font-family="Inter" font-weight="600">16.5% CAGR</text>
-        <line x1="308" y1="68" x2="288" y2="48" stroke="#2DB89E" stroke-width="1" stroke-dasharray="3,2"/>
+  <div class="g2" style="flex:1;gap:56px;align-items:center">
+    <div style="display:flex;justify-content:center">
+      <svg viewBox="0 0 360 360" width="318" height="318" fill="none">
+        <circle cx="180" cy="180" r="162" fill="rgba(52,211,153,.025)" stroke="rgba(52,211,153,.14)" stroke-width="1.5" stroke-dasharray="8,6"/>
+        <circle cx="180" cy="180" r="108" fill="rgba(45,184,158,.05)" stroke="rgba(45,184,158,.28)" stroke-width="1.5" stroke-dasharray="5,4"/>
+        <circle cx="180" cy="180" r="58" fill="rgba(45,184,158,.16)" stroke="var(--teal)" stroke-width="2"/>
+        <text x="180" y="22" text-anchor="middle" fill="rgba(255,255,255,.25)" font-size="11" font-family="Inter" font-weight="600">TAM Global</text>
+        <text x="180" y="46" text-anchor="middle" fill="var(--green)" font-size="28" font-weight="900" font-family="Space Grotesk">$8.3B</text>
+        <text x="180" y="88" text-anchor="middle" fill="rgba(255,255,255,.28)" font-size="10" font-family="Inter" font-weight="600">SAM India + SE Asia</text>
+        <text x="180" y="110" text-anchor="middle" fill="var(--teal-bright)" font-size="22" font-weight="800" font-family="Space Grotesk">$650M</text>
+        <text x="180" y="165" text-anchor="middle" fill="rgba(255,255,255,.45)" font-size="10" font-family="Inter" font-weight="600">SOM Year 1–3</text>
+        <text x="180" y="188" text-anchor="middle" fill="var(--teal)" font-size="22" font-weight="800" font-family="Space Grotesk">$32M</text>
+        <text x="316" y="70" fill="var(--teal)" font-size="10.5" font-family="Inter" font-weight="600">16.5% CAGR</text>
+        <line x1="310" y1="66" x2="290" y2="46" stroke="var(--teal)" stroke-width="1" stroke-dasharray="3,2"/>
       </svg>
     </div>
-    <div style="display:flex;flex-direction:column;gap:18px">
-      <div class="card" style="padding:20px 22px;border-left:4px solid #059669">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#059669;margin-bottom:5px">TAM Global Market</div>
-        <div style="font-size:28px;font-weight:900;font-family:'Space Grotesk';color:#059669;margin-bottom:4px">$8.3 Billion</div>
-        <div style="font-size:12px;color:var(--muted)">B2B Sales Intelligence &amp; Outreach Automation (2025) &nbsp;·&nbsp; <em>MarketsandMarkets</em></div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card" style="padding:20px 22px;border-left:3px solid var(--green)">
+        <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--green);margin-bottom:5px">TAM Global Market</div>
+        <div style="font-family:'Space Grotesk';font-size:28px;font-weight:900;color:var(--green);margin-bottom:4px">$8.3 Billion</div>
+        <div style="font-size:12px;color:var(--muted)">B2B Sales Intelligence &amp; Outreach Automation (2025) <em>MarketsandMarkets</em></div>
       </div>
-      <div class="card" style="padding:20px 22px;border-left:4px solid var(--teal)">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--teal);margin-bottom:5px">SAM India + SE Asia</div>
-        <div style="font-size:28px;font-weight:900;font-family:'Space Grotesk';color:var(--teal);margin-bottom:4px">$650 Million</div>
-        <div style="font-size:12px;color:var(--muted)">1.2M+ registered B2B startups using or evaluating sales automation &nbsp;·&nbsp; <em>DPIIT 2024</em></div>
+      <div class="card" style="padding:20px 22px;border-left:3px solid var(--teal)">
+        <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--teal);margin-bottom:5px">SAM India + SE Asia</div>
+        <div style="font-family:'Space Grotesk';font-size:28px;font-weight:900;color:var(--teal);margin-bottom:4px">$650 Million</div>
+        <div style="font-size:12px;color:var(--muted)">1.2M+ B2B startups using or evaluating sales automation <em>DPIIT 2024</em></div>
       </div>
-      <div class="card" style="padding:20px 22px;border-left:4px solid var(--navy)">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:5px">SOM Initial Wedge</div>
-        <div style="font-size:28px;font-weight:900;font-family:'Space Grotesk';color:var(--navy);margin-bottom:4px">$32 Million</div>
-        <div style="font-size:12px;color:var(--muted)">~50,000 Seed–Series A Indian startups · 5% conservative penetration in 3 years</div>
+      <div class="card" style="padding:20px 22px;border-left:3px solid rgba(255,255,255,.18)">
+        <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--light);margin-bottom:5px">SOM Initial Wedge</div>
+        <div style="font-family:'Space Grotesk';font-size:28px;font-weight:900;color:var(--white);margin-bottom:4px">$32 Million</div>
+        <div style="font-size:12px;color:var(--muted)">50K Indian startups × $600 ARPU × 5% penetration in 3 years (bottom-up)</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ════════════════════════════════════
-     SLIDE 9 COMPETITION
-════════════════════════════════════ -->
+<!-- ═══ S9 COMPETITION ═══ -->
 <div class="slide" id="s9">
-  <div class="slide-title">The Moat: Context + Orchestration</div>
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:14px">
-    <div style="border-radius:12px;overflow:hidden;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.06)">
+  <div class="slide-title">Every Competitor Stops Here. WarmPath Starts Here.</div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px">
+    <div style="border-radius:12px;overflow:hidden;border:1px solid var(--border)">
       <table class="ct">
         <thead><tr>
-          <th style="width:200px">Strategic Capability</th>
+          <th style="width:178px">Capability</th>
           <th style="color:var(--teal)">WarmPath</th>
           <th>Apollo.io</th>
           <th>Clay.com</th>
+          <th>Warmly.ai</th>
           <th>LinkedIn Nav</th>
           <th>Outreach.io</th>
         </tr></thead>
         <tbody>
           <tr class="wp">
-            <td><strong>Warm Path Discovery</strong></td>
-            <td><span class="ok">✓</span> Core BFS</td>
+            <td><strong style="color:var(--white)">Warm Path Discovery</strong></td>
+            <td><span class="ok">✓</span> Algorithmic</td>
             <td><span class="no">✗</span></td>
             <td><span class="no">✗</span></td>
+            <td><span class="pm">~</span> Visitor only</td>
             <td><span class="pm">~</span> Restricted</td>
             <td><span class="no">✗</span></td>
           </tr>
           <tr>
-            <td><strong>Relationship Graph</strong></td>
-            <td><span class="ok">✓</span> BFS Algorithm</td>
+            <td><strong style="color:var(--white)">Relationship Graph</strong></td>
+            <td><span class="ok">✓</span> Full BFS</td>
             <td><span class="no">✗</span></td>
             <td><span class="no">✗</span></td>
+            <td><span class="pm">~</span> Partial</td>
             <td><span class="pm">~</span> Siloed</td>
             <td><span class="no">✗</span></td>
           </tr>
           <tr>
-            <td><strong>Omnichannel Queue</strong></td>
+            <td><strong style="color:var(--white)">Omnichannel Queue</strong></td>
             <td><span class="ok">✓</span> 5 channels</td>
+            <td><span class="no">✗</span></td>
             <td><span class="no">✗</span></td>
             <td><span class="no">✗</span></td>
             <td><span class="no">✗</span></td>
             <td><span class="pm">~</span> 3 channels</td>
           </tr>
           <tr>
-            <td><strong>Context-Aware AI</strong></td>
-            <td><span class="ok">✓</span> Dynamic RAG</td>
+            <td><strong style="color:var(--white)">Context-Aware AI</strong></td>
+            <td><span class="ok">✓</span> Live signals</td>
             <td><span class="pm">~</span> Static</td>
             <td><span class="pm">~</span> Complex</td>
+            <td><span class="pm">~</span> Basic</td>
             <td><span class="no">✗</span></td>
             <td><span class="pm">~</span> Templates</td>
           </tr>
           <tr>
-            <td><strong>India Pricing</strong></td>
+            <td><strong style="color:var(--white)">India-First Pricing</strong></td>
             <td><span class="ok">✓</span> Freemium</td>
             <td style="color:var(--muted)">$49–99/mo</td>
             <td style="color:var(--muted)">$149+/mo</td>
+            <td style="color:var(--muted)">$500+/mo</td>
             <td style="color:var(--muted)">$80/mo</td>
             <td style="color:var(--muted)">$100+/mo</td>
           </tr>
@@ -631,256 +688,293 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;
       </table>
     </div>
     <div class="g2" style="gap:14px">
-      <div style="padding:13px 18px;border-radius:9px;background:var(--teal-l);border:1px solid rgba(45,184,158,.25)">
-        <span style="font-size:13.5px;font-weight:700;color:var(--navy)">Only platform with algorithmic warm path finding</span>
-        <span style="font-size:13px;color:var(--teal);margin-left:6px">← nobody else does this</span>
+      <div style="padding:13px 18px;border-radius:9px;background:var(--teal-l);border:1px solid rgba(45,184,158,.2)">
+        <span style="font-size:13px;font-weight:700;color:var(--white)">Only platform with true warm path discovery</span>
+        <span style="font-size:12.5px;color:var(--teal);margin-left:8px">no competitor has built this layer</span>
       </div>
-      <div style="padding:13px 18px;border-radius:9px;background:var(--bg2);border:1px solid var(--border)">
-        <span style="font-size:13.5px;font-weight:700;color:var(--navy)">10× cheaper than US tools</span>
-        <span style="font-size:13px;color:var(--muted);margin-left:6px"> built for Indian startup budgets from day one</span>
+      <div style="padding:13px 18px;border-radius:9px;background:rgba(255,255,255,.03);border:1px solid var(--border)">
+        <span style="font-size:13px;font-weight:700;color:var(--white)">10× cheaper than US tools</span>
+        <span style="font-size:12.5px;color:var(--muted);margin-left:8px">built for Indian startup budgets from day one</span>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ════════════════════════════════════
-     SLIDE 10 BUSINESS MODEL
-════════════════════════════════════ -->
+<!-- ═══ S10 BUSINESS MODEL ═══ -->
 <div class="slide" id="s10">
   <div class="slide-title">Business Model &amp; Network Effects</div>
   <div class="g2" style="flex:1;gap:36px;align-items:start">
-    <!-- Freemium tiers, no price -->
     <div>
-      <div class="g2" style="gap:12px;margin-bottom:16px">
-        <div class="card" style="padding:18px;border-top:3px solid var(--border)">
-          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Free Forever</div>
-          <div style="font-size:16px;font-weight:800;font-family:'Space Grotesk';color:var(--navy);margin-bottom:10px">Starter</div>
-          <div style="font-size:12px;color:var(--muted);line-height:1.9">100 contacts<br>10 warm paths/month<br>Email channel only</div>
+      <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:15px">
+        <div class="card" style="padding:22px 24px;border-top:2px solid var(--teal);box-shadow:0 0 28px rgba(45,184,158,.08)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+            <div>
+              <div style="font-size:9px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Launch Model</div>
+              <div style="font-family:'Space Grotesk';font-size:22px;font-weight:900;color:var(--white)">Free</div>
+            </div>
+            <div style="font-family:'Space Grotesk';font-size:28px;font-weight:900;color:var(--teal)">₹0</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            <div style="font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center"><span style="width:4px;height:4px;background:var(--teal);border-radius:50%;flex-shrink:0"></span>Unlimited contacts</div>
+            <div style="font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center"><span style="width:4px;height:4px;background:var(--teal);border-radius:50%;flex-shrink:0"></span>Graph visualisation</div>
+            <div style="font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center"><span style="width:4px;height:4px;background:var(--teal);border-radius:50%;flex-shrink:0"></span>25 warm paths/month</div>
+            <div style="font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center"><span style="width:4px;height:4px;background:var(--teal);border-radius:50%;flex-shrink:0"></span>Email channel</div>
+          </div>
         </div>
-        <div class="card" style="padding:18px;border-top:3px solid var(--teal);box-shadow:0 4px 20px rgba(45,184,158,.15)">
-          <div style="font-size:10px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Most Popular</div>
-          <div style="font-size:16px;font-weight:800;font-family:'Space Grotesk';color:var(--navy);margin-bottom:10px">Growth</div>
-          <div style="font-size:12px;color:var(--muted);line-height:1.9">Unlimited contacts<br>All 5 channels<br>Full AI queue + CRM</div>
-        </div>
-        <div class="card" style="padding:18px;border-top:3px solid var(--border)">
-          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Teams</div>
-          <div style="font-size:16px;font-weight:800;font-family:'Space Grotesk';color:var(--navy);margin-bottom:10px">Pro</div>
-          <div style="font-size:12px;color:var(--muted);line-height:1.9">Team analytics<br>Priority support<br>Advanced signals</div>
-        </div>
-        <div class="card" style="padding:18px;border-top:3px solid var(--border)">
-          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Custom</div>
-          <div style="font-size:16px;font-weight:800;font-family:'Space Grotesk';color:var(--navy);margin-bottom:10px">Enterprise</div>
-          <div style="font-size:12px;color:var(--muted);line-height:1.9">SSO + SAML<br>White-label option<br>Dedicated infra</div>
+        <div class="card" style="padding:22px 24px;border-top:2px solid rgba(255,255,255,.08)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+            <div>
+              <div style="font-size:9px;font-weight:700;color:var(--light);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Pilot Access</div>
+              <div style="font-family:'Space Grotesk';font-size:22px;font-weight:900;color:var(--white)">Paid</div>
+            </div>
+            <div style="font-size:12px;font-weight:700;color:var(--muted);padding:6px 12px;border:1px solid var(--border);border-radius:7px;white-space:nowrap">TBD with cohort</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            <div style="font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center"><span style="width:4px;height:4px;background:var(--muted);border-radius:50%;flex-shrink:0"></span>All 5 channels</div>
+            <div style="font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center"><span style="width:4px;height:4px;background:var(--muted);border-radius:50%;flex-shrink:0"></span>Unlimited paths</div>
+            <div style="font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center"><span style="width:4px;height:4px;background:var(--muted);border-radius:50%;flex-shrink:0"></span>Full AI queue</div>
+            <div style="font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center"><span style="width:4px;height:4px;background:var(--muted);border-radius:50%;flex-shrink:0"></span>Team workspace</div>
+          </div>
         </div>
       </div>
-      <div style="padding:11px 16px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;font-size:12.5px;color:var(--muted)">
-        Pricing validated with first 100 users. Strategy: land free → grow → monetize (Notion / Slack playbook).
+      <div style="padding:11px 16px;background:rgba(45,184,158,.06);border:1px solid rgba(45,184,158,.14);border-radius:8px;font-size:12px;color:var(--muted)">
+        Free to grow the graph. Paid tier pricing locked in with first pilot cohort feedback — not guessed upfront.
       </div>
     </div>
-    <!-- Flywheel -->
     <div>
-      <div style="font-size:17px;font-weight:700;color:var(--navy);margin-bottom:10px">The Data Flywheel</div>
-      <div style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:22px">Every new team member adds nodes to the <strong style="color:var(--navy)">Global Warm Graph</strong>. As paths shorten, conversion rates increase, attracting more users. Identical to how LinkedIn's graph became irreplaceable.</div>
-      <div style="background:var(--navy);border-radius:12px;padding:22px">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.4);margin-bottom:14px">Network Effect Flywheel</div>
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;row-gap:8px">
-          <div style="padding:8px 12px;background:rgba(45,184,158,.15);border-radius:7px;font-size:12px;font-weight:600;color:var(--teal)">More Users</div>
-          <div style="color:rgba(255,255,255,.25);font-size:16px">→</div>
-          <div style="padding:8px 12px;background:rgba(45,184,158,.15);border-radius:7px;font-size:12px;font-weight:600;color:var(--teal)">Bigger Graph</div>
-          <div style="color:rgba(255,255,255,.25);font-size:16px">→</div>
-          <div style="padding:8px 12px;background:rgba(45,184,158,.15);border-radius:7px;font-size:12px;font-weight:600;color:var(--teal)">Better Paths</div>
-          <div style="color:rgba(255,255,255,.25);font-size:16px">→</div>
-          <div style="padding:8px 12px;background:rgba(45,184,158,.3);border-radius:7px;font-size:12px;font-weight:600;color:var(--teal)">More Closes</div>
+      <div style="font-size:16px;font-weight:700;color:var(--white);margin-bottom:10px">The Data Flywheel</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:22px">Every new user adds nodes to the global warm graph. Paths shorten, conversion rises, the network becomes impossible to leave. Identical to how LinkedIn's graph became irreplaceable.</div>
+      <div style="background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:22px">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--light);margin-bottom:14px">Network Effect Flywheel</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;row-gap:8px">
+          <div style="padding:8px 13px;background:var(--teal-l);border-radius:7px;font-size:12px;font-weight:600;color:var(--teal)">More Users</div>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="rgba(45,184,158,.5)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div style="padding:8px 13px;background:var(--teal-l);border-radius:7px;font-size:12px;font-weight:600;color:var(--teal)">Bigger Graph</div>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="rgba(45,184,158,.5)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div style="padding:8px 13px;background:var(--teal-l);border-radius:7px;font-size:12px;font-weight:600;color:var(--teal)">Better Paths</div>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="rgba(45,184,158,.5)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div style="padding:8px 13px;background:var(--teal-m);border-radius:7px;font-size:12px;font-weight:700;color:var(--teal-bright)">More Closes</div>
         </div>
-        <div style="margin-top:14px;font-size:12px;color:rgba(45,184,158,.8);font-weight:600">Year 2+: Monetize AI credits &amp; anonymised relationship data marketplace</div>
+        <div style="margin-top:14px;font-size:11.5px;color:rgba(45,184,158,.65);font-weight:600">Every intro sent strengthens the graph. The moat compounds with usage.</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ════════════════════════════════════
-     SLIDE 11 ROADMAP
-════════════════════════════════════ -->
+<!-- ═══ S11 TRACTION + TEAM ═══ -->
 <div class="slide" id="s11">
-  <div class="slide-title">From MVP to Infrastructure</div>
-  <!-- SVG timeline replacing watermarked stock image -->
-  <div style="margin-bottom:22px">
-    <svg width="100%" height="56" viewBox="0 0 1136 56" preserveAspectRatio="xMidYMid meet" fill="none">
-      <line x1="120" y1="20" x2="1016" y2="20" stroke="#DDE3EA" stroke-width="2"/>
-      <line x1="120" y1="20" x2="568" y2="20" stroke="#2DB89E" stroke-width="2.5"/>
-      <circle cx="120" cy="20" r="10" fill="#2DB89E"/>
-      <circle cx="418" cy="20" r="10" fill="#2DB89E"/>
-      <circle cx="716" cy="20" r="10" fill="#DDE3EA" stroke="#2DB89E" stroke-width="2"/>
-      <circle cx="1016" cy="20" r="10" fill="#DDE3EA" stroke="#CBD5E1" stroke-width="2"/>
-      <text x="120" y="48" text-anchor="middle" fill="#11243E" font-size="13" font-weight="700" font-family="Space Grotesk">H1: Hardening</text>
-      <text x="418" y="48" text-anchor="middle" fill="#11243E" font-size="13" font-weight="700" font-family="Space Grotesk">H2: Pilot Expansion</text>
-      <text x="716" y="48" text-anchor="middle" fill="#5A7083" font-size="13" font-weight="700" font-family="Space Grotesk">H3: Chrome Extension</text>
-      <text x="1016" y="48" text-anchor="middle" fill="#94A3B8" font-size="13" font-weight="700" font-family="Space Grotesk">H4: Scale Layer</text>
-    </svg>
-  </div>
-  <div class="g4" style="flex:1;align-items:start;gap:18px">
-    <div class="card" style="padding:20px;border-top:3px solid var(--teal)">
-      <div style="font-size:11px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">H1 · Hardening</div>
-      <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--muted)">
-        <div>→ Postgres + Prisma backend</div>
-        <div>→ Enterprise auth &amp; RBAC</div>
-        <div>→ API routes + BullMQ jobs</div>
-        <div>→ Live user onboarding</div>
+  <div class="slide-title">Traction &amp; Team</div>
+  <div class="g2" style="flex:1;gap:34px;align-items:start">
+    <div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--teal);margin-bottom:10px">What Exists Now</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+        <div style="display:flex;gap:12px;align-items:center;padding:11px 15px;background:var(--teal-l);border:1px solid rgba(45,184,158,.18);border-radius:9px">
+          <span style="color:var(--teal);font-weight:700">✓</span>
+          <span style="font-size:12.5px;color:var(--text)">Live MVP — pathfinding, AI personalisation, omnichannel all running</span>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center;padding:11px 15px;background:var(--teal-l);border:1px solid rgba(45,184,158,.18);border-radius:9px">
+          <span style="color:var(--teal);font-weight:700">✓</span>
+          <span style="font-size:12.5px;color:var(--text)">Real graph pathfinding: not a recommendation engine, sub-100ms on demo graph</span>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center;padding:11px 15px;background:var(--teal-l);border:1px solid rgba(45,184,158,.18);border-radius:9px">
+          <span style="color:var(--teal);font-weight:700">✓</span>
+          <span style="font-size:12.5px;color:var(--text)">5 channels live: Email, LinkedIn, WhatsApp, Telegram, Meta Ads</span>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center;padding:11px 15px;background:var(--teal-l);border:1px solid rgba(45,184,158,.18);border-radius:9px">
+          <span style="color:var(--teal);font-weight:700">✓</span>
+          <span style="font-size:12.5px;color:var(--text)">$270K in platform credits: Anthropic, Vercel, AWS, GCP, GitHub</span>
+        </div>
+      </div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--amber);margin-bottom:10px">Next 90 Days</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">
+        <div style="display:flex;gap:12px;align-items:center;padding:11px 15px;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.18);border-radius:9px">
+          <span style="width:6px;height:6px;background:var(--amber);border-radius:50%;flex-shrink:0;display:inline-block"></span>
+          <span style="font-size:12.5px;color:var(--text)">Beta cohort: 8 BITS/IIT/IIM founders onboarding Aug 2026</span>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center;padding:11px 15px;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.18);border-radius:9px">
+          <span style="width:6px;height:6px;background:var(--amber);border-radius:50%;flex-shrink:0;display:inline-block"></span>
+          <span style="font-size:12.5px;color:var(--text)">3 pilot contracts in negotiation (2 B2B SaaS, 1 IT services firm)</span>
+        </div>
+      </div>
+      <div style="padding:12px 16px;background:rgba(45,184,158,.06);border:1px solid rgba(45,184,158,.15);border-radius:9px;font-size:12px;color:var(--muted)">
+        <strong style="color:var(--teal)">Solo build:</strong> Full-stack MVP shipped in 3 months while working full-time at SeedlingLabs as SDE-1.
       </div>
     </div>
-    <div class="card" style="padding:20px;border-top:3px solid var(--teal)">
-      <div style="font-size:11px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">H2 · Pilot Expansion</div>
-      <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--muted)">
-        <div>→ 10 paying pilot teams</div>
-        <div>→ HubSpot / Salesforce sync</div>
-        <div>→ Gmail + Outlook OAuth</div>
-        <div>→ LinkedIn contact import</div>
+    <div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--light);margin-bottom:16px">The Builder</div>
+      <div class="card" style="padding:26px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="width:66px;height:66px;border-radius:50%;background:linear-gradient(135deg,var(--teal) 0%,#0B1623 100%);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;font-family:'Space Grotesk';color:white;flex-shrink:0;border:2px solid rgba(45,184,158,.3)">AA</div>
+          <div>
+            <div style="font-family:'Space Grotesk';font-size:19px;font-weight:800;color:var(--white)">Adhik Agarwal</div>
+            <div style="font-size:12.5px;color:var(--teal);font-weight:600;margin-top:2px">Founder &amp; Full-Stack Engineer</div>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:2px">B.E. BITS Pilani (2026) &nbsp;|&nbsp; SDE-1 @ SeedlingLabs</div>
+          </div>
+        </div>
+        <div style="margin-top:16px;padding:9px 14px;background:rgba(255,255,255,.04);border-radius:7px;font-size:11.5px;color:var(--muted)">
+          adhikagarwal16@gmail.com · linkedin.com/in/adhik-agarwal
+        </div>
+      </div>
+      <div class="card" style="padding:15px 18px;border-left:2px solid var(--teal)">
+        <div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:6px">Co-Founder GTM &amp; Sales — actively evaluating</div>
+        <div style="font-size:11.5px;color:var(--muted);line-height:1.7">3 candidates shortlisted. Decision by Aug 2026.<br>IIM / MBA preferred &nbsp;|&nbsp; 10–15% equity &nbsp;|&nbsp; Own all revenue from day one</div>
       </div>
     </div>
-    <div class="card" style="padding:20px;border-top:3px solid #CBD5E1">
-      <div style="font-size:11px;font-weight:700;color:var(--light);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">H3 · Chrome Extension</div>
-      <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--light)">
-        <div>→ Warm paths on LinkedIn</div>
-        <div>→ Real-time pathfinding</div>
-        <div>→ WhatsApp Business API</div>
-        <div>→ 1-click outreach draft</div>
-      </div>
-    </div>
-    <div class="card" style="padding:20px;border-top:3px solid #E2E8F0;background:#FAFBFC">
-      <div style="font-size:11px;font-weight:700;color:var(--light);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">H4 · Scale Layer</div>
-      <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--light)">
-        <div>→ Autonomous AI Agent</div>
-        <div>→ Mobile app (iOS + Android)</div>
-        <div>→ Graph data marketplace</div>
-        <div>→ Voice warm-up module</div>
-      </div>
-    </div>
-  </div>
-  <div style="margin-top:16px;padding:12px 18px;background:var(--bg2);border:1px solid var(--border);border-radius:9px;font-size:12.5px;color:var(--muted)">
-    Milestone-driven no arbitrary calendar deadlines. Each phase unlocks when the previous one is validated with paying users.
   </div>
 </div>
 
-<!-- ════════════════════════════════════
-     SLIDE 12 THE ASK / BUDGET
-════════════════════════════════════ -->
-<div class="slide" id="s12">
-  <div class="slide-title">Capital Allocation: ₹20L Seed</div>
-  <div class="g2" style="flex:1;gap:40px;align-items:center">
-    <div><canvas id="bc" width="340" height="300"></canvas></div>
+<!-- ═══ S12 ROADMAP ═══ -->
+<div class="slide" id="s12" style="justify-content:center">
+  <div class="slide-title" style="margin-bottom:28px">Build Pipeline</div>
+  <div style="display:flex;gap:0;width:100%;max-width:1060px;margin:0 auto;position:relative">
+    <div style="position:absolute;top:38px;left:60px;right:60px;height:2px;background:linear-gradient(90deg,rgba(45,184,158,.15),var(--teal),rgba(45,184,158,.15));z-index:0"></div>
+
+    <!-- Phase 1 -->
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 14px;position:relative;z-index:1">
+      <div style="width:76px;height:76px;border-radius:50%;background:var(--teal-l);border:2px solid rgba(45,184,158,.4);display:flex;align-items:center;justify-content:center;margin-bottom:14px;font-family:'Space Grotesk';font-size:13px;font-weight:800;color:var(--teal)">M1–3</div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--teal);text-transform:uppercase;margin-bottom:10px">100 Founders, 1K Intros</div>
+      <div style="display:flex;flex-direction:column;gap:5px;text-align:left;width:100%">
+        <div style="font-size:11.5px;color:var(--text);padding:6px 11px;background:var(--teal-l);border-radius:7px">100+ BITS/IIT founders onboarded (free tier)</div>
+        <div style="font-size:11.5px;color:var(--text);padding:6px 11px;background:var(--teal-l);border-radius:7px">1,000+ warm intro requests sent via platform</div>
+        <div style="font-size:11.5px;color:var(--text);padding:6px 11px;background:var(--teal-l);border-radius:7px">All 5 channels live + tested with real users</div>
+        <div style="font-size:11.5px;font-weight:700;color:var(--white);padding:6px 11px;background:rgba(45,184,158,.18);border:1px solid rgba(45,184,158,.3);border-radius:7px">First paying customer by Week 6</div>
+        <div style="font-size:11.5px;font-weight:700;color:var(--white);padding:6px 11px;background:rgba(45,184,158,.18);border:1px solid rgba(45,184,158,.3);border-radius:7px">20 paying customers · ₹20K MRR</div>
+      </div>
+    </div>
+
+    <!-- Phase 2 -->
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 14px;position:relative;z-index:1">
+      <div style="width:76px;height:76px;border-radius:50%;background:rgba(45,184,158,.2);border:2px solid var(--teal);display:flex;align-items:center;justify-content:center;margin-bottom:14px;font-family:'Space Grotesk';font-size:13px;font-weight:800;color:var(--teal)">M6</div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--teal);text-transform:uppercase;margin-bottom:10px">PMF Locked</div>
+      <div style="display:flex;flex-direction:column;gap:5px;text-align:left;width:100%">
+        <div style="font-size:11.5px;color:var(--text);padding:6px 11px;background:rgba(45,184,158,.1);border:1px solid rgba(45,184,158,.2);border-radius:7px">18% intro-to-reply rate documented (9× cold email)</div>
+        <div style="font-size:11.5px;color:var(--text);padding:6px 11px;background:rgba(45,184,158,.1);border:1px solid rgba(45,184,158,.2);border-radius:7px">5,000+ warm intros processed on platform</div>
+        <div style="font-size:11.5px;color:var(--text);padding:6px 11px;background:rgba(45,184,158,.1);border:1px solid rgba(45,184,158,.2);border-radius:7px">5 "intro closed B2B deal" case studies published</div>
+        <div style="font-size:11.5px;font-weight:700;color:var(--white);padding:6px 11px;background:rgba(45,184,158,.18);border:1px solid rgba(45,184,158,.3);border-radius:7px">Paid tier live with pilot cohort pricing</div>
+        <div style="font-size:11.5px;font-weight:700;color:var(--white);padding:6px 11px;background:rgba(45,184,158,.18);border:1px solid rgba(45,184,158,.3);border-radius:7px">First MRR milestone · NPS &gt; 65</div>
+      </div>
+    </div>
+
+    <!-- Phase 3 -->
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 14px;position:relative;z-index:1">
+      <div style="width:76px;height:76px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;margin-bottom:14px;font-family:'Space Grotesk';font-size:13px;font-weight:800;color:#0B1623">M12</div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--teal);text-transform:uppercase;margin-bottom:10px">Series A Pipeline</div>
+      <div style="display:flex;flex-direction:column;gap:5px;text-align:left;width:100%">
+        <div style="font-size:11.5px;color:var(--text);padding:6px 11px;background:rgba(45,184,158,.1);border:1px solid rgba(45,184,158,.2);border-radius:7px">CRM connectors (HubSpot, Zoho)</div>
+        <div style="font-size:11.5px;color:var(--text);padding:6px 11px;background:rgba(45,184,158,.1);border:1px solid rgba(45,184,158,.2);border-radius:7px">Relationship data marketplace</div>
+        <div style="font-size:11.5px;color:var(--text);padding:6px 11px;background:rgba(45,184,158,.1);border:1px solid rgba(45,184,158,.2);border-radius:7px">Singapore market launch</div>
+        <div style="font-size:11.5px;font-weight:700;color:var(--white);padding:6px 11px;background:rgba(45,184,158,.18);border:1px solid rgba(45,184,158,.3);border-radius:7px">300+ customers</div>
+        <div style="font-size:11.5px;font-weight:700;color:var(--white);padding:6px 11px;background:rgba(45,184,158,.18);border:1px solid rgba(45,184,158,.3);border-radius:7px">₹8L MRR / Series A raise</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:32px;justify-content:center;margin-top:22px;padding-top:18px;border-top:1px solid var(--border)">
+    <div style="text-align:center"><div style="font-size:20px;font-weight:800;color:var(--teal)">1,000+</div><div style="font-size:11px;color:var(--muted);margin-top:3px">intros by Month 3</div></div>
+    <div style="width:1px;background:var(--border)"></div>
+    <div style="text-align:center"><div style="font-size:20px;font-weight:800;color:var(--teal)">₹1L</div><div style="font-size:11px;color:var(--muted);margin-top:3px">MRR by Month 6</div></div>
+    <div style="width:1px;background:var(--border)"></div>
+    <div style="text-align:center"><div style="font-size:20px;font-weight:800;color:var(--teal)">₹8L</div><div style="font-size:11px;color:var(--muted);margin-top:3px">MRR by Month 12</div></div>
+    <div style="width:1px;background:var(--border)"></div>
+    <div style="text-align:center"><div style="font-size:20px;font-weight:800;color:var(--teal)">₹3–5 Cr</div><div style="font-size:11px;color:var(--muted);margin-top:3px">Series A target</div></div>
+  </div>
+</div>
+
+<!-- ═══ S13 THE ASK ═══ -->
+<div class="slide" id="s13">
+  <div class="slide-title">Capital Ask: ₹20L Pre-Seed</div>
+  <div class="g2" style="flex:1;gap:52px;align-items:center">
+    <div style="display:flex;align-items:center;justify-content:center">
+      <div style="width:240px;height:240px;flex-shrink:0;border-radius:50%;background:conic-gradient(from -90deg,#2DB89E 0% 70%,#FBBF24 70% 90%,rgba(148,163,184,.35) 90% 100%);position:relative">
+        <div style="position:absolute;inset:29%;border-radius:50%;background:#0B1623;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px">
+          <div style="font-family:'Space Grotesk';font-size:24px;font-weight:800;color:#F1F5F9;line-height:1">₹20L</div>
+          <div style="font-size:9px;color:rgba(148,163,184,.7);text-transform:uppercase;letter-spacing:.1em">Pre-Seed</div>
+        </div>
+      </div>
+    </div>
     <div style="display:flex;flex-direction:column;gap:0">
-      <div class="bb"><div class="bb-row"><span>Engineering Hardening</span><span style="color:var(--green);font-weight:700">₹6L · 30%</span></div><div class="bb-track"><div class="bb-fill" style="width:30%;background:var(--green)"></div></div></div>
-      <div class="bb"><div class="bb-row"><span>GTM &amp; Pilot Hiring</span><span style="color:var(--purple);font-weight:700">₹6L · 30%</span></div><div class="bb-track"><div class="bb-fill" style="width:30%;background:var(--purple)"></div></div></div>
-      <div class="bb"><div class="bb-row"><span>Marketing Interns × 3</span><span style="color:#BE185D;font-weight:700">₹4.5L · 22.5%</span></div><div class="bb-track"><div class="bb-fill" style="width:22.5%;background:#BE185D"></div></div></div>
-      <div class="bb"><div class="bb-row"><span>Cloud Infrastructure (AWS · GCP)</span><span style="color:var(--amber);font-weight:700">₹2L · 10%</span></div><div class="bb-track"><div class="bb-fill" style="width:10%;background:var(--amber)"></div></div></div>
-      <div class="bb"><div class="bb-row"><span>AI / API Costs</span><span style="color:#2563EB;font-weight:700">₹1L · 5%</span></div><div class="bb-track"><div class="bb-fill" style="width:5%;background:#2563EB"></div></div></div>
-      <div class="bb"><div class="bb-row"><span>Legal &amp; Compliance</span><span style="color:var(--light);font-weight:700">₹0.5L · 2.5%</span></div><div class="bb-track"><div class="bb-fill" style="width:2.5%;background:#CBD5E1"></div></div></div>
-      <div style="margin-top:16px;padding:16px 18px;background:var(--bg2);border:1px solid var(--border);border-radius:10px">
-        <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px">What this unlocks:</div>
-        <div style="font-size:12.5px;color:var(--muted);line-height:1.9">✓ &nbsp;Production-ready architecture<br>✓ &nbsp;10 beta pilot customers<br>✓ &nbsp;Full DPDP Act compliance<br>✓ &nbsp;12 months of runway</div>
+      <div class="bb"><div class="bb-row"><span>LLM Inference <span style="font-size:10.5px;color:var(--muted)">(Claude + GPT-4, usage-based · 12 months)</span></span><span style="color:var(--teal);font-weight:700">₹4L · 20%</span></div><div class="bb-track"><div class="bb-fill" style="width:20%;background:var(--teal)"></div></div></div>
+      <div class="bb"><div class="bb-row"><span>Phone / IVR <span style="font-size:10.5px;color:var(--muted)">(Exotel/Twilio: number setup + call credits)</span></span><span style="color:var(--teal);font-weight:700">₹4L · 20%</span></div><div class="bb-track"><div class="bb-fill" style="width:20%;background:var(--teal)"></div></div></div>
+      <div class="bb"><div class="bb-row"><span>Channel APIs <span style="font-size:10.5px;color:var(--muted)">(WhatsApp Business, LinkedIn, Meta Ads)</span></span><span style="color:var(--teal);font-weight:700">₹3L · 15%</span></div><div class="bb-track"><div class="bb-fill" style="width:15%;background:var(--teal)"></div></div></div>
+      <div class="bb"><div class="bb-row"><span>Cloud Infra <span style="font-size:10.5px;color:var(--muted)">(Vercel now · AWS/GCP migration at scale)</span></span><span style="color:var(--teal);font-weight:700">₹3L · 15%</span></div><div class="bb-track"><div class="bb-fill" style="width:15%;background:var(--teal)"></div></div></div>
+      <div class="bb"><div class="bb-row"><span>Pilot GTM <span style="font-size:10.5px;color:var(--muted)">(founder events, demos, first 10 customers)</span></span><span style="color:var(--amber);font-weight:700">₹4L · 20%</span></div><div class="bb-track"><div class="bb-fill" style="width:20%;background:var(--amber)"></div></div></div>
+      <div class="bb" style="margin-bottom:18px"><div class="bb-row"><span>Founder Runway <span style="font-size:10.5px;color:var(--muted)">(12 months, modest stipend)</span></span><span style="color:rgba(148,163,184,.7);font-weight:700">₹2L · 10%</span></div><div class="bb-track"><div class="bb-fill" style="width:10%;background:rgba(148,163,184,.4)"></div></div></div>
+      <div style="display:flex;gap:10px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)"><span style="width:10px;height:10px;border-radius:2px;background:var(--teal);display:inline-block;flex-shrink:0"></span>Infrastructure &amp; Ops: ₹14L</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)"><span style="width:10px;height:10px;border-radius:2px;background:var(--amber);display:inline-block;flex-shrink:0"></span>GTM: ₹4L</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)"><span style="width:10px;height:10px;border-radius:2px;background:rgba(148,163,184,.4);display:inline-block;flex-shrink:0"></span>Runway: ₹2L</div>
       </div>
-      <div style="margin-top:12px;padding:12px 16px;background:var(--teal-l);border:1px solid rgba(45,184,158,.25);border-radius:9px;font-size:12px;color:var(--muted)">
-        <strong style="color:var(--navy)">+ Up to $270K platform credits</strong> &nbsp;·&nbsp; AWS · Google for Startups · Anthropic · GitHub · Vercel · Stripe Atlas
+      <div style="padding:10px 14px;background:var(--teal-l);border:1px solid rgba(45,184,158,.18);border-radius:9px;font-size:11.5px;color:var(--muted)">
+        <strong style="color:var(--white)">+ $270K platform credits</strong> &nbsp;cover Anthropic API, Vercel hosting, AWS/GCP, GitHub, Stripe
       </div>
     </div>
   </div>
 </div>
 
-<!-- ════════════════════════════════════
-     SLIDE 13 CTA
-════════════════════════════════════ -->
-<div class="slide" id="s13" style="justify-content:space-between;padding-top:80px;padding-bottom:64px">
+<!-- ═══ S13 CLOSING ═══ -->
+<div class="slide" id="s14" style="justify-content:space-between;padding-top:82px;padding-bottom:62px">
   <div>
-    <div style="font-size:13px;color:var(--muted);font-style:italic;margin-bottom:18px">One last thing.</div>
-    <div style="font-family:'Space Grotesk';font-size:52px;font-weight:900;line-height:1.1;color:var(--navy);letter-spacing:-.02em;margin-bottom:16px;max-width:680px">
-      Your next customer<br>already knows someone you know.
+    <div style="font-size:13px;color:var(--muted);font-style:italic;margin-bottom:22px">One last thing.</div>
+    <div style="font-family:'Space Grotesk';font-size:56px;font-weight:900;line-height:1.06;color:var(--white);letter-spacing:-.03em;margin-bottom:18px;max-width:740px">
+      Your next customer<br>already knows someone<br><span style="color:var(--teal)">you know.</span>
     </div>
-    <div style="font-size:16px;color:var(--muted);line-height:1.7;max-width:520px;margin-bottom:40px">
-      WarmPath finds that path. We have the MVP, the first users, and a clear market. We're looking for the right people to build this with.
+    <div style="font-size:15.5px;color:var(--muted);line-height:1.75;max-width:520px;margin-bottom:42px">
+      WarmPath finds that path. The MVP is live, the engine is real, and nobody else has built the warm path layer yet. We are looking for the right people to build this with.
     </div>
     <div style="display:flex;gap:14px">
       <div style="padding:16px 28px;background:var(--teal);color:white;border-radius:10px">
-        <div style="font-size:10px;opacity:.8;margin-bottom:3px;letter-spacing:.06em;text-transform:uppercase">Seed Ask</div>
-        <div style="font-size:18px;font-weight:800;font-family:'Space Grotesk'">₹20 Lakhs</div>
+        <div style="font-size:9.5px;opacity:.8;margin-bottom:3px;letter-spacing:.07em;text-transform:uppercase">Seed Ask</div>
+        <div style="font-family:'Space Grotesk';font-size:19px;font-weight:800">₹20 Lakhs</div>
       </div>
-      <div style="padding:16px 28px;background:var(--bg2);border:1px solid var(--border);border-radius:10px">
-        <div style="font-size:10px;color:var(--light);margin-bottom:3px;letter-spacing:.06em;text-transform:uppercase">Try it</div>
-        <div style="font-size:18px;font-weight:800;font-family:'Space Grotesk';color:var(--navy)">warmpath.ai</div>
+      <div style="padding:16px 28px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px">
+        <div style="font-size:9.5px;color:var(--light);margin-bottom:3px;letter-spacing:.07em;text-transform:uppercase">Try the MVP</div>
+        <a href="https://warmpath-eta.vercel.app" target="_blank" rel="noopener" style="font-family:'Space Grotesk';font-size:19px;font-weight:800;color:var(--white);text-decoration:none;border-bottom:1px solid rgba(255,255,255,.2);padding-bottom:1px">warmpath-eta.vercel.app</a>
       </div>
     </div>
   </div>
   <div>
-    <div style="height:1px;background:var(--border);margin-bottom:28px"></div>
+    <div class="hr" style="margin-bottom:28px"></div>
     <div style="display:flex;align-items:center;gap:18px">
-      <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#2DB89E,#11243E);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:white;font-family:'Space Grotesk';flex-shrink:0">AA</div>
+      <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#0B1623);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-size:17px;font-weight:900;color:white;flex-shrink:0;border:2px solid rgba(45,184,158,.28)">AA</div>
       <div>
-        <div style="font-size:16px;font-weight:700;color:var(--navy)">Adhik Agarwal</div>
-        <div style="font-size:12px;color:var(--teal);font-weight:600;margin-bottom:3px">Final Year · BITS Pilani &nbsp;|&nbsp; SDE-1 @ SeedlingLabs</div>
-        <div style="font-size:13px;color:var(--muted)">adhikagarwal16@gmail.com &nbsp;·&nbsp; linkedin.com/in/adhik-agarwal</div>
+        <div style="font-size:16px;font-weight:700;color:var(--white)">Adhik Agarwal</div>
+        <div style="font-size:12px;color:var(--teal);font-weight:600;margin-bottom:3px">Final Year BITS Pilani &nbsp;|&nbsp; SDE-1 @ SeedlingLabs</div>
+        <div style="font-size:13px;color:var(--muted)">adhikagarwal16@gmail.com · linkedin.com/in/adhik-agarwal</div>
       </div>
     </div>
   </div>
 </div>
 
-</div><!-- end .deck -->
-</div><!-- end .deck-wrap -->
+</div></div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-// ── Scale deck to fit viewport ──
 function scaleDeck(){
-  var deck=document.getElementById('deck');
-  var scaleX=window.innerWidth/1280;
-  var scaleY=window.innerHeight/720;
-  var scale=Math.min(scaleX,scaleY)*.97;
-  deck.style.transform='scale('+scale+')';
+  var d=document.getElementById('deck');
+  var vh=window.visualViewport?window.visualViewport.height:window.innerHeight;
+  var s=Math.min(window.innerWidth/1280,vh/720)*.97;
+  d.style.transform='scale('+s+')';
 }
 scaleDeck();
 window.addEventListener('resize',scaleDeck);
+if(window.visualViewport)window.visualViewport.addEventListener('resize',scaleDeck);
 
-// ── Navigation ──
-var cur=1,total=13,chartDone=false;
+var cur=1,total=14;
 function go(d){
   var nx=cur+d;
   if(nx<1||nx>total)return;
-  var prev=document.getElementById('s'+cur);
-  prev.classList.remove('active');
-  prev.classList.add('out');
-  setTimeout(()=> {prev.classList.remove('out')},360);
+  var p=document.getElementById('s'+cur);
+  p.classList.remove('active');p.classList.add('out');
+  setTimeout(()=> {p.classList.remove('out')},340);
   cur=nx;
-  document.getElementById('s'+cur).classList.add('active');
+  var n=document.getElementById('s'+cur);
+  n.classList.add('active');
   document.getElementById('bar').style.width=(cur/total*100)+'%';
-  document.getElementById('ctr').textContent=String(cur).padStart(2,'0')+' / '+String(total).padStart(2,'0');
-  if(cur===12&&!chartDone){chartDone=true;setTimeout(initChart,140)}
+  document.getElementById('ctr').textContent=(cur<10?'0'+cur:cur)+' / '+total;
 }
 document.addEventListener('keydown',(e)=> {
-  if([' ','ArrowRight','ArrowDown'].includes(e.key)){e.preventDefault();go(1)}
-  if(['ArrowLeft','ArrowUp'].includes(e.key)){e.preventDefault();go(-1)}
+  if(e.key==='ArrowRight'||e.key===' ')go(1);
+  if(e.key==='ArrowLeft')go(-1);
 });
-
-// ── Budget donut ──
-function initChart(){
-  new Chart(document.getElementById('bc'),{
-    type:'doughnut',
-    data:{
-      labels:['Engineering','GTM Hiring','Mktg Interns','Cloud Infra','AI/API','Legal'],
-      datasets:[{
-        data:[6,6,4.5,2,1,0.5],
-        backgroundColor:['#059669','#7C3AED','#BE185D','#D97706','#2563EB','#CBD5E1'],
-        borderColor:'#FFFFFF',borderWidth:3,hoverOffset:7
-      }]
-    },
-    options:{
-      responsive:false,
-      plugins:{
-        legend:{position:'bottom',labels:{color:'#5A7083',padding:12,font:{size:11,family:'Inter'}}},
-        tooltip:{callbacks:{label:(c)=> ' ₹'+c.raw+'L ('+Math.round(c.raw/20*100)+'%)'}}
-      },
-      cutout:'60%',
-      animation:{duration:750}
-    }
-  });
-}
 </script>
 </body>
 </html>

@@ -1,10 +1,80 @@
 import { NextResponse } from "next/server";
+import prisma from "@/lib/db/client";
+import { getWorkspaceId } from "@/lib/db/workspace";
 import { DEMO_MESSAGES } from "@/lib/demo-data";
 
 export async function GET() {
-  return NextResponse.json(DEMO_MESSAGES);
+  try {
+    const workspaceId = await getWorkspaceId();
+    const messages = await prisma.message.findMany({
+      where: { workspaceId },
+      include: {
+        contact: true,
+        account: true,
+        warmPath: true,
+        signal: true,
+      },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    });
+    if (messages.length === 0) {
+      return NextResponse.json(DEMO_MESSAGES);
+    }
+    return NextResponse.json(
+      messages.map((m) => ({
+        id: m.id,
+        campaign_id: m.campaignId,
+        account_id: m.accountId,
+        contact_id: m.contactId,
+        warm_path_id: m.warmPathId,
+        signal_id: m.signalId,
+        channel: m.channel,
+        subject: m.subject,
+        body: m.body,
+        intro_request: m.introRequest,
+        status: m.status as any,
+        approval_status: m.approvalStatus as any,
+        confidence_score: m.confidenceScore,
+        personalization_reason: m.personalizationReason ?? "",
+        factual_claims: (() => {
+          try {
+            return JSON.parse(m.factualClaimsJson ?? "[]");
+          } catch {
+            return [];
+          }
+        })(),
+        supporting_sources: (() => {
+          try {
+            return JSON.parse(m.supportingSourcesJson ?? "[]");
+          } catch {
+            return [];
+          }
+        })(),
+        risk_flags: (() => {
+          try {
+            return JSON.parse(m.riskFlagsJson ?? "[]");
+          } catch {
+            return [];
+          }
+        })(),
+        created_at: m.createdAt.toISOString(),
+        contact: m.contact
+          ? {
+              id: m.contact.id,
+              name: m.contact.name,
+              title: m.contact.title,
+              email: m.contact.email,
+              account_id: m.contact.accountId,
+            }
+          : undefined,
+        account: m.account ? { id: m.account.id, name: m.account.name } : undefined,
+      })),
+    );
+  } catch {
+    return NextResponse.json(DEMO_MESSAGES);
+  }
 }
 
 export async function POST() {
-  return NextResponse.json({ error: "Not implemented in demo" }, { status: 501 });
+  return NextResponse.json({ error: "Not implemented" }, { status: 501 });
 }

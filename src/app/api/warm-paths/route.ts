@@ -1,10 +1,49 @@
 import { NextResponse } from "next/server";
+import prisma from "@/lib/db/client";
+import { getWorkspaceId } from "@/lib/db/workspace";
 import { DEMO_WARM_PATHS } from "@/lib/demo-data";
 
 export async function GET() {
-  return NextResponse.json(DEMO_WARM_PATHS);
+  try {
+    const workspaceId = await getWorkspaceId();
+    const warmPaths = await prisma.warmPath.findMany({
+      where: { workspaceId },
+      include: { account: true, contact: true },
+      orderBy: { createdAt: "desc" },
+    });
+    if (warmPaths.length === 0) {
+      return NextResponse.json(DEMO_WARM_PATHS);
+    }
+    return NextResponse.json(
+      warmPaths.map((wp) => ({
+        id: wp.id,
+        account_id: wp.accountId,
+        contact_id: wp.contactId,
+        path_nodes: (() => {
+          try {
+            return JSON.parse(wp.pathJson);
+          } catch {
+            return [];
+          }
+        })(),
+        path_explanation: wp.explanation ?? "",
+        warmth_score: wp.warmthScore,
+        confidence_score: wp.confidenceScore,
+        recommended_intro_person: wp.recommendedIntroPerson ?? "",
+        recommended_channel: (wp.recommendedChannel as "email" | "linkedin" | "call") ?? "linkedin",
+        status: wp.status as
+          | "active"
+          | "intro_sent"
+          | "intro_accepted"
+          | "message_sent"
+          | "replied",
+      })),
+    );
+  } catch {
+    return NextResponse.json(DEMO_WARM_PATHS);
+  }
 }
 
 export async function POST() {
-  return NextResponse.json({ error: "Not implemented in demo" }, { status: 501 });
+  return NextResponse.json({ error: "Not implemented" }, { status: 501 });
 }
