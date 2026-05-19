@@ -18,6 +18,7 @@ import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -116,7 +117,6 @@ const GAP_ACTIONS: Record<GapType, (row: CoverageRow) => string> = {
 
 function CoverageMap() {
   const { accounts, warmPaths, relationshipEdges } = useSalesStore();
-  const router = useRouter();
 
   const rows = useMemo<CoverageRow[]>(() => {
     const now = Date.now();
@@ -178,6 +178,10 @@ function CoverageMap() {
   const coldCount = rows.filter((r) => r.gapType === "cold_path").length;
   const noPathCount = rows.filter((r) => r.gapType === "no_path").length;
 
+  // Spec: 3 hero chips — strong (warmth >70), moderate (40-70), no path
+  const strongCount = rows.filter((r) => r.bestWarmth > 70).length;
+  const moderateCount = rows.filter((r) => r.bestWarmth >= 40 && r.bestWarmth <= 70).length;
+
   // Coverage = accounts with any warm path / total accounts
   const coveredAccountIds = new Set(warmPaths.map((wp) => wp.account_id));
   const coveragePct =
@@ -200,22 +204,18 @@ function CoverageMap() {
       "Industry",
       "Gap Type",
       "Best Warmth",
-      "Path",
-      "Intro Person",
+      "Intro Via",
       "Recommendation",
     ];
     const csvRows = sorted.map((r) =>
-      [r.accountName, r.industry, r.gapType, r.bestWarmth, r.path, r.introPerson, r.recommendation]
+      [r.accountName, r.industry, r.gapType, r.bestWarmth, r.introPerson, r.recommendation]
         .map((v) => `"${String(v).replace(/"/g, '""')}"`)
         .join(","),
     );
-    const blob = new Blob([[header.join(","), ...csvRows].join("\n")], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "warmpath-coverage.csv";
-    a.click();
-    URL.revokeObjectURL(url);
+    const csv = [header.join(","), ...csvRows].join("\n");
+    navigator.clipboard.writeText(csv).then(() => {
+      toast.success("Coverage report copied to clipboard");
+    });
   }
 
   const circumference = 2 * Math.PI * 36;
@@ -226,48 +226,83 @@ function CoverageMap() {
   return (
     <div className="p-6 space-y-6 max-w-[1200px] mx-auto">
       {/* Hero metrics */}
-      <div className="grid grid-cols-5 gap-4">
-        {/* Coverage ring */}
-        <div className="col-span-1 bg-card border border-border/60 rounded-xl p-5 flex flex-col items-center justify-center">
-          <svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true">
-            <circle cx="48" cy="48" r="36" fill="none" stroke="hsl(var(--muted))" strokeWidth="8" />
-            <circle
-              cx="48"
-              cy="48"
-              r="36"
-              fill="none"
-              stroke={trendColor}
-              strokeWidth="8"
-              strokeLinecap="round"
-              strokeDasharray={circumference}
-              strokeDashoffset={dashOffset}
-              transform="rotate(-90 48 48)"
-            />
-            <text
-              x="48"
-              y="44"
-              textAnchor="middle"
-              className="fill-foreground"
-              fontSize="18"
-              fontWeight="700"
-            >
-              {coveragePct}%
-            </text>
-            <text x="48" y="60" textAnchor="middle" fill="currentColor" fontSize="9" opacity="0.5">
-              coverage
-            </text>
-          </svg>
-          <p className="text-xs text-muted-foreground text-center mt-1">
-            {warmCount} of {accounts.length} accounts warm
-          </p>
+      <div className="grid grid-cols-5 gap-4 items-stretch">
+        {/* Coverage ring — SVG-drawn circle (matches CSS ring look) */}
+        <div className="col-span-2 bg-card border border-border/60 rounded-xl p-5 flex items-center gap-6">
+          <div className="flex-shrink-0 flex flex-col items-center">
+            <svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true">
+              <circle
+                cx="48"
+                cy="48"
+                r="36"
+                fill="none"
+                stroke="hsl(var(--muted))"
+                strokeWidth="8"
+              />
+              <circle
+                cx="48"
+                cy="48"
+                r="36"
+                fill="none"
+                stroke={trendColor}
+                strokeWidth="8"
+                strokeLinecap="round"
+                strokeDasharray={circumference}
+                strokeDashoffset={dashOffset}
+                transform="rotate(-90 48 48)"
+              />
+              <text
+                x="48"
+                y="44"
+                textAnchor="middle"
+                className="fill-foreground"
+                fontSize="18"
+                fontWeight="700"
+              >
+                {coveragePct}%
+              </text>
+              <text
+                x="48"
+                y="60"
+                textAnchor="middle"
+                fill="currentColor"
+                fontSize="9"
+                opacity="0.5"
+              >
+                coverage
+              </text>
+            </svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground">
+              {coveredAccountIds.size} of {accounts.length} target accounts have ≥1 warm path
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5 mb-3">
+              Network coverage across all ICP accounts
+            </p>
+            {/* 3 hero chips per spec */}
+            <div className="flex flex-wrap gap-2">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                Strong paths (warmth &gt;70): {strongCount}
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                Moderate (40–70): {moderateCount}
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                No path: {noPathCount}
+              </span>
+            </div>
+          </div>
         </div>
 
-        {/* 4 gap type stats */}
+        {/* 3 gap type stats */}
         {[
           { label: "Warm", value: warmCount, color: "text-emerald-500", dot: "bg-emerald-500" },
           { label: "Stale", value: staleCount, color: "text-brand", dot: "bg-brand" },
           { label: "Cold path", value: coldCount, color: "text-blue-400", dot: "bg-blue-400" },
-          { label: "No path", value: noPathCount, color: "text-rose-400", dot: "bg-rose-400" },
         ].map((s) => (
           <div
             key={s.label}
@@ -361,11 +396,10 @@ function CoverageMap() {
             <thead>
               <tr className="border-b border-border/40 text-muted-foreground">
                 <th className="text-left px-5 py-2.5 font-medium">Account</th>
-                <th className="text-left px-4 py-2.5 font-medium">Gap type</th>
                 <th className="text-left px-4 py-2.5 font-medium">Best warmth</th>
-                <th className="text-left px-4 py-2.5 font-medium">Path</th>
-                <th className="text-left px-4 py-2.5 font-medium">Recommendation</th>
-                <th className="px-4 py-2.5" />
+                <th className="text-left px-4 py-2.5 font-medium">Intro via</th>
+                <th className="text-left px-4 py-2.5 font-medium">Gap</th>
+                <th className="text-left px-4 py-2.5 font-medium">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -376,16 +410,21 @@ function CoverageMap() {
                     key={row.accountId}
                     className="border-b border-border/20 hover:bg-muted/30 transition-colors"
                   >
+                    {/* Account: logo initial + name + industry tag */}
                     <td className="px-5 py-3">
-                      <div className="font-semibold text-foreground">{row.accountName}</div>
-                      <div className="text-muted-foreground text-[10px]">{row.industry}</div>
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center text-[11px] font-bold text-foreground flex-shrink-0">
+                          {row.accountName.charAt(0)}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-foreground">{row.accountName}</div>
+                          <span className="inline-block mt-0.5 text-[9px] px-1.5 py-px rounded bg-muted text-muted-foreground border border-border/40">
+                            {row.industry}
+                          </span>
+                        </div>
+                      </div>
                     </td>
-                    <td className="px-4 py-3">
-                      <Badge variant="outline" className={`text-[10px] ${cfg.color}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full mr-1 ${cfg.dot}`} />
-                        {cfg.label}
-                      </Badge>
-                    </td>
+                    {/* Warmth: colored score badge + thin bar */}
                     <td className="px-4 py-3">
                       {row.bestWarmth > 0 ? (
                         <div className="flex items-center gap-2">
@@ -397,36 +436,74 @@ function CoverageMap() {
                                 backgroundColor:
                                   row.bestWarmth >= 70
                                     ? "#10b981"
-                                    : row.bestWarmth >= 45
+                                    : row.bestWarmth >= 40
                                       ? "#f59e0b"
                                       : "#ef4444",
                               }}
                             />
                           </div>
-                          <span className="tabular-nums text-foreground font-medium">
+                          <span
+                            className="tabular-nums font-semibold text-[11px] px-1.5 py-px rounded"
+                            style={{
+                              color:
+                                row.bestWarmth >= 70
+                                  ? "#10b981"
+                                  : row.bestWarmth >= 40
+                                    ? "#f59e0b"
+                                    : "#ef4444",
+                              background:
+                                row.bestWarmth >= 70
+                                  ? "rgba(16,185,129,0.1)"
+                                  : row.bestWarmth >= 40
+                                    ? "rgba(245,158,11,0.1)"
+                                    : "rgba(239,68,68,0.1)",
+                            }}
+                          >
                             {row.bestWarmth}
                           </span>
                         </div>
                       ) : (
-                        <span className="text-muted-foreground">-</span>
+                        <span className="text-muted-foreground">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground max-w-[200px] truncate">
-                      {row.path}
+                    {/* Intro via: recommended_intro_person */}
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {row.introPerson !== "-" ? (
+                        <span className="font-medium text-foreground">{row.introPerson}</span>
+                      ) : (
+                        <span>—</span>
+                      )}
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground max-w-[280px]">
-                      {row.recommendation}
-                    </td>
+                    {/* Gap type badge */}
                     <td className="px-4 py-3">
-                      {row.gapType === "warm" && (
+                      <Badge variant="outline" className={`text-[10px] ${cfg.color}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full mr-1 ${cfg.dot}`} />
+                        {cfg.label}
+                      </Badge>
+                    </td>
+                    {/* Action */}
+                    <td className="px-4 py-3">
+                      {row.gapType === "warm" ? (
                         <Button
                           size="sm"
                           variant="outline"
                           className="h-6 text-[10px] px-2 whitespace-nowrap"
-                          onClick={() => router.push(`/approval-queue?contact=${row.accountId}`)}
+                          onClick={() =>
+                            toast.success(`Drafting intro for ${row.accountName}`, {
+                              description: `Via ${row.introPerson}`,
+                            })
+                          }
                         >
-                          Draft intro
+                          Draft intro →
                         </Button>
+                      ) : row.gapType === "cold_path" || row.gapType === "stale_path" ? (
+                        <span className="text-muted-foreground text-[11px]">
+                          Re-engage connection
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground text-[11px]">
+                          Find connection on LinkedIn
+                        </span>
                       )}
                     </td>
                   </tr>
