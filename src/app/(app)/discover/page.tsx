@@ -664,11 +664,11 @@ export default function DiscoverPage() {
     addContact({
       account_id: accountId,
       name: visitor.warm_path
-        ? visitor.warm_path.via.split("→").pop()?.trim().split(" (")[0] ?? "Key Contact"
+        ? (visitor.warm_path.via.split("→").pop()?.trim().split(" (")[0] ?? "Key Contact")
         : "Key Contact",
       email: `contact@${visitor.domain}`,
       title: visitor.warm_path
-        ? visitor.warm_path.via.split("(").pop()?.replace(")", "") ?? "Revenue Leader"
+        ? (visitor.warm_path.via.split("(").pop()?.replace(")", "") ?? "Revenue Leader")
         : "Revenue Leader",
       seniority: "vp",
       department: "Revenue",

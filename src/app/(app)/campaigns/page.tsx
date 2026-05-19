@@ -2,331 +2,450 @@
 
 import {
   BarChart3,
+  CalendarCheck,
+  CheckCircle2,
+  ChevronRight,
+  Handshake,
   Mail,
-  Megaphone,
   MessageCircle,
+  Pause,
   Phone,
+  Play,
   Plus,
   Radio,
   Send,
   Sparkles,
-  Target,
   TrendingUp,
   Users,
+  Zap,
 } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { CHANNEL_CONFIG } from "@/lib/constants";
 import { useSalesStore } from "@/stores/salesStore";
-
-const STATUS_COLORS: Record<string, string> = {
-  active: "bg-[#5db872]/10 text-[#3a8f4e] border-[#5db872]/20",
-  draft: "bg-muted text-muted-foreground border-border",
-  paused: "bg-brand/10 text-brand border-brand/20",
-  completed: "bg-[#5db8a6]/10 text-[#3a8f7e] border-[#5db8a6]/20",
-};
 
 const CHANNEL_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   email: Mail,
   phone: Phone,
+  call: Phone,
   whatsapp: MessageCircle,
   telegram: Send,
   linkedin: Users,
   meta_ads: Radio,
+  warm_intro: Handshake,
+  task: CheckCircle2,
+};
+
+type StatusFilter = "all" | "active" | "draft" | "paused" | "completed";
+
+const FILTER_LABELS: Record<StatusFilter, string> = {
+  all: "All",
+  active: "Active",
+  draft: "Draft",
+  paused: "Paused",
+  completed: "Completed",
+};
+
+// Prospect initials per campaign — neutral chips, no rainbow
+const PROSPECT_CHIPS: Record<string, string[]> = {
+  "camp-1": ["SA", "MJ", "KL", "TR", "WP", "JD", "SK"],
+  "camp-2": ["BH", "CM", "YP", "DG", "LR", "MK"],
+  "camp-3": ["NW", "AK", "EF", "QR", "JT"],
 };
 
 export default function CampaignsPage() {
   const { campaigns, campaignRecommendations, updateCampaignStatus } = useSalesStore();
+  const [filter, setFilter] = useState<StatusFilter>("all");
   const topRec = campaignRecommendations[0];
 
+  const filtered = filter === "all" ? campaigns : campaigns.filter((c) => c.status === filter);
+
+  const totalProspects = campaigns.reduce((s, c) => s + c.stats.total_prospects, 0);
+  const totalReplies = campaigns.reduce((s, c) => s + c.stats.replies, 0);
+  const totalMeetings = campaigns.reduce((s, c) => s + c.stats.meetings_booked, 0);
+  const avgReplyRate =
+    campaigns.length > 0
+      ? campaigns.reduce((s, c) => s + c.stats.reply_rate, 0) / campaigns.length
+      : 0;
+
   return (
-    <div className="p-6 space-y-5 max-w-[1400px] mx-auto">
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Header */}
-      <div className="flex items-start justify-between animate-fade-up">
-        <div>
-          <h1 className="text-xl font-bold flex items-center gap-2">
-            <Megaphone className="w-5 h-5 text-brand" />
-            Campaigns
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Coordinated 1:1 sequences — each step personally crafted for each prospect, not a
-            template blast.
-          </p>
+      <div className="border-b border-border/60 px-6 pt-5 pb-4 flex-shrink-0">
+        <div className="max-w-[1100px] mx-auto">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h1 className="text-[18px] font-bold tracking-tight">Sequences</h1>
+              <p className="text-[12px] text-muted-foreground mt-0.5">
+                1:1 outreach — every message crafted individually, every warm intro approved by your
+                connector.
+              </p>
+            </div>
+            <Button size="sm" asChild>
+              <Link href="/campaigns/new">
+                <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+                New sequence
+              </Link>
+            </Button>
+          </div>
+
+          {/* KPI strip */}
+          <div className="flex items-stretch divide-x divide-border/60 rounded-xl border border-border/50 bg-card/40 overflow-hidden">
+            {[
+              {
+                icon: Play,
+                label: "Active",
+                value: campaigns.filter((c) => c.status === "active").length,
+                highlight: true,
+              },
+              { icon: Users, label: "In sequence", value: totalProspects, highlight: false },
+              {
+                icon: MessageCircle,
+                label: "Conversations",
+                value: totalReplies,
+                highlight: false,
+              },
+              { icon: CalendarCheck, label: "Meetings", value: totalMeetings, highlight: false },
+              {
+                icon: TrendingUp,
+                label: "Avg reply rate",
+                value: `${avgReplyRate.toFixed(1)}%`,
+                highlight: avgReplyRate >= 20,
+              },
+            ].map((kpi) => {
+              const Icon = kpi.icon;
+              return (
+                <div key={kpi.label} className="flex items-center gap-2.5 px-4 py-3 flex-1">
+                  <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                    <Icon className="w-3.5 h-3.5 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <div
+                      className={`text-[17px] font-bold leading-none ${kpi.highlight ? "text-brand" : ""}`}
+                    >
+                      {kpi.value}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground mt-0.5">{kpi.label}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
-        <Button size="sm" asChild>
-          <Link href="/campaigns/new">
-            <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-            New sequence
-          </Link>
-        </Button>
       </div>
 
-      {/* Summary */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 animate-fade-up delay-1">
-        {[
-          {
-            label: "Active",
-            value: campaigns.filter((c) => c.status === "active").length,
-            color: "text-emerald-500",
-          },
-          {
-            label: "In sequence",
-            value: campaigns.reduce((s, c) => s + c.stats.total_prospects, 0),
-            color: "text-foreground",
-          },
-          {
-            label: "Conversations",
-            value: campaigns.reduce((s, c) => s + c.stats.replies, 0),
-            color: "text-blue-500",
-          },
-          {
-            label: "Meetings",
-            value: campaigns.reduce((s, c) => s + c.stats.meetings_booked, 0),
-            color: "text-violet-500",
-          },
-        ].map((stat) => (
-          <Card key={stat.label} className="border-border/60 stat-card-glow">
-            <CardContent className="p-4 text-center">
-              <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
-              <div className="text-[10px] text-muted-foreground">{stat.label}</div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* AI Recommendation */}
-      {topRec && (
-        <Card className="border-border/60 mission-glow animate-fade-up delay-1">
-          <CardContent className="p-5">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-violet-500/20 flex items-center justify-center flex-shrink-0">
-                <Target className="w-5 h-5 text-blue-500" />
+      {/* Scrollable body */}
+      <div className="flex-1 overflow-y-auto px-6 py-4">
+        <div className="max-w-[1100px] mx-auto space-y-4">
+          {/* AI Recommendation */}
+          {topRec && (
+            <div className="rounded-xl border border-border/60 bg-muted/30 p-4 flex items-center gap-3 animate-fade-up">
+              <div className="w-8 h-8 rounded-lg bg-brand/10 flex items-center justify-center flex-shrink-0">
+                <Zap className="w-4 h-4 text-brand" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] font-semibold text-blue-500 uppercase tracking-wide">
-                    Suggested sequence
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-[10px] font-bold text-brand uppercase tracking-wider">
+                    AI suggestion
                   </span>
                   <Badge
                     variant="outline"
-                    className="text-[10px] bg-blue-500/10 text-blue-500 border-blue-500/20"
+                    className="text-[10px] bg-brand/10 text-brand border-brand/20 py-0 h-4"
                   >
                     {topRec.time_to_launch_minutes}min to launch
                   </Badge>
                 </div>
-                <p className="font-semibold text-sm">{topRec.title}</p>
-                <p className="text-xs text-muted-foreground mt-1">{topRec.reason}</p>
-                <div className="flex items-center gap-3 mt-3">
-                  <div className="flex items-center gap-1">
-                    {topRec.channels.map((ch) => {
-                      const cfg = CHANNEL_CONFIG[ch];
-                      const Icon = CHANNEL_ICONS[ch] ?? Mail;
-                      return cfg ? (
-                        <div
-                          key={ch}
-                          className={`flex items-center gap-0.5 text-[10px] px-2 py-0.5 rounded-full border ${cfg.border} ${cfg.bg} ${cfg.color}`}
-                        >
-                          <Icon className="w-2.5 h-2.5" />
-                          {cfg.label}
-                        </div>
-                      ) : null;
-                    })}
-                  </div>
-                  <Button size="sm" className="h-7 text-xs ml-auto" asChild>
-                    <Link href="/campaigns/new">Start this sequence</Link>
-                  </Button>
-                </div>
+                <p className="font-semibold text-[13px] truncate">{topRec.title}</p>
+                <p className="text-[11px] text-muted-foreground truncate">{topRec.reason}</p>
               </div>
+              <Button size="sm" variant="outline" className="h-7 text-xs flex-shrink-0" asChild>
+                <Link href="/campaigns/new">
+                  Start this <ChevronRight className="w-3 h-3 ml-0.5" />
+                </Link>
+              </Button>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          )}
 
-      {/* Campaign list */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-sm">Active sequences</h2>
-          <div className="flex items-center gap-2">
-            {["active", "draft", "paused", "completed"].map((s) => (
-              <Badge
-                key={s}
-                variant="outline"
-                className={`text-[10px] capitalize ${STATUS_COLORS[s]}`}
-              >
-                {campaigns.filter((c) => c.status === s).length} {s}
-              </Badge>
-            ))}
+          {/* Filter tabs */}
+          <div className="flex items-center gap-0.5 border-b border-border/40 -mb-2">
+            {(Object.keys(FILTER_LABELS) as StatusFilter[]).map((s) => {
+              const count =
+                s === "all" ? campaigns.length : campaigns.filter((c) => c.status === s).length;
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setFilter(s)}
+                  className={`px-3 py-2.5 text-[12px] font-medium border-b-2 transition-colors -mb-px ${
+                    filter === s
+                      ? "border-brand text-brand"
+                      : "border-transparent text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {FILTER_LABELS[s]}
+                  {count > 0 && (
+                    <span
+                      className={`ml-1.5 inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full text-[9px] font-bold ${
+                        filter === s ? "bg-brand/15 text-brand" : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Campaign cards */}
+          <div className="space-y-3 pt-2">
+            {filtered.map((campaign, idx) => {
+              const chips = PROSPECT_CHIPS[campaign.id] ?? ["P1", "P2", "P3"];
+              const visibleChips = chips.slice(0, 5);
+              const extraProspects = Math.max(
+                0,
+                campaign.stats.total_prospects - visibleChips.length,
+              );
+              const replyHighlight = campaign.stats.reply_rate >= 20;
+
+              return (
+                <Card
+                  key={campaign.id}
+                  className={`border-border/60 hover:border-border transition-all animate-fade-up delay-${(idx % 4) + 1}`}
+                >
+                  <CardContent className="p-5">
+                    <div className="flex items-start gap-5">
+                      {/* Main area */}
+                      <div className="flex-1 min-w-0 space-y-3.5">
+                        {/* Title + status */}
+                        <div>
+                          <div className="flex items-center gap-2.5 flex-wrap">
+                            <Link
+                              href={`/campaigns/${campaign.id}`}
+                              className="font-semibold text-[14px] hover:underline leading-snug"
+                            >
+                              {campaign.name}
+                            </Link>
+
+                            {campaign.status === "active" && (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                Live
+                              </span>
+                            )}
+                            {campaign.status === "draft" && (
+                              <Badge variant="outline" className="text-[10px] capitalize">
+                                Draft
+                              </Badge>
+                            )}
+                            {campaign.status === "paused" && (
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] bg-brand/8 text-brand border-brand/20"
+                              >
+                                Paused
+                              </Badge>
+                            )}
+                            {campaign.status === "completed" && (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
+                                <CheckCircle2 className="w-3 h-3" />
+                                Completed
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">
+                            {campaign.target_segment}
+                          </p>
+                        </div>
+
+                        {/* Sequence flow — muted monochrome */}
+                        <div className="flex items-center gap-1 overflow-x-auto pb-0.5">
+                          {campaign.steps.map((step, si) => {
+                            const cfg = CHANNEL_CONFIG[step.channel];
+                            const Icon = CHANNEL_ICONS[step.channel] ?? Mail;
+                            const label = cfg?.label ?? step.channel;
+                            return (
+                              <div key={step.id} className="flex items-center gap-1 flex-shrink-0">
+                                {si > 0 && (
+                                  <ChevronRight className="w-3 h-3 text-muted-foreground/30 flex-shrink-0" />
+                                )}
+                                <div className="flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-lg border border-border/50 bg-muted/30 min-w-[52px]">
+                                  <Icon className="w-3 h-3 text-muted-foreground" />
+                                  <span className="text-[9px] font-medium text-muted-foreground leading-none">
+                                    {label}
+                                  </span>
+                                  <span className="text-[9px] text-muted-foreground/60 leading-none">
+                                    {step.delay_days === 0 ? "Day 0" : `D+${step.delay_days}`}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Prospects + stats */}
+                        <div className="flex items-center justify-between gap-4 flex-wrap">
+                          {/* Prospect chips — neutral */}
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-muted-foreground flex-shrink-0">
+                              {campaign.stats.total_prospects} in sequence:
+                            </span>
+                            <div className="flex items-center -space-x-1">
+                              {visibleChips.map((init) => (
+                                <span
+                                  key={init}
+                                  className="inline-flex items-center justify-center w-6 h-6 rounded-full text-[9px] font-bold bg-muted text-muted-foreground border border-background"
+                                >
+                                  {init}
+                                </span>
+                              ))}
+                              {extraProspects > 0 && (
+                                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full text-[9px] font-bold bg-muted text-muted-foreground border border-background">
+                                  +{extraProspects}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Inline metrics */}
+                          <div className="flex items-center gap-5">
+                            <div className="text-center">
+                              <div className="text-[12px] font-semibold">
+                                {campaign.stats.messages_sent}
+                              </div>
+                              <div className="text-[9px] text-muted-foreground">sent</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-[12px] font-semibold">
+                                {campaign.stats.replies}
+                              </div>
+                              <div className="text-[9px] text-muted-foreground">replies</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-[12px] font-semibold">
+                                {campaign.stats.meetings_booked}
+                              </div>
+                              <div className="text-[9px] text-muted-foreground">meetings</div>
+                            </div>
+                            <div className="text-center border-l border-border/50 pl-5">
+                              <div
+                                className={`text-[18px] font-bold leading-none ${replyHighlight ? "text-emerald-500" : "text-foreground"}`}
+                              >
+                                {campaign.stats.reply_rate.toFixed(1)}%
+                              </div>
+                              <div className="text-[9px] text-muted-foreground mt-0.5">
+                                reply rate
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Progress bar */}
+                        {campaign.stats.messages_sent > 0 && campaign.stats.total_prospects > 0 && (
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-[10px] text-muted-foreground">
+                              <span>Pipeline progress</span>
+                              <span>
+                                {campaign.stats.messages_sent}/{campaign.stats.total_prospects}{" "}
+                                reached
+                              </span>
+                            </div>
+                            <div className="h-1 bg-muted/50 rounded-full overflow-hidden">
+                              <div
+                                className="h-full rounded-full bg-brand/50 transition-all"
+                                style={{
+                                  width: `${(campaign.stats.messages_sent / campaign.stats.total_prospects) * 100}%`,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex flex-col gap-2 flex-shrink-0 pt-0.5">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-xs w-[76px]"
+                          asChild
+                        >
+                          <Link href={`/campaigns/${campaign.id}`}>
+                            <BarChart3 className="w-3 h-3 mr-1" />
+                            Stats
+                          </Link>
+                        </Button>
+
+                        {campaign.status === "draft" && (
+                          <Button
+                            size="sm"
+                            className="h-7 text-xs w-[76px]"
+                            onClick={() => {
+                              updateCampaignStatus(campaign.id, "active");
+                              toast.success(`${campaign.name} is now live`);
+                            }}
+                          >
+                            <Play className="w-3 h-3 mr-1" />
+                            Launch
+                          </Button>
+                        )}
+                        {campaign.status === "active" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs w-[76px]"
+                            onClick={() => {
+                              updateCampaignStatus(campaign.id, "paused");
+                              toast.success(`${campaign.name} paused`);
+                            }}
+                          >
+                            <Pause className="w-3 h-3 mr-1" />
+                            Pause
+                          </Button>
+                        )}
+                        {campaign.status === "paused" && (
+                          <Button
+                            size="sm"
+                            className="h-7 text-xs w-[76px]"
+                            onClick={() => {
+                              updateCampaignStatus(campaign.id, "active");
+                              toast.success(`${campaign.name} resumed`);
+                            }}
+                          >
+                            <Play className="w-3 h-3 mr-1" />
+                            Resume
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+
+            {/* Add new sequence */}
+            <Link href="/campaigns/new">
+              <Card className="border-dashed border-border/50 hover:border-brand/40 transition-all cursor-pointer group">
+                <CardContent className="p-5 flex items-center gap-4">
+                  <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center border border-border/60 group-hover:bg-brand/10 group-hover:border-brand/20 transition-colors">
+                    <Plus className="w-4 h-4 text-muted-foreground group-hover:text-brand transition-colors" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-[13px]">Design a new 1:1 sequence</h3>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      AI wizard → map steps to signals → each message crafted per prospect
+                    </p>
+                  </div>
+                  <Sparkles className="w-4 h-4 text-muted-foreground/30 ml-auto group-hover:text-brand/50 transition-colors" />
+                </CardContent>
+              </Card>
+            </Link>
           </div>
         </div>
-
-        {campaigns.map((campaign, i) => (
-          <Card
-            key={campaign.id}
-            className={`border-border/60 hover:border-border transition-all animate-fade-up delay-${(i % 5) + 2}`}
-          >
-            <CardContent className="p-5">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <Link
-                      href={`/campaigns/${campaign.id}`}
-                      className="font-semibold hover:underline"
-                    >
-                      {campaign.name}
-                    </Link>
-                    <Badge
-                      variant="outline"
-                      className={`text-[10px] capitalize ${STATUS_COLORS[campaign.status]}`}
-                    >
-                      {campaign.status}
-                    </Badge>
-                    <div className="flex items-center gap-0.5 ml-1">
-                      {campaign.channels.map((ch) => {
-                        const cfg = CHANNEL_CONFIG[ch as string];
-                        const Icon = CHANNEL_ICONS[ch as string] ?? Mail;
-                        return cfg ? (
-                          <div
-                            key={ch}
-                            className={`w-5 h-5 rounded-md ${cfg.bg} flex items-center justify-center`}
-                          >
-                            <Icon className={`w-2.5 h-2.5 ${cfg.color}`} />
-                          </div>
-                        ) : null;
-                      })}
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground mb-3">{campaign.target_segment}</p>
-
-                  {/* Step timeline */}
-                  <div className="flex items-center gap-1.5 mb-4 overflow-x-auto pb-1">
-                    {campaign.steps.map((step, si) => (
-                      <div key={step.id} className="flex items-center gap-1.5 flex-shrink-0">
-                        {si > 0 && <div className="w-4 h-px bg-border" />}
-                        <div className="text-[10px] px-2 py-0.5 rounded-full border border-border/60 bg-muted/30 capitalize flex items-center gap-1">
-                          {(() => {
-                            const Icon = CHANNEL_ICONS[step.channel] ?? Mail;
-                            return <Icon className="w-2.5 h-2.5" />;
-                          })()}
-                          D+{step.delay_days}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Stats */}
-                  <div className="grid grid-cols-5 gap-4">
-                    {[
-                      { label: "In sequence", value: campaign.stats.total_prospects },
-                      { label: "Delivered", value: campaign.stats.messages_sent },
-                      { label: "Replies", value: campaign.stats.replies },
-                      { label: "Meetings", value: campaign.stats.meetings_booked },
-                      {
-                        label: "Reply rate",
-                        value: `${campaign.stats.reply_rate.toFixed(1)}%`,
-                        highlight: campaign.stats.reply_rate >= 20,
-                      },
-                    ].map((stat) => (
-                      <div key={stat.label}>
-                        <div
-                          className={`text-sm font-bold ${stat.highlight ? "text-emerald-500" : ""}`}
-                        >
-                          {stat.value}
-                        </div>
-                        <div className="text-[10px] text-muted-foreground">{stat.label}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {campaign.stats.messages_sent > 0 && (
-                    <div className="mt-3 space-y-1">
-                      <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                        <span>Outreach progress</span>
-                        <span>
-                          {campaign.stats.messages_sent} personalized ·{" "}
-                          {campaign.stats.total_prospects - campaign.stats.messages_sent} remaining
-                        </span>
-                      </div>
-                      <Progress
-                        value={
-                          (campaign.stats.messages_sent / campaign.stats.total_prospects) * 100
-                        }
-                        className="h-1"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex flex-col gap-2 flex-shrink-0">
-                  <Button size="sm" variant="outline" className="h-7 text-xs" asChild>
-                    <Link href={`/campaigns/${campaign.id}`}>
-                      <BarChart3 className="w-3 h-3 mr-1" /> Details
-                    </Link>
-                  </Button>
-                  {campaign.status === "draft" && (
-                    <Button
-                      size="sm"
-                      className="h-7 text-xs"
-                      onClick={() => {
-                        updateCampaignStatus(campaign.id, "active");
-                        toast.success(`${campaign.name} is now live`);
-                      }}
-                    >
-                      <TrendingUp className="w-3 h-3 mr-1" /> Launch
-                    </Button>
-                  )}
-                  {campaign.status === "active" && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-7 text-xs"
-                      onClick={() => {
-                        updateCampaignStatus(campaign.id, "paused");
-                        toast.success(`${campaign.name} paused`);
-                      }}
-                    >
-                      Pause
-                    </Button>
-                  )}
-                  {campaign.status === "paused" && (
-                    <Button
-                      size="sm"
-                      className="h-7 text-xs"
-                      onClick={() => {
-                        updateCampaignStatus(campaign.id, "active");
-                        toast.success(`${campaign.name} resumed`);
-                      }}
-                    >
-                      <TrendingUp className="w-3 h-3 mr-1" /> Resume
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-
-        {/* Empty state prompt */}
-        <Card className="border-dashed border-border/60 hover:border-border transition-colors cursor-pointer">
-          <CardContent className="p-8 text-center">
-            <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mx-auto mb-3">
-              <Sparkles className="w-6 h-6 text-blue-500" />
-            </div>
-            <h3 className="font-semibold text-sm mb-1">Design a 1:1 outreach sequence</h3>
-            <p className="text-xs text-muted-foreground mb-4">
-              Map each step to a specific trigger — AI personalizes every message individually based
-              on the prospect's signals and your relationship context.
-            </p>
-            <Button size="sm" asChild>
-              <Link href="/campaigns/new">
-                <Plus className="w-3.5 h-3.5 mr-1.5" /> Start with AI wizard
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

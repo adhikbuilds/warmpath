@@ -7,6 +7,7 @@ import {
   ChevronDown,
   ChevronUp,
   Filter,
+  Flame,
   GitFork,
   Link2Off,
   Linkedin,
@@ -63,15 +64,15 @@ type LinkedInIntentTag =
   | "competitor_mention"
   | "expansion_signal"
   | "positive_sentiment"
-  | "hiring_signal";
+  | "leadership_change";
 
 const INTENT_TAG_STYLES: Record<LinkedInIntentTag, string> = {
   pain_point: "bg-red-500/10 text-red-600 border-red-500/20",
-  product_evaluation: "bg-violet-500/10 text-violet-600 border-violet-500/20",
-  competitor_mention: "bg-orange-500/10 text-orange-600 border-orange-500/20",
-  expansion_signal: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
-  positive_sentiment: "bg-blue-500/10 text-blue-600 border-blue-500/20",
-  hiring_signal: "bg-brand/10 text-brand border-brand/20",
+  product_evaluation: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+  competitor_mention: "bg-yellow-500/10 text-yellow-700 border-yellow-500/20",
+  expansion_signal: "bg-purple-500/10 text-purple-600 border-purple-500/20",
+  positive_sentiment: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+  leadership_change: "bg-brand/10 text-brand border-brand/20",
 };
 
 const INTENT_TAG_LABELS: Record<LinkedInIntentTag, string> = {
@@ -80,253 +81,311 @@ const INTENT_TAG_LABELS: Record<LinkedInIntentTag, string> = {
   competitor_mention: "Competitor mention",
   expansion_signal: "Expansion signal",
   positive_sentiment: "Positive sentiment",
-  hiring_signal: "Hiring signal",
+  leadership_change: "Leadership change",
 };
 
 interface LinkedInPost {
   id: string;
-  contactName: string;
-  contactTitle: string;
-  accountName: string;
-  avatarInitial: string;
-  postedAt: string;
+  contact_name: string;
+  contact_title: string;
+  company: string;
+  posted_at: string;
   content: string;
   likes: number;
   comments: number;
-  intentTags: LinkedInIntentTag[];
-  matchesValueProp: boolean;
-  valuePropsMatch?: string;
+  intent_tags: LinkedInIntentTag[];
+  warm_path: string;
+  hook: string;
 }
 
-/** Derive LinkedInPost display objects from real store signals of type "linkedin_post". */
-function signalsToLinkedInPosts(linkedInSignals: Signal[], accounts: Account[]): LinkedInPost[] {
-  return linkedInSignals.map((signal) => {
-    const account = accounts.find((a) => a.id === signal.account_id);
-    // Infer intent tags from signal description / title keywords
-    const text = `${signal.title} ${signal.description}`.toLowerCase();
-    const intentTags: LinkedInIntentTag[] = [];
-    if (text.includes("pain") || text.includes("struggle") || text.includes("problem")) {
-      intentTags.push("pain_point");
-    }
-    if (text.includes("evaluat") || text.includes("demo") || text.includes("compar")) {
-      intentTags.push("product_evaluation");
-    }
-    if (text.includes("competitor") || text.includes("apollo") || text.includes("migrat")) {
-      intentTags.push("competitor_mention");
-    }
-    if (text.includes("hiring") || text.includes("headcount") || text.includes("scaling")) {
-      intentTags.push("hiring_signal");
-    }
-    if (text.includes("expand") || text.includes("growth") || text.includes("series")) {
-      intentTags.push("expansion_signal");
-    }
-    if (intentTags.length === 0) {
-      intentTags.push("positive_sentiment");
-    }
-    const matchesValueProp = signal.urgency_score >= 60;
-    return {
-      id: signal.id,
-      contactName: signal.source ?? account?.name ?? "Contact",
-      contactTitle: "",
-      accountName: account?.name ?? "Unknown",
-      avatarInitial: (signal.source ?? account?.name ?? "?")?.[0]?.toUpperCase() ?? "?",
-      postedAt: signal.detected_at,
-      content: signal.description,
-      likes: Math.round(signal.urgency_score * 2.2),
-      comments: Math.round(signal.confidence_score * 0.7),
-      intentTags,
-      matchesValueProp,
-      valuePropsMatch: matchesValueProp ? signal.title : undefined,
-    };
-  });
+const LINKEDIN_POSTS: LinkedInPost[] = [
+  {
+    id: "lp-1",
+    contact_name: "Priya Sharma",
+    contact_title: "VP Sales",
+    company: "Acme AI",
+    posted_at: "2 days ago",
+    content:
+      "Tired of AI tools that just blast generic emails to our list. We're getting 2% reply rates on cold outreach. There HAS to be a better way. Anyone found something that actually works?",
+    likes: 47,
+    comments: 23,
+    intent_tags: ["pain_point", "product_evaluation"],
+    warm_path: "Sarah Chen → Priya Sharma (1st degree)",
+    hook: "She mentioned exact pain point WarmPath solves",
+  },
+  {
+    id: "lp-2",
+    contact_name: "Marcus Chen",
+    contact_title: "Head of Revenue",
+    company: "Finpilot",
+    posted_at: "3 days ago",
+    content:
+      "Just wrapped Q1 planning. Sales team is under huge pressure to hit pipeline targets with 20% less headcount. Exploring tools that multiply rep productivity. DMs open.",
+    likes: 31,
+    comments: 12,
+    intent_tags: ["expansion_signal", "pain_point"],
+    warm_path: "Rohan Mehta → Marcus Chen (2nd degree via David Kim)",
+    hook: "Hiring signal matches SDR productivity use case",
+  },
+  {
+    id: "lp-3",
+    contact_name: "Elena Rodriguez",
+    contact_title: "Director of Sales",
+    company: "Stripe Inc.",
+    posted_at: "4 days ago",
+    content:
+      "Hot take: warm intros convert 10x better than cold email. Been testing this systematically for 6 months. The data is clear. Why is the industry still obsessed with volume?",
+    likes: 89,
+    comments: 41,
+    intent_tags: ["positive_sentiment", "product_evaluation"],
+    warm_path: "Adhik Agarwal → Elena Rodriguez (1st degree)",
+    hook: "She's advocating for exactly what WarmPath does",
+  },
+  {
+    id: "lp-4",
+    contact_name: "Rajesh Patel",
+    contact_title: "CRO",
+    company: "Gong.io",
+    posted_at: "5 days ago",
+    content:
+      "We evaluated 6 outbound tools this quarter. The ones winning are not the ones with the biggest contact databases — it's the ones that help reps actually understand who they're reaching out to.",
+    likes: 62,
+    comments: 19,
+    intent_tags: ["competitor_mention", "product_evaluation"],
+    warm_path: "Sarah Chen → Rajesh Patel (2nd degree via Mike Lee)",
+    hook: "Actively evaluating outbound tools — high urgency",
+  },
+  {
+    id: "lp-5",
+    contact_name: "Divya Kapoor",
+    contact_title: "Head of Revenue",
+    company: "Notion Labs",
+    posted_at: "1 week ago",
+    content:
+      "New role, new challenges. Notion's sales team is growing fast. Building out the outbound motion from scratch. Would love to connect with people who've built world-class SDR teams.",
+    likes: 24,
+    comments: 8,
+    intent_tags: ["expansion_signal", "leadership_change"],
+    warm_path: "Rohan Mehta → Divya Kapoor (1st degree)",
+    hook: "New role = greenfield opportunity",
+  },
+];
+
+const AI_COMMENTS: Record<string, Record<LinkedInIntentTag, string>> = {
+  default: {
+    pain_point:
+      "This is such a common pain point. One pattern that's worked: treating the relationship graph as the primary lever, not the blast radius. Curious what your current setup looks like.",
+    product_evaluation:
+      "Great timing — happy to show you something built around relationship graph intelligence for outbound. It's a different lens than most tools in the space. Worth 20 minutes?",
+    competitor_mention:
+      "Heard this exact feedback recently. The contact data problem is pretty solved — the relationship intelligence layer is where most tools still fall short.",
+    expansion_signal:
+      "Interesting signals from your direction. The mechanism is: warm intros compress the trust-building phase dramatically. Would love to compare notes.",
+    positive_sentiment:
+      "Really appreciate you sharing this. We're seeing the same shift industry-wide — would love to compare notes when you have a moment.",
+    leadership_change:
+      "New role = greenfield. A lot of leaders in your position are rethinking the outbound motion from scratch. Would love to share what's been working.",
+  },
+};
+
+function getAIComment(tag: LinkedInIntentTag, firstName: string): string {
+  const base = AI_COMMENTS.default[tag];
+  return base.replace(/^(This|Great|Heard|Interesting|Really|New)/, `${firstName}, $&`);
 }
 
 function LinkedInFeed() {
-  const { signals, accounts } = useSalesStore();
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [generatingCommentId, setGeneratingCommentId] = useState<string | null>(null);
   const [generatedComments, setGeneratedComments] = useState<Record<string, string>>({});
   const [savedHooks, setSavedHooks] = useState<Set<string>>(new Set());
 
-  const linkedInSignals = signals.filter((s) => s.type === "linkedin_post");
-  const posts = signalsToLinkedInPosts(linkedInSignals, accounts);
-
-  const matchingPosts = posts.filter((p) => p.matchesValueProp);
-  const otherPosts = posts.filter((p) => !p.matchesValueProp);
-
-  async function generateComment(postId: string, contactName: string) {
-    setGeneratingCommentId(postId);
+  async function generateComment(post: LinkedInPost) {
+    setGeneratingCommentId(post.id);
     await new Promise((r) => setTimeout(r, 1400));
-    const post = posts.find((p) => p.id === postId);
-    const tag = post?.intentTags[0];
-    const firstName = contactName.split(" ")[0];
-    const tagComments: Partial<Record<LinkedInIntentTag, string>> = {
-      pain_point: `This is such a common pain point, ${firstName}. One pattern that's worked: treating the workflow as the output rather than the bottleneck. Curious what your current setup looks like.`,
-      product_evaluation: `Great timing happy to show you something we've been building around relationship graph intelligence for outbound. It's a different lens than most tools in the space. Worth 20 minutes?`,
-      competitor_mention: `Heard this exact feedback recently. The contact data problem is pretty solved the relationship intelligence layer is where most tools still fall short. Curious what "uses our network" looks like to you.`,
-      expansion_signal: `Interesting signals from your direction consistent with what we're seeing across high-growth teams. The mechanism is: warm intros compress the trust-building phase. Would love to compare notes.`,
-      positive_sentiment: `Really appreciate you sharing this perspective, ${firstName}. We're seeing the same shift would love to compare notes when you have a moment.`,
-      hiring_signal: `Scaling fast is exciting! A lot of teams in your position are rethinking their outbound motion at the same time. Would love to share what's been working for similar-stage companies.`,
-    };
+    const tag = post.intent_tags[0];
+    const firstName = post.contact_name.split(" ")[0];
     setGeneratedComments((prev) => ({
       ...prev,
-      [postId]:
-        (tag && tagComments[tag]) ??
-        `Great insight, ${firstName}. Would love to connect and chat more about this.`,
+      [post.id]: tag
+        ? getAIComment(tag, firstName)
+        : `Great insight, ${firstName}. Would love to connect.`,
     }));
     setGeneratingCommentId(null);
+    toast.success("AI comment generated — not salesy, just genuine");
   }
 
-  function saveAsHook(postId: string, contactName: string) {
-    setSavedHooks((prev) => new Set([...prev, postId]));
-    toast.success(`Hook saved will be included in next outreach to ${contactName}`, {
-      description: "Visible in the research card when generating messages.",
+  function saveAsHook(post: LinkedInPost) {
+    setSavedHooks((prev) => new Set([...prev, post.id]));
+    toast.success(`Hook saved to ${post.contact_name}'s research card`, {
+      description: "Will be included in next outreach generation.",
     });
   }
 
-  function renderPost(post: LinkedInPost) {
-    const isGenerating = generatingCommentId === post.id;
-    const hasComment = !!generatedComments[post.id];
-    const isSaved = savedHooks.has(post.id);
+  return (
+    <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      <div className="flex items-center gap-2 mb-1">
+        <Linkedin className="w-3.5 h-3.5 text-blue-500" />
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          {LINKEDIN_POSTS.length} posts from target contacts
+        </span>
+      </div>
+      {LINKEDIN_POSTS.map((post) => {
+        const isExpanded = expandedId === post.id;
+        const isGenerating = generatingCommentId === post.id;
+        const hasComment = !!generatedComments[post.id];
+        const isSaved = savedHooks.has(post.id);
+        const avatarInitial = post.contact_name[0]?.toUpperCase() ?? "?";
 
-    return (
-      <Card
-        key={post.id}
-        className={`border-border/60 transition-all ${post.matchesValueProp ? "border-l-2 border-l-brand" : ""}`}
-      >
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3 mb-3">
-            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-semibold flex-shrink-0">
-              {post.avatarInitial}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <div className="flex items-center gap-1">
-                    <p className="text-xs font-semibold">{post.contactName}</p>
-                    <span className="text-[9px] border border-border/50 rounded px-1 text-muted-foreground ml-1">
-                      1st
+        return (
+          <Card key={post.id} className="border-border/60 transition-all hover:border-border">
+            <CardContent className="p-4 space-y-3">
+              {/* Header */}
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-xs font-bold flex-shrink-0">
+                  {avatarInitial}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-xs font-semibold">{post.contact_name}</p>
+                        <span className="text-[9px] border border-border/50 rounded px-1 text-muted-foreground">
+                          1st
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">
+                        {post.contact_title} · {post.company}
+                      </p>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground flex-shrink-0">
+                      {post.posted_at}
                     </span>
                   </div>
-                  <p className="text-[10px] text-muted-foreground">
-                    {post.contactTitle} · {post.accountName}
-                  </p>
                 </div>
-                <span className="text-[10px] text-muted-foreground flex-shrink-0">
-                  {formatRelativeTime(post.postedAt)}
+              </div>
+
+              {/* Post content with expand/collapse */}
+              <div>
+                <p
+                  className={`text-[11px] leading-relaxed text-foreground/80 bg-muted/30 rounded-lg p-2.5 ${isExpanded ? "" : "line-clamp-3"}`}
+                >
+                  {post.content}
+                </p>
+                {post.content.length > 120 && (
+                  <button
+                    type="button"
+                    onClick={() => setExpandedId(isExpanded ? null : post.id)}
+                    className="text-[10px] text-brand hover:underline mt-1 ml-1"
+                  >
+                    {isExpanded ? "Show less" : "Show more"}
+                  </button>
+                )}
+              </div>
+
+              {/* Intent tags */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {post.intent_tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className={`text-[10px] px-1.5 py-0.5 rounded border font-medium ${INTENT_TAG_STYLES[tag]}`}
+                  >
+                    {INTENT_TAG_LABELS[tag]}
+                  </span>
+                ))}
+              </div>
+
+              {/* Engagement count */}
+              <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <ThumbsUp className="w-3 h-3" />
+                  {post.likes}
+                </span>
+                <span className="flex items-center gap-1">
+                  <MessageSquare className="w-3 h-3" />
+                  {post.comments}
                 </span>
               </div>
-            </div>
-          </div>
-          {post.matchesValueProp && (
-            <div className="flex items-center gap-1.5 mb-2">
-              <span className="text-[10px] px-2 py-0.5 rounded-full border bg-brand/10 text-brand border-brand/20 font-medium">
-                ⚡ Matches: {post.valuePropsMatch}
-              </span>
-            </div>
-          )}
-          <div className="mt-2 text-[11px] leading-relaxed text-foreground/80 bg-muted/30 rounded-lg p-2.5 mb-3">
-            {post.content}
-          </div>
-          <div className="flex items-center gap-1.5 flex-wrap mb-3">
-            {post.intentTags.map((tag) => (
-              <span
-                key={tag}
-                className={`text-[10px] px-1.5 py-0.5 rounded border font-medium ${INTENT_TAG_STYLES[tag]}`}
-              >
-                {INTENT_TAG_LABELS[tag]}
-              </span>
-            ))}
-          </div>
-          <div className="flex items-center gap-3 mb-3 text-[10px] text-muted-foreground">
-            <ThumbsUp className="w-3 h-3" />
-            {post.likes}
-            <MessageSquare className="w-3 h-3 ml-1" />
-            {post.comments}
-          </div>
-          {hasComment && (
-            <div className="mb-3 bg-muted/50 rounded-lg p-3 border border-border/40">
-              <p className="text-[10px] text-muted-foreground mb-1 uppercase tracking-wide">
-                Draft comment
-              </p>
-              <p className="text-xs leading-relaxed">{generatedComments[post.id]}</p>
-              <div className="flex items-center gap-2 mt-2">
+
+              {/* Warm path */}
+              <div className="flex items-center gap-1.5 text-[10px] text-emerald-600">
+                <Zap className="w-3 h-3 flex-shrink-0" />
+                <span className="font-medium">{post.warm_path}</span>
+              </div>
+
+              {/* Hook insight */}
+              <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200/60 dark:bg-amber-500/10 dark:border-amber-500/20 px-3 py-2">
+                <Bot className="w-3 h-3 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                <p className="text-[10px] text-amber-800 dark:text-amber-300 leading-snug font-medium">
+                  {post.hook}
+                </p>
+              </div>
+
+              {/* Generated comment */}
+              {hasComment && (
+                <div className="bg-muted/50 rounded-lg p-3 border border-border/40 space-y-2">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide font-medium">
+                    Draft comment
+                  </p>
+                  <p className="text-xs leading-relaxed">{generatedComments[post.id]}</p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      className="h-6 text-[10px]"
+                      onClick={() => {
+                        navigator.clipboard.writeText(generatedComments[post.id] ?? "");
+                        toast.success("Copied to clipboard");
+                      }}
+                    >
+                      Copy
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 text-[10px]"
+                      onClick={() => generateComment(post)}
+                    >
+                      Regenerate
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex items-center gap-2 flex-wrap">
                 <Button
                   size="sm"
-                  className="h-6 text-[10px]"
-                  onClick={() => {
-                    navigator.clipboard.writeText(generatedComments[post.id] ?? "");
-                    toast.success("Copied to clipboard");
-                  }}
+                  variant="outline"
+                  className="h-7 text-[11px] gap-1"
+                  disabled={isGenerating}
+                  onClick={() => generateComment(post)}
                 >
-                  Copy
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      Writing…
+                    </>
+                  ) : (
+                    <>
+                      <Bot className="w-3 h-3" />
+                      {hasComment ? "Regenerate comment" : "Generate comment"}
+                    </>
+                  )}
                 </Button>
                 <Button
                   size="sm"
-                  variant="ghost"
-                  className="h-6 text-[10px]"
-                  onClick={() => generateComment(post.id, post.contactName)}
+                  variant={isSaved ? "default" : "ghost"}
+                  className={`h-7 text-[11px] gap-1 ${isSaved ? "" : "text-brand hover:bg-brand/10"}`}
+                  onClick={() => saveAsHook(post)}
+                  disabled={isSaved}
                 >
-                  Regenerate
+                  <Zap className="w-3 h-3" />
+                  {isSaved ? "Hook saved" : "Use as outreach hook"}
                 </Button>
               </div>
-            </div>
-          )}
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-7 text-[11px] gap-1"
-              disabled={isGenerating}
-              onClick={() => generateComment(post.id, post.contactName)}
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                  Writing…
-                </>
-              ) : (
-                <>
-                  <Bot className="w-3 h-3" />
-                  {hasComment ? "Regenerate comment" : "Generate comment"}
-                </>
-              )}
-            </Button>
-            <Button
-              size="sm"
-              variant={isSaved ? "default" : "ghost"}
-              className={`h-7 text-[11px] gap-1 ${isSaved ? "" : "text-brand hover:bg-brand/10"}`}
-              onClick={() => saveAsHook(post.id, post.contactName)}
-              disabled={isSaved}
-            >
-              <GitFork className="w-3 h-3" />
-              {isSaved ? "Hook saved" : "Use as hook"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-5">
-      {matchingPosts.length > 0 && (
-        <section className="space-y-3">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-brand uppercase tracking-wider">
-              ⚡ Matches your value prop · {matchingPosts.length}
-            </span>
-          </div>
-          {matchingPosts.map(renderPost)}
-        </section>
-      )}
-      {otherPosts.length > 0 && (
-        <section className="space-y-3">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Other posts
-          </p>
-          {otherPosts.map(renderPost)}
-        </section>
-      )}
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }
@@ -1537,7 +1596,7 @@ export default function SignalsPage() {
           </div>
         </div>
 
-        {/* Champion job change alert Story 1.4 */}
+        {/* Champion job change alert — Story 1.4 */}
         {champSignals.length > 0 && (
           <div className="rounded-xl border border-violet-500/20 bg-violet-500/5 p-4 animate-fade-up">
             <div className="flex items-start gap-3">
@@ -1569,6 +1628,82 @@ export default function SignalsPage() {
                         }}
                       >
                         Reach out
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Decay alert banner — Story 1.3 (All Signals view only) */}
+        {view === "signals" && decaySignals.length > 0 && (
+          <div className="rounded-xl border border-amber-400/30 bg-amber-50 dark:bg-amber-500/8 p-4">
+            <div className="flex items-start gap-3">
+              <Flame className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+                    {decaySignals.length} relationship{decaySignals.length > 1 ? "s" : ""} going
+                    cold
+                  </p>
+                  <Link
+                    href="/relationship-graph?view=coverage"
+                    className="text-[11px] font-semibold text-amber-700 dark:text-amber-400 hover:underline flex-shrink-0"
+                  >
+                    View all →
+                  </Link>
+                </div>
+                <p className="text-[11px] text-amber-700/80 dark:text-amber-400/70 mb-3">
+                  Last interaction &gt;45 days ago with key bridge contacts
+                </p>
+                <div className="space-y-2">
+                  {[
+                    {
+                      id: "dc-1",
+                      name: "Sarah Chen",
+                      bridges: "Finpilot, Gong.io",
+                      days: 47,
+                    },
+                    {
+                      id: "dc-2",
+                      name: "Mark Chen",
+                      bridges: "Stripe",
+                      days: 52,
+                    },
+                    {
+                      id: "dc-3",
+                      name: "David Kim",
+                      bridges: "Acme AI, Notion",
+                      days: 61,
+                    },
+                  ].map((item) => (
+                    <div key={item.id} className="flex items-center gap-3">
+                      <div className="flex-1 text-xs text-amber-800 dark:text-amber-300 truncate">
+                        <span className="font-semibold">{item.name}</span>
+                        <span className="text-amber-700/70 dark:text-amber-400/60">
+                          {" "}
+                          → bridge to {item.bridges} · {item.days} days ago
+                        </span>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-6 text-[10px] flex-shrink-0 border-amber-400/40 text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-500/15"
+                        onClick={() => {
+                          const edge = decaySignals
+                            .map((d) => (d as unknown as { edge?: RelationshipEdge }).edge ?? null)
+                            .find((e) => e && e.from_name === item.name);
+                          if (edge) {
+                            setDecaySheetEdge(edge);
+                            setDecaySheetOpen(true);
+                          } else {
+                            toast.success(`Re-engagement draft created for ${item.name}`);
+                          }
+                        }}
+                      >
+                        Re-engage
                       </Button>
                     </div>
                   ))}
@@ -1706,6 +1841,74 @@ export default function SignalsPage() {
               />
             ) : (
               <div className="space-y-5">
+                {/* ── Champion Tracker pinned card — Story 1.4 ── */}
+                <Card className="border-l-2 border-l-violet-500 border-violet-500/20 bg-violet-500/[0.02]">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center flex-shrink-0">
+                        <Trophy className="w-5 h-5 text-violet-500" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] bg-violet-500/10 text-violet-600 border-violet-500/20"
+                            >
+                              Champion Job Change
+                            </Badge>
+                            <span className="text-[10px] font-bold text-violet-600 uppercase tracking-wide">
+                              Urgency 98
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-muted-foreground flex-shrink-0">
+                            Just now
+                          </span>
+                        </div>
+                        <p className="text-sm font-semibold mb-1 text-violet-700 dark:text-violet-300">
+                          Priya Patel joined Stripe as VP Product{" "}
+                          <span className="font-normal text-muted-foreground">
+                            — you introduced her to Finpilot 6 months ago
+                          </span>
+                        </p>
+                        <p className="text-xs text-muted-foreground leading-relaxed mb-2">
+                          High opportunity — Stripe is a target account. Your prior introduction to
+                          Finpilot makes this warm from day one.
+                        </p>
+                        <div className="flex items-start gap-1.5 mb-3">
+                          <Zap className="w-3 h-3 text-violet-500 flex-shrink-0 mt-0.5" />
+                          <p className="text-xs text-muted-foreground italic">
+                            Direct connection via prior introduction. Strike while the move is fresh
+                            — window is 2–3 weeks.
+                          </p>
+                        </div>
+                        {/* biome-ignore lint/a11y/noStaticElementInteractions: stop propagation wrapper */}
+                        {/* biome-ignore lint/a11y/useKeyWithClickEvents: stop propagation wrapper */}
+                        <div
+                          className="flex items-center gap-2"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Button
+                            size="sm"
+                            className="h-7 text-xs gap-1 bg-violet-600 hover:bg-violet-700 text-white"
+                            onClick={() => {
+                              toast.success("Champion outreach drafted for Priya Patel", {
+                                description: "Review and approve it in the Approval Queue.",
+                              });
+                            }}
+                          >
+                            <Trophy className="w-3 h-3" />
+                            Draft outreach
+                          </Button>
+                          <Button size="sm" variant="outline" className="h-7 text-xs">
+                            View Stripe account
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
                 {/* ── Act now section ── */}
                 {actNowSignals.length > 0 && (
                   <section className="space-y-2.5">
