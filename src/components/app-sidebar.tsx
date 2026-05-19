@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Activity,
   BarChart3,
   Bell,
   BookOpen,
@@ -9,7 +8,6 @@ import {
   ChevronDown,
   ChevronRight,
   Compass,
-  CreditCard,
   GitFork,
   LayoutDashboard,
   Link2,
@@ -192,9 +190,6 @@ export function AppSidebar() {
                 <NavItem href="/integrations" icon={Link2} label="Integrations" />
                 <NavItem href="/team" icon={Users} label="Team" />
                 <NavItem href="/settings" icon={Settings} label="Settings" />
-                <NavItem href="/billing" icon={CreditCard} label="Billing" />
-                <NavItem href="/ai-usage" icon={Zap} label="AI Usage" />
-                <NavItem href="/audit-log" icon={Activity} label="Audit Log" />
               </SidebarMenu>
             )}
           </SidebarGroupContent>

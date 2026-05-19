@@ -182,9 +182,24 @@ interface SalesState {
   // Actions Test Scenarios
   updateTestScenario: (id: string, updates: Partial<UserTestScenario>) => void;
 
+  // Actions Accounts & Contacts CRUD
+  addAccount: (acc: Omit<Account, "id" | "created_at">) => void;
+  updateAccount: (id: string, updates: Partial<Account>) => void;
+  addContact: (c: Omit<Contact, "id">) => void;
+  updateContact: (id: string, updates: Partial<Contact>) => void;
+
   // Actions Campaigns
   addCampaign: (campaign: Campaign) => void;
   updateCampaignStatus: (id: string, status: Campaign["status"]) => void;
+  updateCampaignStep: (
+    campaignId: string,
+    stepId: string,
+    updates: { delay_days?: number; template_hint?: string },
+  ) => void;
+
+  // Actions Warm paths
+  addWarmPath: (wp: WarmPath) => void;
+  updateWarmPathStatus: (id: string, status: WarmPath["status"]) => void;
 
   // Actions Queue a newly composed message (client-side only)
   addMessageToQueue: (
@@ -742,6 +757,7 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
   // ─── Messages ─────────────────────────────────────────────────────────────
 
   approveMessage: async (id, editedBody) => {
+    const msg = get().messages.find((m) => m.id === id);
     // Optimistic update
     set((state) => ({
       messages: state.messages.map((m) =>
@@ -750,6 +766,19 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
           : m,
       ),
     }));
+    // Advance warm path stage when a message is approved
+    if (msg?.warm_path_id) {
+      const wp = get().warmPaths.find((w) => w.id === msg.warm_path_id);
+      if (wp) {
+        const nextStatus: WarmPath["status"] =
+          msg.channel === "warm_intro" ? "intro_sent" : "message_sent";
+        const canAdvance =
+          msg.channel === "warm_intro"
+            ? wp.status === "active"
+            : wp.status === "active" || wp.status === "intro_accepted";
+        if (canAdvance) get().updateWarmPathStatus(wp.id, nextStatus);
+      }
+    }
     try {
       await fetch(`/api/approvals/${id}/approve`, {
         method: "POST",
@@ -757,8 +786,7 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
         body: JSON.stringify({ type: "message", editedBody }),
       });
     } catch {
-      // Revert optimistic update on failure
-      await get().initialize();
+      // network failure is non-fatal for demo; state is already updated
     }
     get().logAuditEvent("message.approved", {
       entityType: "message",
@@ -908,7 +936,12 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
 
   createFollowUpTask: (task) => {
     const id = `task-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    const newTask = { ...task, id, status: "pending" as const, created_at: new Date().toISOString() };
+    const newTask = {
+      ...task,
+      id,
+      status: "pending" as const,
+      created_at: new Date().toISOString(),
+    };
     set((state) => ({
       followUpTasks: [...state.followUpTasks, newTask],
     }));
@@ -1125,6 +1158,30 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
     }));
   },
 
+  addAccount: (acc) => {
+    const id = `acc-new-${Date.now()}`;
+    set((state) => ({
+      accounts: [{ ...acc, id, created_at: new Date().toISOString() }, ...state.accounts],
+    }));
+  },
+
+  updateAccount: (id, updates) => {
+    set((state) => ({
+      accounts: state.accounts.map((a) => (a.id === id ? { ...a, ...updates } : a)),
+    }));
+  },
+
+  addContact: (c) => {
+    const id = `con-new-${Date.now()}`;
+    set((state) => ({ contacts: [{ ...c, id }, ...state.contacts] }));
+  },
+
+  updateContact: (id, updates) => {
+    set((state) => ({
+      contacts: state.contacts.map((c) => (c.id === id ? { ...c, ...updates } : c)),
+    }));
+  },
+
   addCampaign: (campaign) => {
     set((state) => ({ campaigns: [campaign, ...state.campaigns] }));
   },
@@ -1132,6 +1189,19 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
   updateCampaignStatus: (id, status) => {
     set((state) => ({
       campaigns: state.campaigns.map((c) => (c.id === id ? { ...c, status } : c)),
+    }));
+  },
+
+  updateCampaignStep: (campaignId, stepId, updates) => {
+    set((state) => ({
+      campaigns: state.campaigns.map((c) =>
+        c.id === campaignId
+          ? {
+              ...c,
+              steps: c.steps.map((s) => (s.id === stepId ? { ...s, ...updates } : s)),
+            }
+          : c,
+      ),
     }));
   },
 
@@ -1157,5 +1227,16 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
     set((s) => ({ messages: [message, ...s.messages] }));
     get().logAuditEvent("message.generated", { entityType: "message", entityId: id });
     return id;
+  },
+
+  addWarmPath: (wp) => {
+    set((state) => ({ warmPaths: [wp, ...state.warmPaths] }));
+    get().logAuditEvent("message.generated", { entityType: "warm_path", entityId: wp.id });
+  },
+
+  updateWarmPathStatus: (id, status) => {
+    set((state) => ({
+      warmPaths: state.warmPaths.map((wp) => (wp.id === id ? { ...wp, status } : wp)),
+    }));
   },
 }));

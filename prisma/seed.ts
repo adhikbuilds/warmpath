@@ -952,8 +952,7 @@ async function main() {
         { id: "user-1", name: "Adhik Agarwal", type: "user" },
         { id: "con-7", name: "Liam Chen", type: "contact" },
       ]),
-      explanation:
-        "Direct connection you met Liam at SaaStr Annual 2025 and had a follow-up call.",
+      explanation: "Direct connection you met Liam at SaaStr Annual 2025 and had a follow-up call.",
       warmthScore: 91,
       confidenceScore: 97,
       recommendedIntroPerson: "You (Adhik)",

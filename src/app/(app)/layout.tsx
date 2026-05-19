@@ -14,7 +14,8 @@ import { useSalesStore } from "@/stores/salesStore";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { logout } = useAuthStore();
-  const { messages, signals, campaignAssets, followUpTasks, tourOpen, setTourOpen } = useSalesStore();
+  const { messages, signals, campaignAssets, followUpTasks, tourOpen, setTourOpen } =
+    useSalesStore();
   const { status } = useSession();
   const router = useRouter();
   const [commandOpen, setCommandOpen] = useState(false);

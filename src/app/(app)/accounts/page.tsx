@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, Filter, GitFork, Sparkles, Zap } from "lucide-react";
+import { Building2, Filter, GitFork, Pencil, Plus, Sparkles, Zap } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -8,7 +8,15 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import {
   Select,
@@ -19,6 +27,7 @@ import {
 } from "@/components/ui/select";
 import { scoreBgColor } from "@/lib/utils";
 import { useSalesStore } from "@/stores/salesStore";
+import type { Account } from "@/types";
 
 const STAGE_COLORS: Record<string, string> = {
   prospect: "bg-muted text-muted-foreground",
@@ -31,14 +40,38 @@ const STAGE_COLORS: Record<string, string> = {
 
 export default function AccountsPage() {
   const router = useRouter();
-  const { accounts, contacts, signals, warmPaths, addMessageToQueue } = useSalesStore();
+  const { accounts, contacts, signals, warmPaths, addMessageToQueue, addAccount, updateAccount } =
+    useSalesStore();
   const [search, setSearch] = useState("");
   const [stageFilter, setStageFilter] = useState("all");
   const [sortBy, setSortBy] = useState<"opportunity_score" | "intent_score" | "warmth_score">(
     "opportunity_score",
   );
+  const [addOpen, setAddOpen] = useState(false);
+  const [editAccount, setEditAccount] = useState<Account | null>(null);
 
-  const industries = Array.from(new Set(accounts.map((a) => a.industry))).sort();
+  // Add-modal form state
+  const [newName, setNewName] = useState("");
+  const [newIndustry, setNewIndustry] = useState("SaaS");
+  const [newStage, setNewStage] = useState<Account["stage"]>("prospect");
+  const [newEmployees, setNewEmployees] = useState("100");
+  const [newLocation, setNewLocation] = useState("United States");
+
+  // Edit-modal form state (initialised when editAccount changes)
+  const [editName, setEditName] = useState("");
+  const [editIndustry, setEditIndustry] = useState("");
+  const [editStage, setEditStage] = useState<Account["stage"]>("prospect");
+  const [editEmployees, setEditEmployees] = useState("");
+  const [editLocation, setEditLocation] = useState("");
+
+  function openEdit(account: Account) {
+    setEditName(account.name);
+    setEditIndustry(account.industry);
+    setEditStage(account.stage);
+    setEditEmployees(String(account.employee_count ?? 100));
+    setEditLocation(account.location);
+    setEditAccount(account);
+  }
 
   const filtered = accounts
     .filter((a) => {
@@ -64,6 +97,10 @@ export default function AccountsPage() {
             All target accounts with scoring, signals, and relationship data.
           </p>
         </div>
+        <Button size="sm" onClick={() => setAddOpen(true)} className="gap-1.5">
+          <Plus className="w-3.5 h-3.5" />
+          Add account
+        </Button>
       </div>
 
       {/* Stats strip */}
@@ -215,6 +252,17 @@ export default function AccountsPage() {
                     <Button
                       size="sm"
                       variant="ghost"
+                      className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        openEdit(account);
+                      }}
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
                       className="h-7 w-7 p-0 text-muted-foreground hover:text-brand"
                       onClick={() => {
                         const topContact = contacts.find((c) => c.account_id === account.id);
@@ -237,7 +285,9 @@ export default function AccountsPage() {
                           supporting_sources: [],
                           risk_flags: [],
                         });
-                        toast.success(`Outreach drafted for ${account.name} — review in Approval Queue`);
+                        toast.success(
+                          `Outreach drafted for ${account.name} — review in Approval Queue`,
+                        );
                         router.push("/approval-queue");
                       }}
                     >
@@ -267,6 +317,208 @@ export default function AccountsPage() {
           </div>
         )}
       </div>
+
+      {/* Add Account modal */}
+      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add account</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label className="text-xs mb-1.5 block">Company name</Label>
+              <Input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Acme Corp"
+                className="h-8 text-sm"
+              />
+            </div>
+            <div>
+              <Label className="text-xs mb-1.5 block">Industry</Label>
+              <Input
+                value={newIndustry}
+                onChange={(e) => setNewIndustry(e.target.value)}
+                placeholder="SaaS"
+                className="h-8 text-sm"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs mb-1.5 block">Stage</Label>
+                <Select value={newStage} onValueChange={(v) => setNewStage(v as Account["stage"])}>
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(
+                      [
+                        "prospect",
+                        "engaged",
+                        "meeting",
+                        "proposal",
+                        "closed_won",
+                        "closed_lost",
+                      ] as const
+                    ).map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s.replace("_", " ")}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs mb-1.5 block">Employees</Label>
+                <Input
+                  value={newEmployees}
+                  onChange={(e) => setNewEmployees(e.target.value)}
+                  placeholder="100"
+                  className="h-8 text-sm"
+                  type="number"
+                />
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs mb-1.5 block">Location</Label>
+              <Input
+                value={newLocation}
+                onChange={(e) => setNewLocation(e.target.value)}
+                placeholder="United States"
+                className="h-8 text-sm"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setAddOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => {
+                if (!newName.trim()) return;
+                addAccount({
+                  name: newName.trim(),
+                  industry: newIndustry,
+                  stage: newStage,
+                  employee_count: Number(newEmployees) || 100,
+                  location: newLocation,
+                  domain: "",
+                  description: "",
+                  fit_score: 50,
+                  intent_score: 50,
+                  warmth_score: 50,
+                  opportunity_score: 50,
+                });
+                toast.success(`${newName.trim()} added`);
+                setNewName("");
+                setNewIndustry("SaaS");
+                setNewStage("prospect");
+                setNewEmployees("100");
+                setNewLocation("United States");
+                setAddOpen(false);
+              }}
+            >
+              Add account
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Account modal */}
+      <Dialog open={!!editAccount} onOpenChange={(open) => !open && setEditAccount(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit account</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label className="text-xs mb-1.5 block">Company name</Label>
+              <Input
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                className="h-8 text-sm"
+              />
+            </div>
+            <div>
+              <Label className="text-xs mb-1.5 block">Industry</Label>
+              <Input
+                value={editIndustry}
+                onChange={(e) => setEditIndustry(e.target.value)}
+                className="h-8 text-sm"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs mb-1.5 block">Stage</Label>
+                <Select
+                  value={editStage}
+                  onValueChange={(v) => setEditStage(v as Account["stage"])}
+                >
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(
+                      [
+                        "prospect",
+                        "engaged",
+                        "meeting",
+                        "proposal",
+                        "closed_won",
+                        "closed_lost",
+                      ] as const
+                    ).map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s.replace("_", " ")}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs mb-1.5 block">Employees</Label>
+                <Input
+                  value={editEmployees}
+                  onChange={(e) => setEditEmployees(e.target.value)}
+                  className="h-8 text-sm"
+                  type="number"
+                />
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs mb-1.5 block">Location</Label>
+              <Input
+                value={editLocation}
+                onChange={(e) => setEditLocation(e.target.value)}
+                className="h-8 text-sm"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setEditAccount(null)}>
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => {
+                if (!editAccount || !editName.trim()) return;
+                updateAccount(editAccount.id, {
+                  name: editName.trim(),
+                  industry: editIndustry,
+                  stage: editStage,
+                  employee_count: Number(editEmployees) || 100,
+                  location: editLocation,
+                });
+                toast.success(`${editName.trim()} updated`);
+                setEditAccount(null);
+              }}
+            >
+              Save changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

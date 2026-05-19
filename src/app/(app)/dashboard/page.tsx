@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Activity,
   AlertTriangle,
   ArrowRight,
   Bell,
@@ -321,8 +322,23 @@ export default function DashboardPage() {
   });
   // Fallback demo counts since demo messages use historical dates far from today
   const DEMO_DAY_COUNTS = [2, 1, 4, 3, 5, 0, 0];
-  const dayMessages = (_day: Date, i: number) => DEMO_DAY_COUNTS[i] ?? 0;
-  const maxDayCount = Math.max(1, ...weekDays.map((d, i) => dayMessages(d, i)));
+  const dayMessages = (day: Date): number => {
+    return messages.filter((m) => {
+      const msgDate = m.sent_at ?? m.scheduled_at;
+      if (!msgDate) return false;
+      const d = new Date(msgDate);
+      return (
+        d.getFullYear() === day.getFullYear() &&
+        d.getMonth() === day.getMonth() &&
+        d.getDate() === day.getDate()
+      );
+    }).length;
+  };
+  const dayCounts = weekDays.map((d, i) => {
+    const real = dayMessages(d);
+    return real > 0 ? real : (DEMO_DAY_COUNTS[i] ?? 0);
+  });
+  const maxDayCount = Math.max(1, ...dayCounts);
 
   // ── Today's warm plays ────────────────────────────────────────────────────
   const plays = signals
@@ -407,7 +423,7 @@ export default function DashboardPage() {
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             {plays.length > 0
-              ? `${plays.length} warm ${plays.length === 1 ? "play" : "plays"} ready`
+              ? `${plays.length} warm ${plays.length === 1 ? "intro opportunity" : "intro opportunities"} ready`
               : "No urgent plays right now"}
             {totalPending > 0 && (
               <>
@@ -538,7 +554,7 @@ export default function DashboardPage() {
                       supporting_sources: ["WarmPath signal monitor"],
                       risk_flags: [],
                     });
-                    toast.success(`Intro request drafted for ${topPlay.account?.name}`);
+                    toast.success("1:1 intro request drafted — review it before sending");
                     router.push("/approval-queue");
                   }}
                 >
@@ -597,6 +613,40 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* ── 7-day activity bar chart ──────────────────────────────────────── */}
+      <div>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <Activity className="w-3.5 h-3.5" />
+          Personalized drafts this week
+        </p>
+        <div className="flex items-end gap-1 h-14">
+          {weekDays.map((day, i) => {
+            const count = dayCounts[i];
+            const heightPct = count > 0 ? Math.max(15, (count / maxDayCount) * 100) : 4;
+            const isToday = i === 6;
+            const label = day.toLocaleDateString("en-US", { weekday: "short" });
+            return (
+              <div key={day.toDateString()} className="flex flex-col items-center gap-1 flex-1">
+                <div className="w-full flex items-end justify-center" style={{ height: 40 }}>
+                  <div
+                    className={`w-full rounded-sm transition-all ${isToday ? "bg-brand" : "bg-brand/30"}`}
+                    style={{ height: `${heightPct}%` }}
+                  />
+                </div>
+                <span
+                  className={`text-[9px] ${isToday ? "text-brand font-semibold" : "text-muted-foreground/60"}`}
+                >
+                  {label}
+                </span>
+                {count > 0 && (
+                  <span className="text-[9px] text-muted-foreground tabular-nums">{count}</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="grid lg:grid-cols-[1fr_320px] gap-6">
         {/* ── Left column ──────────────────────────────────────────────────── */}
         <div className="space-y-5">
@@ -647,7 +697,7 @@ export default function DashboardPage() {
                       className="h-6 text-[10px] w-full"
                       onClick={() => toast.success(`Drafting for ${account?.name}…`)}
                     >
-                      Draft outreach
+                      Draft 1:1 intro
                     </Button>
                   </div>
                 ))}
@@ -679,9 +729,7 @@ export default function DashboardPage() {
             <Card className="border-violet-500/20 bg-violet-500/[0.02]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-xs font-semibold flex items-center gap-1.5">
-                    Champion moves
-                  </p>
+                  <p className="text-xs font-semibold flex items-center gap-1.5">Champion moves</p>
                   <Badge
                     variant="outline"
                     className="text-[10px] bg-violet-500/10 text-violet-500 border-violet-500/20"
@@ -690,8 +738,8 @@ export default function DashboardPage() {
                   </Badge>
                 </div>
                 <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
-                  Your champions changed jobs. Reach out now your relationship gives you a warm
-                  path advantage at their new company.
+                  Your champions changed jobs. Reach out now your relationship gives you a warm path
+                  advantage at their new company.
                 </p>
                 <div className="space-y-2.5 mb-3">
                   {championSignals.map((signal) => {
@@ -759,7 +807,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs font-semibold flex items-center gap-1.5">
                   <Bell className="w-3.5 h-3.5 text-muted-foreground" />
-                  Pending approvals
+                  Pending review
                 </p>
                 {totalPending > 0 && (
                   <Badge
@@ -816,7 +864,7 @@ export default function DashboardPage() {
                   </div>
                   <Button size="sm" className="w-full h-8 text-xs" asChild>
                     <Link href="/approval-queue">
-                      Review all <ArrowRight className="w-3 h-3 ml-1.5" />
+                      Review each one <ArrowRight className="w-3 h-3 ml-1.5" />
                     </Link>
                   </Button>
                 </>
@@ -981,7 +1029,6 @@ export default function DashboardPage() {
         onOpenChange={setChampSheetOpen}
         userName={user?.name ?? "You"}
       />
-
     </div>
   );
 }

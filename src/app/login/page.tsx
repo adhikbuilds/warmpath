@@ -116,8 +116,8 @@ export default function LoginPage() {
               <span className="text-brand">Cold outbound fills CRMs.</span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              WarmPath maps your team's real relationships and finds the shortest path to every buyer
-              before you send a single message.
+              WarmPath maps your team's real relationships and finds the shortest path to every
+              buyer before you send a single message.
             </p>
           </div>
 
@@ -171,7 +171,9 @@ export default function LoginPage() {
               <div className="w-full border-t border-border/50" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="px-2 bg-background text-muted-foreground">or continue with email</span>
+              <span className="px-2 bg-background text-muted-foreground">
+                or continue with email
+              </span>
             </div>
           </div>
 
@@ -204,7 +206,9 @@ export default function LoginPage() {
           {tab === "signin" ? (
             <form onSubmit={handleSignIn} className="space-y-3">
               <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-xs font-medium">Email</Label>
+                <Label htmlFor="email" className="text-xs font-medium">
+                  Email
+                </Label>
                 <Input
                   id="email"
                   type="email"
@@ -215,7 +219,9 @@ export default function LoginPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="password" className="text-xs font-medium">Password</Label>
+                <Label htmlFor="password" className="text-xs font-medium">
+                  Password
+                </Label>
                 <Input
                   id="password"
                   type="password"
@@ -233,7 +239,9 @@ export default function LoginPage() {
           ) : (
             <form onSubmit={handleSignUp} className="space-y-3">
               <div className="space-y-1.5">
-                <Label htmlFor="reg-name" className="text-xs font-medium">Full name</Label>
+                <Label htmlFor="reg-name" className="text-xs font-medium">
+                  Full name
+                </Label>
                 <Input
                   id="reg-name"
                   type="text"
@@ -244,7 +252,9 @@ export default function LoginPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="reg-email" className="text-xs font-medium">Work email</Label>
+                <Label htmlFor="reg-email" className="text-xs font-medium">
+                  Work email
+                </Label>
                 <Input
                   id="reg-email"
                   type="email"
@@ -255,7 +265,9 @@ export default function LoginPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="reg-password" className="text-xs font-medium">Password</Label>
+                <Label htmlFor="reg-password" className="text-xs font-medium">
+                  Password
+                </Label>
                 <Input
                   id="reg-password"
                   type="password"

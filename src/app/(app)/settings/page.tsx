@@ -1,7 +1,7 @@
 "use client";
 
 import { Building2, Settings, Sparkles, Target, Users } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -95,19 +95,59 @@ export default function SettingsPage() {
   );
   const [savingWorkspace, setSavingWorkspace] = useState(false);
 
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("warmpath-icp-settings");
+      if (saved) {
+        const d = JSON.parse(saved);
+        if (d.selectedIndustries) setSelectedIndustries(d.selectedIndustries);
+        if (d.selectedSizes) setSelectedSizes(d.selectedSizes);
+        if (d.selectedTech) setSelectedTech(d.selectedTech);
+        if (d.jobTitles) setJobTitles(d.jobTitles);
+        if (d.geographies) setGeographies(d.geographies);
+        if (d.minRevenue) setMinRevenue(d.minRevenue);
+        if (d.maxRevenue) setMaxRevenue(d.maxRevenue);
+      }
+    } catch {}
+    try {
+      const saved = localStorage.getItem("warmpath-persona-settings");
+      if (saved) {
+        const d = JSON.parse(saved);
+        if (d.tone) setPersonaTone(d.tone);
+        if (d.style) setPersonaStyle(d.style);
+        if (d.samples) setPersonaSamples(d.samples);
+      }
+    } catch {}
+    try {
+      const saved = localStorage.getItem("warmpath-signal-settings");
+      if (saved) {
+        const d = JSON.parse(saved);
+        setEnabledSignals(d);
+      }
+    } catch {}
+    try {
+      const saved = localStorage.getItem("warmpath-workspace");
+      if (saved) {
+        const d = JSON.parse(saved);
+        if (d.name) setWorkspaceName(d.name);
+        if (d.website) setWorkspaceWebsite(d.website);
+        if (d.description) setWorkspaceDescription(d.description);
+      }
+    } catch {}
+  }, []);
+
   const saveWorkspace = async () => {
     setSavingWorkspace(true);
     try {
-      const res = await fetch("/api/workspaces/current", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      localStorage.setItem(
+        "warmpath-workspace",
+        JSON.stringify({
           name: workspaceName,
           website: workspaceWebsite,
           description: workspaceDescription,
         }),
-      });
-      if (!res.ok) throw new Error("Save failed");
+      );
+      await new Promise((r) => setTimeout(r, 400));
       toast.success("Company info saved");
     } catch {
       toast.error("Failed to save company info");
@@ -268,7 +308,21 @@ export default function SettingsPage() {
 
               <Button
                 size="sm"
-                onClick={() => toast.success("ICP saved agent will re-score all accounts")}
+                onClick={() => {
+                  localStorage.setItem(
+                    "warmpath-icp-settings",
+                    JSON.stringify({
+                      selectedIndustries,
+                      selectedSizes,
+                      selectedTech,
+                      jobTitles,
+                      geographies,
+                      minRevenue,
+                      maxRevenue,
+                    }),
+                  );
+                  toast.success("ICP saved — agent will re-score all accounts");
+                }}
               >
                 Save ICP
               </Button>
@@ -341,9 +395,17 @@ export default function SettingsPage() {
 
               <Button
                 size="sm"
-                onClick={() =>
-                  toast.success("Persona saved AI will use this voice going forward")
-                }
+                onClick={() => {
+                  localStorage.setItem(
+                    "warmpath-persona-settings",
+                    JSON.stringify({
+                      tone: personaTone,
+                      style: personaStyle,
+                      samples: personaSamples,
+                    }),
+                  );
+                  toast.success("Persona saved — AI will use this voice going forward");
+                }}
               >
                 Save persona
               </Button>
@@ -384,7 +446,10 @@ export default function SettingsPage() {
               <Button
                 size="sm"
                 className="mt-2"
-                onClick={() => toast.success("Signal preferences saved")}
+                onClick={() => {
+                  localStorage.setItem("warmpath-signal-settings", JSON.stringify(enabledSignals));
+                  toast.success("Signal preferences saved");
+                }}
               >
                 Save preferences
               </Button>

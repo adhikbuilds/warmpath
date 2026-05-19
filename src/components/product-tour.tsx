@@ -26,7 +26,8 @@ const STEPS = [
     color: "#cc785c",
     title: "Dashboard",
     tagline: "Your daily command center",
-    description: "Start every morning here. Your warmest leads, messages waiting for approval, and urgent signals — all prioritised so you know exactly what to do first.",
+    description:
+      "Start every morning here. Your warmest leads, messages waiting for approval, and urgent signals — all prioritised so you know exactly what to do first.",
     bullets: [
       "Today's top warm plays ranked by urgency",
       "Approval queue count — review before anything leaves",
@@ -39,7 +40,8 @@ const STEPS = [
     color: "#cc785c",
     title: "Warm Leads",
     tagline: "Know exactly who to call today",
-    description: "WarmPath ranks every prospect by how warm your team's connection is and shows the exact intro path to take.",
+    description:
+      "WarmPath ranks every prospect by how warm your team's connection is and shows the exact intro path to take.",
     bullets: [
       "Pipeline board — drag leads across stages",
       "Each card shows who on your team knows them",
@@ -52,7 +54,8 @@ const STEPS = [
     color: "#5db872",
     title: "Approval Queue",
     tagline: "AI drafts — you approve before it sends",
-    description: "WarmPath writes personalised messages for each prospect. They land here first. Review, tweak, then approve — nothing goes out without your sign-off.",
+    description:
+      "WarmPath writes personalised messages for each prospect. They land here first. Review, tweak, then approve — nothing goes out without your sign-off.",
     bullets: [
       "See buying signals and warm path for each draft",
       "Edit the message inline before approving",
@@ -65,7 +68,8 @@ const STEPS = [
     color: "#e8a55a",
     title: "Tasks",
     tagline: "Your follow-up checklist",
-    description: "Overdue follow-ups, intro requests waiting on teammates, meetings to confirm — all pending actions in one list.",
+    description:
+      "Overdue follow-ups, intro requests waiting on teammates, meetings to confirm — all pending actions in one list.",
     bullets: [
       "Intro requests — ask teammates for warm intros",
       "Follow-ups — no prospect falls through the cracks",
@@ -78,7 +82,8 @@ const STEPS = [
     color: "#5db8a6",
     title: "Campaigns",
     tagline: "Multi-step outreach sequences",
-    description: "Build sequences that route step 1 through the warmest intro path automatically. Falls back to cold outreach if no warm path exists.",
+    description:
+      "Build sequences that route step 1 through the warmest intro path automatically. Falls back to cold outreach if no warm path exists.",
     bullets: [
       "AI wizard creates a full campaign from your goal",
       "Each step adapts: warm intro → email → LinkedIn",
@@ -91,7 +96,8 @@ const STEPS = [
     color: "#cc785c",
     title: "Signals",
     tagline: "Know the perfect moment to reach out",
-    description: "WarmPath monitors 13 buying signals 24/7 — funding rounds, leadership changes, job postings, and more.",
+    description:
+      "WarmPath monitors 13 buying signals 24/7 — funding rounds, leadership changes, job postings, and more.",
     bullets: [
       "Act-Now score tells you which signals matter most",
       "Click any signal to reveal the warm intro path",
@@ -104,7 +110,8 @@ const STEPS = [
     color: "#5db8a6",
     title: "Relationship Graph",
     tagline: "Your team's entire network, visualised",
-    description: "See every connection your team has and the shortest warm path to any prospect. Click any company to see who knows someone there.",
+    description:
+      "See every connection your team has and the shortest warm path to any prospect. Click any company to see who knows someone there.",
     bullets: [
       "Force-directed graph of all relationships",
       "Edge strength shows how warm each connection is",
@@ -117,7 +124,8 @@ const STEPS = [
     color: "#e8a55a",
     title: "Accounts",
     tagline: "Your target companies",
-    description: "Every company you're pursuing with their warmth score, active buying signals, and relationship strength at a glance.",
+    description:
+      "Every company you're pursuing with their warmth score, active buying signals, and relationship strength at a glance.",
     bullets: [
       "Opportunity score combines fit, intent, and warmth",
       "See how many contacts and signals per account",
@@ -130,7 +138,8 @@ const STEPS = [
     color: "#cc785c",
     title: "Knowledge Base",
     tagline: "Your company's brain for the AI",
-    description: "Add your messaging frameworks, case studies, pricing, and personas here. The AI uses these to write messages that sound exactly like your company.",
+    description:
+      "Add your messaging frameworks, case studies, pricing, and personas here. The AI uses these to write messages that sound exactly like your company.",
     bullets: [
       "Upload case studies, pricing, and ICP definitions",
       "AI references these when drafting outreach",
@@ -143,7 +152,8 @@ const STEPS = [
     color: "#5db8a6",
     title: "Integrations",
     tagline: "Connect your existing tools",
-    description: "Link LinkedIn, Gmail, Salesforce, and more. WarmPath pulls relationship data from the tools your team already uses.",
+    description:
+      "Link LinkedIn, Gmail, Salesforce, and more. WarmPath pulls relationship data from the tools your team already uses.",
     bullets: [
       "LinkedIn syncs connections for the relationship graph",
       "Gmail/Outlook pulls email history for warmth scoring",
@@ -246,7 +256,10 @@ export function ProductTour({ open, onClose }: ProductTourProps) {
 
   const sidebarRight = highlightRect ? highlightRect.left + highlightRect.width + PAD + 20 : 280;
   const cardY = highlightRect
-    ? Math.max(16, Math.min(highlightRect.top + highlightRect.height / 2 - 180, window.innerHeight - 420))
+    ? Math.max(
+        16,
+        Math.min(highlightRect.top + highlightRect.height / 2 - 180, window.innerHeight - 420),
+      )
     : Math.floor(window.innerHeight / 2) - 180;
 
   return createPortal(
@@ -330,10 +343,27 @@ export function ProductTour({ open, onClose }: ProductTourProps) {
               <Icon style={{ width: 22, height: 22, color: current.color }} />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: current.color, marginBottom: 3 }}>
+              <p
+                style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  color: current.color,
+                  marginBottom: 3,
+                }}
+              >
                 {step + 1} of {STEPS.length}
               </p>
-              <h2 style={{ fontSize: 18, fontWeight: 700, color: "#141413", lineHeight: 1.2, marginBottom: 2 }}>
+              <h2
+                style={{
+                  fontSize: 18,
+                  fontWeight: 700,
+                  color: "#141413",
+                  lineHeight: 1.2,
+                  marginBottom: 2,
+                }}
+              >
                 {current.title}
               </h2>
               <p style={{ fontSize: 12, fontWeight: 600, color: current.color }}>
@@ -391,14 +421,24 @@ export function ProductTour({ open, onClose }: ProductTourProps) {
                       marginTop: 5,
                     }}
                   />
-                  <span style={{ fontSize: 12.5, color: "#3d3b35", lineHeight: 1.5 }}>{bullet}</span>
+                  <span style={{ fontSize: 12.5, color: "#3d3b35", lineHeight: 1.5 }}>
+                    {bullet}
+                  </span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Step dots */}
-          <div style={{ display: "flex", justifyContent: "center", gap: 5, paddingBottom: 14, paddingTop: 2 }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: 5,
+              paddingBottom: 14,
+              paddingTop: 2,
+            }}
+          >
             {STEPS.map((_, i) => (
               <button
                 key={i}
@@ -410,7 +450,8 @@ export function ProductTour({ open, onClose }: ProductTourProps) {
                   borderRadius: 3,
                   border: "none",
                   cursor: "pointer",
-                  background: i === step ? current.color : i < step ? `${current.color}55` : "#e6dfd8",
+                  background:
+                    i === step ? current.color : i < step ? `${current.color}55` : "#e6dfd8",
                   transition: "width 0.2s, background 0.2s",
                   padding: 0,
                 }}

@@ -53,13 +53,14 @@ export default function CampaignsPage() {
             Campaigns
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Omnichannel GTM campaigns from intro request to close.
+            Coordinated 1:1 sequences — each step personally crafted for each prospect, not a
+            template blast.
           </p>
         </div>
         <Button size="sm" asChild>
           <Link href="/campaigns/new">
             <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-            New campaign
+            New sequence
           </Link>
         </Button>
       </div>
@@ -73,12 +74,12 @@ export default function CampaignsPage() {
             color: "text-emerald-500",
           },
           {
-            label: "Prospects",
+            label: "In sequence",
             value: campaigns.reduce((s, c) => s + c.stats.total_prospects, 0),
             color: "text-foreground",
           },
           {
-            label: "Replies",
+            label: "Conversations",
             value: campaigns.reduce((s, c) => s + c.stats.replies, 0),
             color: "text-blue-500",
           },
@@ -108,7 +109,7 @@ export default function CampaignsPage() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-[10px] font-semibold text-blue-500 uppercase tracking-wide">
-                    AI Recommended Play
+                    Suggested sequence
                   </span>
                   <Badge
                     variant="outline"
@@ -136,7 +137,7 @@ export default function CampaignsPage() {
                     })}
                   </div>
                   <Button size="sm" className="h-7 text-xs ml-auto" asChild>
-                    <Link href="/campaigns/new">Build this campaign</Link>
+                    <Link href="/campaigns/new">Start this sequence</Link>
                   </Button>
                 </div>
               </div>
@@ -148,7 +149,7 @@ export default function CampaignsPage() {
       {/* Campaign list */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-sm">All campaigns</h2>
+          <h2 className="font-semibold text-sm">Active sequences</h2>
           <div className="flex items-center gap-2">
             {["active", "draft", "paused", "completed"].map((s) => (
               <Badge
@@ -219,14 +220,14 @@ export default function CampaignsPage() {
                   {/* Stats */}
                   <div className="grid grid-cols-5 gap-4">
                     {[
-                      { label: "Prospects", value: campaign.stats.total_prospects },
-                      { label: "Sent", value: campaign.stats.messages_sent },
+                      { label: "In sequence", value: campaign.stats.total_prospects },
+                      { label: "Delivered", value: campaign.stats.messages_sent },
                       { label: "Replies", value: campaign.stats.replies },
                       { label: "Meetings", value: campaign.stats.meetings_booked },
                       {
                         label: "Reply rate",
                         value: `${campaign.stats.reply_rate.toFixed(1)}%`,
-                        highlight: campaign.stats.reply_rate >= 30,
+                        highlight: campaign.stats.reply_rate >= 20,
                       },
                     ].map((stat) => (
                       <div key={stat.label}>
@@ -243,9 +244,10 @@ export default function CampaignsPage() {
                   {campaign.stats.messages_sent > 0 && (
                     <div className="mt-3 space-y-1">
                       <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                        <span>Progress</span>
+                        <span>Outreach progress</span>
                         <span>
-                          {campaign.stats.messages_sent}/{campaign.stats.total_prospects}
+                          {campaign.stats.messages_sent} personalized ·{" "}
+                          {campaign.stats.total_prospects - campaign.stats.messages_sent} remaining
                         </span>
                       </div>
                       <Progress
@@ -313,9 +315,10 @@ export default function CampaignsPage() {
             <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mx-auto mb-3">
               <Sparkles className="w-6 h-6 text-blue-500" />
             </div>
-            <h3 className="font-semibold text-sm mb-1">Build a new omnichannel campaign</h3>
+            <h3 className="font-semibold text-sm mb-1">Design a 1:1 outreach sequence</h3>
             <p className="text-xs text-muted-foreground mb-4">
-              AI guides you from goal → campaign type → channel selection → asset generation.
+              Map each step to a specific trigger — AI personalizes every message individually based
+              on the prospect's signals and your relationship context.
             </p>
             <Button size="sm" asChild>
               <Link href="/campaigns/new">

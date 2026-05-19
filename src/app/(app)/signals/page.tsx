@@ -37,7 +37,6 @@ import type { Account, RelationshipEdge, RelationshipType, Signal, WarmPath } fr
 
 // ─── Signal type icons & one-liners ──────────────────────────────────────────
 
-
 const SIGNAL_ONELINER: Record<string, string> = {
   funding: "New capital = new budget. Strike before the spend plan is locked.",
   leadership_change: "New exec = new vendor reviews. First mover wins.",
@@ -100,10 +99,7 @@ interface LinkedInPost {
 }
 
 /** Derive LinkedInPost display objects from real store signals of type "linkedin_post". */
-function signalsToLinkedInPosts(
-  linkedInSignals: Signal[],
-  accounts: Account[],
-): LinkedInPost[] {
+function signalsToLinkedInPosts(linkedInSignals: Signal[], accounts: Account[]): LinkedInPost[] {
   return linkedInSignals.map((signal) => {
     const account = accounts.find((a) => a.id === signal.account_id);
     // Infer intent tags from signal description / title keywords
@@ -489,7 +485,15 @@ function WarmPathReveal({
 
 function IntelPanel({ signalId }: { signalId: string | null }) {
   const router = useRouter();
-  const { signals, accounts, contacts, warmPaths, teamMembers, relationshipEdges, addMessageToQueue } = useSalesStore();
+  const {
+    signals,
+    accounts,
+    contacts,
+    warmPaths,
+    teamMembers,
+    relationshipEdges,
+    addMessageToQueue,
+  } = useSalesStore();
   const [loading, setLoading] = useState(false);
   const [revealPath, setRevealPath] = useState<RevealPath | null>(null);
   const [targetContact, setTargetContact] = useState<{ name: string; title: string } | null>(null);
@@ -668,7 +672,9 @@ function IntelPanel({ signalId }: { signalId: string | null }) {
               onClick={() => {
                 if (!signal || !account) return;
                 const topContact = contacts.find((c) => c.account_id === account.id);
-                const warmPath = revealPath ? warmPaths.find((wp) => wp.account_id === account.id) : undefined;
+                const warmPath = revealPath
+                  ? warmPaths.find((wp) => wp.account_id === account.id)
+                  : undefined;
                 addMessageToQueue({
                   account_id: account.id,
                   contact_id: topContact?.id ?? "",
@@ -992,7 +998,8 @@ function getActionLine(
 
 export default function SignalsPage() {
   const router = useRouter();
-  const { signals, accounts, warmPaths, contacts, relationshipEdges, addMessageToQueue } = useSalesStore();
+  const { signals, accounts, warmPaths, contacts, relationshipEdges, addMessageToQueue } =
+    useSalesStore();
 
   const [view, setView] = useState<"signals" | "linkedin">("signals");
   const [search, setSearch] = useState("");

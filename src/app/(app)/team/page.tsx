@@ -185,7 +185,8 @@ export default function TeamPage() {
                   />
                   {edgeCountByMember[member.id] > 0 && (
                     <p className="text-[10px] text-muted-foreground mt-0.5">
-                      {edgeCountByMember[member.id]} edge{edgeCountByMember[member.id] !== 1 ? "s" : ""}
+                      {edgeCountByMember[member.id]} edge
+                      {edgeCountByMember[member.id] !== 1 ? "s" : ""}
                     </p>
                   )}
                   <p className="text-[10px] text-muted-foreground mt-0.5">
