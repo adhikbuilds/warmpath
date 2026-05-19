@@ -224,7 +224,12 @@
   animation: shimmer 1.6s ease-in-out infinite;
 }
 :root .skeleton-shimmer {
-  background: linear-gradient(90deg, oklch(0.93 0.015 80) 25%, oklch(0.89 0.018 78) 37%, oklch(0.93 0.015 80) 63%);
+  background: linear-gradient(
+    90deg,
+    oklch(0.93 0.015 80) 25%,
+    oklch(0.89 0.018 78) 37%,
+    oklch(0.93 0.015 80) 63%
+  );
   background-size: 936px 100%;
 }
 

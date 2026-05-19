@@ -1,7 +1,16 @@
 "use client";
 
-import { AlertTriangle, Bot, CheckCircle2, Inbox, Link2, Loader2, Search, Wifi } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import {
+  AlertTriangle,
+  Bot,
+  CheckCircle2,
+  Inbox,
+  Link2,
+  Loader2,
+  Search,
+  Wifi,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 

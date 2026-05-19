@@ -490,7 +490,7 @@ export default function RelationshipGraphPage() {
   const [pathsSearched, setPathsSearched] = useState(false);
   const [isComputing, setIsComputing] = useState(false);
   const [highlightedIds, setHighlightedIds] = useState<Set<string>>(new Set());
-  const [warmthThreshold, setWarmthThreshold] = useState(0);
+  const [warmthThreshold, setWarmthThreshold] = useState(20);
   const [coverageMode, setCoverageMode] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -866,7 +866,18 @@ export default function RelationshipGraphPage() {
               graphData={{ nodes, links }}
               width={dimensions.width}
               height={dimensions.height}
-              nodeLabel={() => ""}
+              nodeLabel={(node) => {
+                const n = node as (typeof nodes)[0];
+                const typeLabel =
+                  n.type === "user"
+                    ? "You"
+                    : n.type === "team"
+                      ? "Team member"
+                      : n.type === "contact"
+                        ? "Contact"
+                        : "Account";
+                return `<div style="font-size:12px;padding:4px 8px;background:#1e1e2e;border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:white"><strong>${n.name}</strong><br/><span style="opacity:0.6;font-size:10px">${typeLabel}</span></div>`;
+              }}
               nodeVal="val"
               nodeColor="color"
               linkColor={linkColor}

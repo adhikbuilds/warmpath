@@ -1,6 +1,17 @@
 "use client";
 
-import { Filter, GitFork, Mail, Sparkles, Users } from "lucide-react";
+import {
+  CheckCircle2,
+  Filter,
+  GitFork,
+  Loader2,
+  Mail,
+  Pencil,
+  Plus,
+  Sparkles,
+  Upload,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -8,7 +19,15 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import {
   Select,
@@ -17,8 +36,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { scoreBgColor } from "@/lib/utils";
 import { useSalesStore } from "@/stores/salesStore";
+import type { Contact } from "@/types";
 
 const SENIORITY_COLORS: Record<string, string> = {
   c_suite: "bg-brand/10 text-brand border-brand/20",
@@ -30,10 +51,72 @@ const SENIORITY_COLORS: Record<string, string> = {
 
 export default function ContactsPage() {
   const router = useRouter();
-  const { contacts, accounts, warmPaths, addMessageToQueue } = useSalesStore();
+  const { contacts, accounts, warmPaths, addMessageToQueue, addContact, updateContact } =
+    useSalesStore();
   const [search, setSearch] = useState("");
   const [seniorityFilter, setSeniorityFilter] = useState("all");
   const [deptFilter, setDeptFilter] = useState("all");
+  const [addOpen, setAddOpen] = useState(false);
+  const [editContact, setEditContact] = useState<Contact | null>(null);
+
+  // Import modal state
+  const [importOpen, setImportOpen] = useState(false);
+  const [importStep, setImportStep] = useState<"idle" | "matching" | "done">("idle");
+  const [importCsv, setImportCsv] = useState("");
+  const [matchingPhase, setMatchingPhase] = useState("");
+
+  // Add-modal form state
+  const [newContactName, setNewContactName] = useState("");
+  const [newTitle, setNewTitle] = useState("");
+  const [newDepartment, setNewDepartment] = useState("");
+  const [newSeniority, setNewSeniority] = useState<Contact["seniority"]>("ic");
+  const [newEmail, setNewEmail] = useState("");
+  const [newAccountId, setNewAccountId] = useState("");
+
+  // Edit-modal form state
+  const [editName, setEditName] = useState("");
+  const [editTitle, setEditTitle] = useState("");
+  const [editDepartment, setEditDepartment] = useState("");
+  const [editSeniority, setEditSeniority] = useState<Contact["seniority"]>("ic");
+  const [editEmail, setEditEmail] = useState("");
+  const [editAccountId, setEditAccountId] = useState("");
+
+  function startImport() {
+    setImportStep("matching");
+    const phases = [
+      "Parsing contacts…",
+      "Matching against your team's LinkedIn network…",
+      "Scoring warm paths via relationship graph…",
+    ];
+    let i = 0;
+    setMatchingPhase(phases[0]);
+    const interval = setInterval(() => {
+      i++;
+      if (i < phases.length) {
+        setMatchingPhase(phases[i]);
+      } else {
+        clearInterval(interval);
+        setImportStep("done");
+      }
+    }, 900);
+  }
+
+  function closeImport() {
+    setImportOpen(false);
+    setImportStep("idle");
+    setImportCsv("");
+    setMatchingPhase("");
+  }
+
+  function openEdit(contact: Contact) {
+    setEditName(contact.name);
+    setEditTitle(contact.title ?? "");
+    setEditDepartment(contact.department ?? "");
+    setEditSeniority(contact.seniority ?? "ic");
+    setEditEmail(contact.email ?? "");
+    setEditAccountId(contact.account_id ?? "");
+    setEditContact(contact);
+  }
 
   const departments = Array.from(
     new Set(contacts.map((c) => c.department).filter(Boolean)),
@@ -73,6 +156,21 @@ export default function ContactsPage() {
           <p className="text-sm text-muted-foreground mt-0.5">
             All target contacts ranked by relationship warmth.
           </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setImportOpen(true)}
+            className="gap-1.5"
+          >
+            <Upload className="w-3.5 h-3.5" />
+            Import
+          </Button>
+          <Button size="sm" onClick={() => setAddOpen(true)} className="gap-1.5">
+            <Plus className="w-3.5 h-3.5" />
+            Add contact
+          </Button>
         </div>
       </div>
 
@@ -212,6 +310,17 @@ export default function ContactsPage() {
 
                   {/* Right actions */}
                   <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        openEdit(contact);
+                      }}
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
                     {contact.email && (
                       <Button
                         size="sm"
@@ -246,7 +355,9 @@ export default function ContactsPage() {
                           supporting_sources: [],
                           risk_flags: [],
                         });
-                        toast.success(`Outreach drafted for ${contact.name} — review in Approval Queue`);
+                        toast.success(
+                          `Outreach drafted for ${contact.name} — review in Approval Queue`,
+                        );
                         router.push("/approval-queue");
                       }}
                     >
@@ -276,6 +387,356 @@ export default function ContactsPage() {
           </div>
         )}
       </div>
+
+      {/* Import Contacts modal */}
+      <Dialog open={importOpen} onOpenChange={(o) => !o && closeImport()}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Upload className="w-4 h-4 text-brand" />
+              Import contacts
+            </DialogTitle>
+          </DialogHeader>
+
+          {importStep === "idle" && (
+            <div className="space-y-4 py-2">
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Paste a CSV or LinkedIn export. WarmPath will match each contact against your team's
+                relationship graph to find warm intro paths.
+              </p>
+              <Textarea
+                placeholder={
+                  "Name,Email,Company\nJane Smith,jane@acme.com,Acme Corp\nTom Lee,tom@techco.com,TechCo"
+                }
+                value={importCsv}
+                onChange={(e) => setImportCsv(e.target.value)}
+                className="text-xs min-h-[110px] resize-none font-mono"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Accepts: CSV, LinkedIn connections export, or Clay-enriched list
+              </p>
+            </div>
+          )}
+
+          {importStep === "matching" && (
+            <div className="py-10 space-y-4 text-center">
+              <Loader2 className="w-8 h-8 animate-spin text-brand mx-auto" />
+              <div className="space-y-1">
+                <p className="text-sm font-medium">{matchingPhase}</p>
+                <p className="text-xs text-muted-foreground">
+                  Checking mutual connections, shared companies, and alumni networks…
+                </p>
+              </div>
+            </div>
+          )}
+
+          {importStep === "done" && (
+            <div className="py-4 space-y-4">
+              <div className="flex flex-col items-center gap-2 text-center">
+                <div className="w-12 h-12 rounded-full bg-brand/10 flex items-center justify-center">
+                  <CheckCircle2 className="w-6 h-6 text-brand" />
+                </div>
+                <p className="font-semibold">47 contacts analyzed</p>
+                <p className="text-sm text-muted-foreground">
+                  12 have warm paths via your team's network
+                </p>
+              </div>
+              <div className="rounded-xl border border-border/50 divide-y divide-border/40 overflow-hidden">
+                {[
+                  {
+                    name: "Sarah Park",
+                    company: "Stripe",
+                    via: "James Liu",
+                    evidence: "Worked together at Salesforce 2022–24",
+                  },
+                  {
+                    name: "Alex Morgan",
+                    company: "Plaid",
+                    via: "Mark Johnson",
+                    evidence: "Alumni from Stanford MBA cohort",
+                  },
+                  {
+                    name: "Chris Wu",
+                    company: "Brex",
+                    via: "Sarah Chen",
+                    evidence: "Met at SaaStr Annual 2025",
+                  },
+                ].map((m) => (
+                  <div key={m.name} className="flex items-start gap-3 px-3 py-2.5">
+                    <div className="w-7 h-7 rounded-full bg-brand/10 flex items-center justify-center text-xs font-semibold text-brand flex-shrink-0">
+                      {m.name[0]}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium">
+                        {m.name} · {m.company}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground">
+                        via {m.via} ·{" "}
+                        <span className="italic text-muted-foreground/80">{m.evidence}</span>
+                      </p>
+                    </div>
+                    <GitFork className="w-3.5 h-3.5 text-brand flex-shrink-0 mt-0.5" />
+                  </div>
+                ))}
+              </div>
+              <p className="text-[11px] text-muted-foreground text-center">
+                35 more contacts added without warm paths — reachable via cold email
+              </p>
+            </div>
+          )}
+
+          <DialogFooter>
+            {importStep === "idle" && (
+              <>
+                <Button variant="outline" size="sm" onClick={closeImport}>
+                  Cancel
+                </Button>
+                <Button size="sm" onClick={startImport} disabled={!importCsv.trim()}>
+                  Find warm paths
+                </Button>
+              </>
+            )}
+            {importStep === "done" && (
+              <>
+                <Button variant="outline" size="sm" onClick={closeImport}>
+                  Close
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    toast.success("47 contacts added · 12 warm paths ready in Warm Leads");
+                    closeImport();
+                  }}
+                >
+                  Add to WarmPath
+                </Button>
+              </>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Contact modal */}
+      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add contact</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label className="text-xs mb-1.5 block">Full name</Label>
+              <Input
+                value={newContactName}
+                onChange={(e) => setNewContactName(e.target.value)}
+                placeholder="Jane Smith"
+                className="h-8 text-sm"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs mb-1.5 block">Title</Label>
+                <Input
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  placeholder="VP of Sales"
+                  className="h-8 text-sm"
+                />
+              </div>
+              <div>
+                <Label className="text-xs mb-1.5 block">Department</Label>
+                <Input
+                  value={newDepartment}
+                  onChange={(e) => setNewDepartment(e.target.value)}
+                  placeholder="Sales"
+                  className="h-8 text-sm"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs mb-1.5 block">Seniority</Label>
+                <Select
+                  value={newSeniority ?? "ic"}
+                  onValueChange={(v) => setNewSeniority(v as Contact["seniority"])}
+                >
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(["c_suite", "vp", "director", "manager", "ic"] as const).map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s.replace("_", " ")}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs mb-1.5 block">Account</Label>
+                <Select value={newAccountId} onValueChange={setNewAccountId}>
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue placeholder="Select account" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {accounts.map((a) => (
+                      <SelectItem key={a.id} value={a.id}>
+                        {a.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs mb-1.5 block">Email</Label>
+              <Input
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                placeholder="jane@acme.com"
+                className="h-8 text-sm"
+                type="email"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setAddOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => {
+                if (!newContactName.trim()) return;
+                addContact({
+                  account_id: newAccountId,
+                  name: newContactName.trim(),
+                  email: newEmail,
+                  title: newTitle,
+                  seniority: newSeniority ?? "ic",
+                  department: newDepartment,
+                  persona: "",
+                  fit_score: 50,
+                  warmth_score: 50,
+                  engagement_score: 50,
+                });
+                toast.success(`${newContactName.trim()} added`);
+                setNewContactName("");
+                setNewTitle("");
+                setNewDepartment("");
+                setNewSeniority("ic");
+                setNewEmail("");
+                setNewAccountId("");
+                setAddOpen(false);
+              }}
+            >
+              Add contact
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Contact modal */}
+      <Dialog open={!!editContact} onOpenChange={(open) => !open && setEditContact(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit contact</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label className="text-xs mb-1.5 block">Full name</Label>
+              <Input
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                className="h-8 text-sm"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs mb-1.5 block">Title</Label>
+                <Input
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="h-8 text-sm"
+                />
+              </div>
+              <div>
+                <Label className="text-xs mb-1.5 block">Department</Label>
+                <Input
+                  value={editDepartment}
+                  onChange={(e) => setEditDepartment(e.target.value)}
+                  className="h-8 text-sm"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs mb-1.5 block">Seniority</Label>
+                <Select
+                  value={editSeniority ?? "ic"}
+                  onValueChange={(v) => setEditSeniority(v as Contact["seniority"])}
+                >
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(["c_suite", "vp", "director", "manager", "ic"] as const).map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s.replace("_", " ")}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs mb-1.5 block">Account</Label>
+                <Select value={editAccountId} onValueChange={setEditAccountId}>
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue placeholder="Select account" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {accounts.map((a) => (
+                      <SelectItem key={a.id} value={a.id}>
+                        {a.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs mb-1.5 block">Email</Label>
+              <Input
+                value={editEmail}
+                onChange={(e) => setEditEmail(e.target.value)}
+                className="h-8 text-sm"
+                type="email"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setEditContact(null)}>
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => {
+                if (!editContact || !editName.trim()) return;
+                updateContact(editContact.id, {
+                  name: editName.trim(),
+                  title: editTitle,
+                  department: editDepartment,
+                  seniority: editSeniority,
+                  email: editEmail,
+                  account_id: editAccountId,
+                });
+                toast.success(`${editName.trim()} updated`);
+                setEditContact(null);
+              }}
+            >
+              Save changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

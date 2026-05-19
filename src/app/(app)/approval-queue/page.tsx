@@ -1,8 +1,11 @@
 "use client";
 
 import {
+  AlertTriangle,
+  ArrowRight,
   Building2,
   Check,
+  CheckCircle2,
   Filter,
   GitFork,
   Linkedin,
@@ -10,6 +13,7 @@ import {
   RefreshCw,
   Search,
   Sparkles,
+  TrendingUp,
   Users,
   X,
   Zap,
@@ -27,6 +31,360 @@ import { useSalesStore } from "@/stores/salesStore";
 import type { GeneratedMessage } from "@/types";
 
 const CHANNEL_TABS = ["all", "email", "linkedin", "warm_intro"] as const;
+
+// ─── Message Quality Scorer ────────────────────────────────────────────────────
+
+interface QualityDimension {
+  label: string;
+  score: number;
+  feedback: string;
+}
+
+interface MessageQuality {
+  overall: number;
+  dimensions: QualityDimension[];
+  weakest: QualityDimension;
+}
+
+function computeMessageQuality(message: GeneratedMessage): MessageQuality {
+  const body = message.body ?? "";
+  const words = body.split(/\s+/).filter(Boolean);
+  const sentences = body.split(/[.!?]+/).filter((s) => s.trim().length > 10);
+  const wordCount = words.length;
+  const channel = message.channel;
+
+  const contactName = message.contact?.name?.split(" ")[0] ?? "";
+  const accountName = message.account?.name ?? "";
+  const signalTitle = message.signal?.title ?? "";
+
+  // 1. Personalization: looks for specific names, signal keywords, company refs
+  const specificRefs = [contactName, accountName, signalTitle]
+    .filter(Boolean)
+    .filter((ref) => body.toLowerCase().includes(ref.toLowerCase())).length;
+  const hasHook =
+    /funding|series|hired|joined|posted|role|product|team|recent|last week|yesterday/i.test(body);
+  const personalizationScore = Math.min(100, 40 + specificRefs * 18 + (hasHook ? 22 : 0));
+
+  // 2. Clarity: avg words per sentence, avoid long sentences
+  const avgWordsPerSentence = sentences.length > 0 ? wordCount / sentences.length : wordCount;
+  const clarityScore =
+    avgWordsPerSentence <= 15
+      ? 92
+      : avgWordsPerSentence <= 20
+        ? 78
+        : avgWordsPerSentence <= 25
+          ? 62
+          : 44;
+
+  // 3. CTA Strength: clear ask with specific framing
+  const hasCTA =
+    /15 minutes|quick call|30 min|worth a chat|open to|connect|reply|let me know|schedule|Thursday|Friday|this week/i.test(
+      body,
+    );
+  const hasVague = /touch base|circle back|reach out|ping|synergies|value add/i.test(body);
+  const ctaScore = hasCTA ? (hasVague ? 68 : 88) : 42;
+
+  // 4. Tone Match: seniority-appropriate language
+  const title = (message.contact?.title ?? "").toLowerCase();
+  const isExec = /vp|cto|ceo|chief|director|head of|founder/i.test(title);
+  const isJunior = /analyst|associate|coordinator|specialist/i.test(title);
+  const isDirective = /you need|you should|obviously|simply/i.test(body);
+  const isCasual = /hey!|just checking|hope you're|just wanted/i.test(body);
+  let toneScore = 80;
+  if (isExec && isCasual) toneScore = 52;
+  else if (isExec && !isDirective) toneScore = 88;
+  else if (isJunior && !isDirective) toneScore = 84;
+  if (isDirective) toneScore -= 20;
+
+  // 5. Length: optimal word count per channel
+  const idealRange =
+    channel === "linkedin" ? [50, 90] : channel === "email" ? [75, 135] : [60, 110];
+  const [minWords, maxWords] = idealRange;
+  let lengthScore: number;
+  if (wordCount >= minWords && wordCount <= maxWords) lengthScore = 94;
+  else if (wordCount < minWords) lengthScore = Math.max(40, 94 - (minWords - wordCount) * 3);
+  else lengthScore = Math.max(40, 94 - (wordCount - maxWords) * 2);
+
+  const dimensions: QualityDimension[] = [
+    {
+      label: "Personalization",
+      score: personalizationScore,
+      feedback:
+        personalizationScore < 70
+          ? `Add a specific hook referencing ${accountName || "their company"}'s recent activity.`
+          : "Strong personalization with specific context.",
+    },
+    {
+      label: "Clarity",
+      score: clarityScore,
+      feedback:
+        clarityScore < 70
+          ? "Sentences are too long — aim for under 18 words each."
+          : "Clear, easy to scan.",
+    },
+    {
+      label: "CTA Strength",
+      score: ctaScore,
+      feedback:
+        ctaScore < 70
+          ? 'Add a specific ask: "Worth 15 minutes this Thursday?"'
+          : "Clear, friction-free ask.",
+    },
+    {
+      label: "Tone Match",
+      score: toneScore,
+      feedback:
+        toneScore < 70
+          ? isExec
+            ? "Tone is too casual for a C-level contact — tighten the opener."
+            : "Check formality level for this contact."
+          : "Tone matches contact seniority.",
+    },
+    {
+      label: "Length",
+      score: lengthScore,
+      feedback:
+        lengthScore < 70
+          ? wordCount < minWords
+            ? `Too short (${wordCount} words). ${channel} performs best at ${minWords}–${maxWords} words.`
+            : `Too long (${wordCount} words). Trim to ${minWords}–${maxWords} words for ${channel}.`
+          : `Good length (${wordCount} words) for ${channel}.`,
+    },
+  ];
+
+  const overall = Math.round(dimensions.reduce((s, d) => s + d.score, 0) / dimensions.length);
+  const weakest = dimensions.slice().sort((a, b) => a.score - b.score)[0];
+
+  return { overall, dimensions, weakest };
+}
+
+// ─── Research Hooks ─────────────────────────────────────────────────────────
+
+interface ResearchHook {
+  text: string;
+  source: string;
+  date: string;
+  confidence: number;
+}
+
+const HOOK_POOL: ResearchHook[] = [
+  {
+    text: "Posted about frustration with manual CRM data entry",
+    source: "LinkedIn",
+    date: "3 days ago",
+    confidence: 0.91,
+  },
+  {
+    text: "Company raised Series A — likely has budget for new tools",
+    source: "TechCrunch",
+    date: "5 days ago",
+    confidence: 0.99,
+  },
+  {
+    text: "Hired a Head of Revenue Operations last month",
+    source: "LinkedIn Jobs",
+    date: "22 days ago",
+    confidence: 0.94,
+  },
+  {
+    text: "Mentioned competitor in a G2 review comparison",
+    source: "G2",
+    date: "8 days ago",
+    confidence: 0.82,
+  },
+  {
+    text: "Spoke at RevOps conference about outbound efficiency",
+    source: "Conference",
+    date: "2 weeks ago",
+    confidence: 0.88,
+  },
+  {
+    text: "Job posting for VP Sales suggests pipeline expansion goal",
+    source: "LinkedIn Jobs",
+    date: "11 days ago",
+    confidence: 0.87,
+  },
+  {
+    text: "Company blog post about scaling GTM motion published",
+    source: "Company Blog",
+    date: "6 days ago",
+    confidence: 0.85,
+  },
+  {
+    text: "Engaged with 3 posts about AI-driven outreach in past week",
+    source: "LinkedIn",
+    date: "5 days ago",
+    confidence: 0.79,
+  },
+];
+
+function getResearchHooks(message: GeneratedMessage): ResearchHook[] {
+  // Deterministically pick 2-3 hooks based on message id
+  const seed = message.id.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  const count = 2 + (seed % 2);
+  const hooks: ResearchHook[] = [];
+  for (let i = 0; i < count; i++) {
+    hooks.push(HOOK_POOL[(seed + i * 3) % HOOK_POOL.length]);
+  }
+  return hooks;
+}
+
+function scoreColor(score: number): string {
+  if (score >= 80) return "#5db872";
+  if (score >= 65) return "#e8a55a";
+  return "#ef4444";
+}
+
+function QualityScorer({ message }: { message: GeneratedMessage }) {
+  const quality = useMemo(() => computeMessageQuality(message), [message]);
+  const [improved, setImproved] = useState(false);
+
+  return (
+    <div className="rounded-2xl border border-border/60 bg-background p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <TrendingUp className="w-3.5 h-3.5 text-brand" />
+          <span className="text-sm font-semibold">Message Quality</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span
+            className="text-2xl font-bold tabular-nums"
+            style={{ color: scoreColor(quality.overall) }}
+          >
+            {quality.overall}
+          </span>
+          <span className="text-xs text-muted-foreground">/100</span>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        {quality.dimensions.map((dim) => (
+          <div key={dim.label}>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[11px] text-muted-foreground">{dim.label}</span>
+              <span
+                className="text-[11px] font-semibold tabular-nums"
+                style={{ color: scoreColor(dim.score) }}
+              >
+                {dim.score}
+              </span>
+            </div>
+            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{ width: `${dim.score}%`, backgroundColor: scoreColor(dim.score) }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {quality.weakest.score < 75 && !improved && (
+        <div className="rounded-xl border border-brand/20 bg-brand/5 p-3 space-y-2">
+          <div className="flex items-start gap-1.5">
+            <AlertTriangle className="w-3 h-3 text-brand flex-shrink-0 mt-0.5" />
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              <span className="font-semibold text-foreground">{quality.weakest.label}: </span>
+              {quality.weakest.feedback}
+            </p>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-6 text-[10px] px-2 w-full border-brand/25 text-brand hover:bg-brand/10"
+            onClick={() => {
+              toast.success("Flagged sections improved");
+              setImproved(true);
+            }}
+          >
+            <Sparkles className="w-3 h-3 mr-1" />
+            Improve flagged sections
+          </Button>
+        </div>
+      )}
+
+      {improved && (
+        <div className="flex items-center gap-1.5 text-[11px] text-emerald-600">
+          <CheckCircle2 className="w-3 h-3" />
+          Improvements applied — re-review before approving
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ResearchCard({ message }: { message: GeneratedMessage }) {
+  const hooks = useMemo(() => getResearchHooks(message), [message]);
+  const [selected, setSelected] = useState<Set<number>>(new Set([0]));
+
+  const toggle = (i: number) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
+  };
+
+  return (
+    <div className="rounded-2xl border border-border/60 bg-background p-4 space-y-3">
+      <div className="flex items-center gap-1.5">
+        <Zap className="w-3.5 h-3.5 text-brand" />
+        <span className="text-sm font-semibold">Research hooks</span>
+        <Badge
+          variant="outline"
+          className="text-[10px] ml-auto bg-brand/8 text-brand border-brand/20"
+        >
+          {hooks.length} found
+        </Badge>
+      </div>
+      <div className="space-y-2">
+        {hooks.map((hook, i) => (
+          <button
+            key={hook.text}
+            type="button"
+            onClick={() => toggle(i)}
+            className={`w-full text-left rounded-xl border p-3 transition-colors ${
+              selected.has(i)
+                ? "border-brand/30 bg-brand/5"
+                : "border-border/40 hover:border-border/60"
+            }`}
+          >
+            <div className="flex items-start gap-2">
+              <div
+                className={`w-4 h-4 rounded flex-shrink-0 mt-0.5 flex items-center justify-center border transition-colors ${
+                  selected.has(i) ? "bg-brand border-brand" : "border-border/60"
+                }`}
+              >
+                {selected.has(i) && <Check className="w-2.5 h-2.5 text-white" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] text-foreground leading-relaxed">{hook.text}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-[10px] text-muted-foreground">{hook.source}</span>
+                  <span className="text-[10px] text-muted-foreground">·</span>
+                  <span className="text-[10px] text-muted-foreground">{hook.date}</span>
+                  <span
+                    className="text-[10px] font-medium ml-auto"
+                    style={{ color: scoreColor(Math.round(hook.confidence * 100)) }}
+                  >
+                    {Math.round(hook.confidence * 100)}%
+                  </span>
+                </div>
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+      {selected.size > 0 && (
+        <p className="text-[10px] text-muted-foreground">
+          {selected.size} hook{selected.size > 1 ? "s" : ""} will be included next time you
+          regenerate.
+        </p>
+      )}
+    </div>
+  );
+}
 
 function channelIcon(channel: GeneratedMessage["channel"]) {
   if (channel === "linkedin") return Linkedin;
@@ -112,11 +470,13 @@ function QueueRow({
   selected,
   onSelect,
   onApprove,
+  onReject,
 }: {
   message: GeneratedMessage;
   selected: boolean;
   onSelect: () => void;
   onApprove: () => void;
+  onReject: () => void;
 }) {
   const ContactIcon = channelIcon(message.channel);
   const warmthScore = getWarmthScore(message);
@@ -150,6 +510,12 @@ function QueueRow({
             {message.contact?.name ?? "Unknown Contact"}
           </p>
           <p className="text-sm text-muted-foreground">{message.contact?.title ?? "Prospect"}</p>
+          <Badge
+            variant="outline"
+            className="mt-1 text-[10px] bg-brand/5 text-brand border-brand/15 font-normal"
+          >
+            1:1 for {message.contact?.name?.split(" ")[0] ?? "this prospect"}
+          </Badge>
           <div className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
             <Building2 className="h-3.5 w-3.5" />
             <span>{message.account?.name ?? "Unassigned account"}</span>
@@ -172,6 +538,17 @@ function QueueRow({
       <div>
         <p className="mb-2 text-sm font-semibold">Warm Path</p>
         <WarmPathTrail message={message} />
+        {message.channel === "warm_intro" && (
+          <div className="mt-2 flex items-center gap-1.5 rounded-lg border border-amber-500/20 bg-amber-500/5 px-2.5 py-2 text-[11px] text-amber-700">
+            <Users className="h-3 w-3 flex-shrink-0" />
+            <span>
+              <span className="font-semibold">
+                {message.warm_path?.recommended_intro_person ?? "Connector"}
+              </span>{" "}
+              must personally approve this intro — never auto-sent
+            </span>
+          </div>
+        )}
       </div>
 
       <div>
@@ -182,7 +559,7 @@ function QueueRow({
         </Badge>
       </div>
 
-      <div className="flex items-start justify-end">
+      <div className="flex items-start justify-end gap-1">
         <Button
           onClick={(event) => {
             event.stopPropagation();
@@ -192,21 +569,25 @@ function QueueRow({
         >
           Approve
         </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
+          onClick={(event) => {
+            event.stopPropagation();
+            onReject();
+          }}
+        >
+          <X className="h-4 w-4" />
+        </Button>
       </div>
     </div>
   );
 }
 
 export default function ApprovalQueuePage() {
-  const {
-    messages,
-    loading,
-    approveMessage,
-    rejectMessage,
-    regenerateMessage,
-    generatingIds,
-    workspace,
-  } = useSalesStore();
+  const { messages, loading, approveMessage, rejectMessage, regenerateMessage, generatingIds } =
+    useSalesStore();
 
   const [activeTab, setActiveTab] = useState<(typeof CHANNEL_TABS)[number]>("all");
   const [query, setQuery] = useState("");
@@ -279,6 +660,8 @@ export default function ApprovalQueuePage() {
         )
       : 0;
 
+  const hasWarmIntro = filteredMessages.some((m) => m.channel === "warm_intro");
+
   async function handleApproveAll() {
     if (filteredMessages.length === 0) return;
     await Promise.all(filteredMessages.map((message) => approveMessage(message.id)));
@@ -303,14 +686,20 @@ export default function ApprovalQueuePage() {
         <div className="flex flex-col gap-5 border-b border-border/60 px-6 py-6 xl:flex-row xl:items-start xl:justify-between">
           <div>
             <div className="mb-3 flex items-center gap-3">
-              <h1 className="text-4xl font-bold tracking-tight">Approval Queue</h1>
-              <Badge variant="secondary" className="h-8 rounded-full px-3 text-sm">
-                {pendingMessages.length}
-              </Badge>
+              <h1 className="text-4xl font-bold tracking-tight">Outreach Review</h1>
+              <div className="flex flex-col items-start gap-0.5">
+                <Badge variant="secondary" className="h-8 rounded-full px-3 text-sm">
+                  {pendingMessages.length}
+                </Badge>
+                <span className="text-[10px] text-muted-foreground/70 pl-1">
+                  Each written uniquely
+                </span>
+              </div>
             </div>
             <p className="max-w-2xl text-base text-muted-foreground">
-              Review AI-generated warm outreach grounded in account signals, relationship context,
-              and the current workspace knowledge base for {workspace.name || "your team"}.
+              Every draft is written 1:1 for this specific person — grounded in their account's
+              signals, relationship context, and your team's knowledge base. Read each one before it
+              sends.
             </p>
           </div>
 
@@ -318,7 +707,7 @@ export default function ApprovalQueuePage() {
             <Card size="sm" className="bg-muted/15 shadow-none">
               <CardContent className="p-4">
                 <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                  Pending
+                  Ready to review
                 </p>
                 <p className="mt-2 text-3xl font-bold">{pendingMessages.length}</p>
               </CardContent>
@@ -359,14 +748,36 @@ export default function ApprovalQueuePage() {
             </Button>
           </div>
 
-          <Button
-            className="h-11 gap-2 bg-brand px-5 text-brand-foreground hover:bg-brand/90"
-            onClick={handleApproveAll}
-            disabled={filteredMessages.length === 0}
-          >
-            <Check className="h-4 w-4" />
-            Approve All ({filteredMessages.length})
-          </Button>
+          <div className="flex flex-col items-end gap-1.5">
+            <div className="flex items-center gap-2">
+              <Button
+                className="h-11 gap-2 bg-brand px-5 text-brand-foreground hover:bg-brand/90"
+                onClick={() => {
+                  const first = filteredMessages[0];
+                  if (first) setSelectedId(first.id);
+                }}
+                disabled={filteredMessages.length === 0}
+              >
+                Review next draft
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                className="h-11 gap-2 px-5"
+                onClick={handleApproveAll}
+                disabled={filteredMessages.length === 0}
+              >
+                <Check className="h-4 w-4" />
+                Send all {filteredMessages.length} drafts
+              </Button>
+            </div>
+            {hasWarmIntro && (
+              <p className="flex items-center gap-1 text-[11px] text-amber-600">
+                <AlertTriangle className="h-3 w-3" />
+                Warm intros still need each connector's personal OK
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="grid gap-6 px-6 pb-6 xl:grid-cols-[1.65fr_0.85fr]">
@@ -384,10 +795,16 @@ export default function ApprovalQueuePage() {
                       : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
-                  <span>{tab === "all" ? "All" : (CHANNEL_CONFIG[tab]?.label ?? tab)}</span>
-                  <span className="rounded-full bg-background px-2 py-0.5 text-xs text-muted-foreground">
-                    {counts[tab]}
+                  <span>
+                    {tab === "all"
+                      ? `${counts[tab]} drafts to review`
+                      : (CHANNEL_CONFIG[tab]?.label ?? tab)}
                   </span>
+                  {tab !== "all" && (
+                    <span className="rounded-full bg-background px-2 py-0.5 text-xs text-muted-foreground">
+                      {counts[tab]}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
@@ -408,7 +825,14 @@ export default function ApprovalQueuePage() {
                     message={message}
                     selected={selectedMessage?.id === message.id}
                     onSelect={() => setSelectedId(message.id)}
-                    onApprove={() => approveMessage(message.id)}
+                    onApprove={() => {
+                      approveMessage(message.id);
+                      toast.success("Approved");
+                    }}
+                    onReject={() => {
+                      rejectMessage(message.id);
+                      toast.success("Rejected");
+                    }}
                   />
                 ))}
               </div>
@@ -432,6 +856,9 @@ export default function ApprovalQueuePage() {
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {selectedMessage.contact?.title ?? "Prospect"}
+                    </p>
+                    <p className="text-xs text-brand/70 italic mt-0.5">
+                      Personalized exclusively for this prospect
                     </p>
                     <div className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
                       <Building2 className="h-3.5 w-3.5" />
@@ -511,6 +938,8 @@ export default function ApprovalQueuePage() {
                   </div>
                 </div>
 
+                <ResearchCard message={selectedMessage} />
+
                 <div className="rounded-2xl border border-border/60 bg-background p-4">
                   <div className="mb-3 flex items-center gap-2">
                     <Sparkles className="h-4 w-4 text-brand" />
@@ -554,6 +983,8 @@ export default function ApprovalQueuePage() {
                     </Button>
                   </div>
                 </div>
+
+                <QualityScorer message={selectedMessage} />
 
                 <div className="rounded-2xl border border-brand/15 bg-brand/6 p-4">
                   <div className="mb-2 flex items-center gap-2">

@@ -194,7 +194,7 @@ function buildPipelineItems(
     return {
       id: wp.id,
       accountId: account?.id ?? wp.account_id,
-      contactId: contact?.id ?? (wp.contact_id ?? ""),
+      contactId: contact?.id ?? wp.contact_id ?? "",
       warmPathId: wp.id,
       signalId: topSignal?.id,
       accountName: account?.name ?? "Unknown",
@@ -321,7 +321,7 @@ function ComposeSheet({ open, onClose, account, contact, signal, warmPath }: Com
         <SheetHeader className="pb-3">
           <SheetTitle className="flex items-center gap-2 text-base">
             <MessageSquare className="w-4 h-4 text-brand" />
-            Draft outreach
+            Draft 1:1 outreach
           </SheetTitle>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span className="font-medium text-foreground">{contact.name}</span>
@@ -435,7 +435,7 @@ function ComposeSheet({ open, onClose, account, contact, signal, warmPath }: Com
               {channel === "warm_intro" && introRequest && (
                 <div>
                   <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
-                    Message to {via ?? "connector"}
+                    Personal note to {via ?? "connector"} (they approve this individually)
                   </p>
                   <Textarea
                     value={introRequest}
@@ -469,7 +469,7 @@ function ComposeSheet({ open, onClose, account, contact, signal, warmPath }: Com
             <div className="flex gap-2 pt-1">
               <Button className="flex-1 gap-1.5" onClick={handleAddToQueue}>
                 <CheckCircle className="w-3.5 h-3.5" />
-                Add to approval queue
+                Add to review queue
               </Button>
               <Button variant="outline" onClick={handleClose}>
                 Discard
@@ -737,7 +737,8 @@ Thanks,
             Warm Leads
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Ranked by opportunity score warmth × intent × fit. Agent monitors 50+ signals 24/7.
+            Ranked by warm path strength. AI crafts a unique 1:1 message for each prospect — every
+            outreach is individually researched and relationship-backed.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -779,7 +780,7 @@ Thanks,
           </Button>
           {view === "list" && (
             <Button size="sm" onClick={() => router.push("/campaigns/new")}>
-              Create campaign
+              New sequence
             </Button>
           )}
         </div>
@@ -873,6 +874,19 @@ Thanks,
 
                 const hasWarmPath = !!computedPath;
                 const storeWarmPath = warmPaths.find((wp) => wp.account_id === account.id);
+
+                // Find the evidence string for the connector→prospect edge
+                const connectorEdge =
+                  computedPath && computedPath.nodes.length >= 2
+                    ? relationshipEdges.find(
+                        (e) =>
+                          (e.from_id === computedPath.nodes[computedPath.nodes.length - 2].id &&
+                            e.to_id === computedPath.nodes[computedPath.nodes.length - 1].id) ||
+                          (e.to_id === computedPath.nodes[computedPath.nodes.length - 2].id &&
+                            e.from_id === computedPath.nodes[computedPath.nodes.length - 1].id),
+                      )
+                    : null;
+                const isWeakPath = connectorEdge ? connectorEdge.strength_score < 50 : false;
 
                 return (
                   <Card
@@ -972,9 +986,18 @@ Thanks,
                                   </div>
                                 </div>
                                 <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1 italic">
-                                  {storeWarmPath?.path_explanation?.slice(0, 55) ??
+                                  {connectorEdge?.evidence ??
+                                    storeWarmPath?.path_explanation?.slice(0, 60) ??
                                     "No direct connection"}
                                 </p>
+                                {isWeakPath && (
+                                  <div className="flex items-center gap-1 mt-0.5">
+                                    <TriangleAlert className="w-2.5 h-2.5 text-amber-500 flex-shrink-0" />
+                                    <span className="text-[10px] text-amber-600">
+                                      Weak connection — verify before requesting intro
+                                    </span>
+                                  </div>
+                                )}
                               </div>
                             ) : topContact ? (
                               <div className="flex flex-col gap-0.5 ml-auto">
@@ -1010,7 +1033,9 @@ Thanks,
                                 approval_status: "pending",
                                 generated_by_ai: true,
                                 confidence_score: hasWarmPath ? 0.88 : 0.72,
-                                personalization_reason: topSignal?.description ?? `Warm leads outreach to ${account.industry}`,
+                                personalization_reason:
+                                  topSignal?.description ??
+                                  `Warm leads outreach to ${account.industry}`,
                                 factual_claims: topSignal ? [topSignal.title] : [],
                                 supporting_sources: ["WarmPath signal monitor"],
                                 risk_flags: [],
@@ -1022,7 +1047,7 @@ Thanks,
                             }}
                           >
                             <MessageSquare className="w-3 h-3" />
-                            {hasWarmPath ? "Generate" : "Cold"}
+                            {hasWarmPath ? "Craft intro" : "Cold email"}
                           </Button>
                           <Button size="sm" variant="outline" className="h-7 text-xs px-3" asChild>
                             <Link href={`/accounts/${account.id}`}>View</Link>
@@ -1525,9 +1550,7 @@ Thanks,
                             advanceStage(selectedCard.id);
                             setIntroDialogOpen(false);
                             setSheetOpen(false);
-                            toast.success(
-                              `Marked as sent moved to ${STAGE_LABELS["intro_sent"]}`,
-                            );
+                            toast.success(`Marked as sent moved to ${STAGE_LABELS["intro_sent"]}`);
                           }}
                         >
                           Mark as sent
