@@ -121,7 +121,7 @@ const STAGE_THEME: Record<
     band: "bg-[#e8a55a]",
     soft: "bg-[#e8a55a]/8",
     border: "border-[#e8a55a]/25",
-    text: "text-[#b87f3a]",
+    text: "text-[#e8a55a]",
     cardBorder: "border-l-[#e8a55a]",
     emptyBorder: "border-[#e8a55a]/20",
   },
@@ -129,33 +129,33 @@ const STAGE_THEME: Record<
     band: "bg-[#5db872]",
     soft: "bg-[#5db872]/8",
     border: "border-[#5db872]/25",
-    text: "text-[#3a8f4e]",
+    text: "text-[#5db872]",
     cardBorder: "border-l-[#5db872]",
     emptyBorder: "border-[#5db872]/20",
   },
   message_sent: {
-    band: "bg-[#5db8a6]",
-    soft: "bg-[#5db8a6]/8",
-    border: "border-[#5db8a6]/25",
-    text: "text-[#3a8f7e]",
-    cardBorder: "border-l-[#5db8a6]",
-    emptyBorder: "border-[#5db8a6]/20",
+    band: "bg-[#4edea3]",
+    soft: "bg-[#4edea3]/8",
+    border: "border-[#4edea3]/25",
+    text: "text-[#4edea3]",
+    cardBorder: "border-l-[#4edea3]",
+    emptyBorder: "border-[#4edea3]/20",
   },
   replied: {
-    band: "bg-[#4a8a6a]",
-    soft: "bg-[#4a8a6a]/8",
-    border: "border-[#4a8a6a]/25",
-    text: "text-[#2d6b4e]",
-    cardBorder: "border-l-[#4a8a6a]",
-    emptyBorder: "border-[#4a8a6a]/20",
+    band: "bg-[#00a572]",
+    soft: "bg-[#00a572]/8",
+    border: "border-[#00a572]/25",
+    text: "text-[#4edea3]",
+    cardBorder: "border-l-[#00a572]",
+    emptyBorder: "border-[#00a572]/20",
   },
   meeting_booked: {
-    band: "bg-[#7b6ea8]",
-    soft: "bg-[#7b6ea8]/8",
-    border: "border-[#7b6ea8]/25",
-    text: "text-[#5c5180]",
-    cardBorder: "border-l-[#7b6ea8]",
-    emptyBorder: "border-[#7b6ea8]/20",
+    band: "bg-[#c0c1ff]",
+    soft: "bg-[#c0c1ff]/8",
+    border: "border-[#c0c1ff]/25",
+    text: "text-[#c0c1ff]",
+    cardBorder: "border-l-[#c0c1ff]",
+    emptyBorder: "border-[#c0c1ff]/20",
   },
 };
 
@@ -347,8 +347,8 @@ function ComposeSheet({ open, onClose, account, contact, signal, warmPath }: Com
                       idx === 0
                         ? "bg-brand/10 text-brand"
                         : idx === (warmPath?.path_nodes?.length ?? 0) - 1
-                          ? "bg-[#7b6ea8]/10 text-[#5c5180]"
-                          : "bg-[#5db8a6]/10 text-[#3a8f7e]"
+                          ? "bg-[#7b6ea8]/10 text-[#c0c1ff]"
+                          : "bg-[#5db8a6]/10 text-[#4edea3]"
                     }`}
                   >
                     {node.name.split(" ")[0]}
@@ -360,11 +360,11 @@ function ComposeSheet({ open, onClose, account, contact, signal, warmPath }: Com
                     You
                   </span>
                   <span className="text-muted-foreground/40">→</span>
-                  <span className="px-1.5 py-0.5 rounded text-[11px] font-medium bg-[#5db8a6]/10 text-[#3a8f7e]">
+                  <span className="px-1.5 py-0.5 rounded text-[11px] font-medium bg-[#5db8a6]/10 text-[#4edea3]">
                     {via}
                   </span>
                   <span className="text-muted-foreground/40">→</span>
-                  <span className="px-1.5 py-0.5 rounded text-[11px] font-medium bg-[#7b6ea8]/10 text-[#5c5180]">
+                  <span className="px-1.5 py-0.5 rounded text-[11px] font-medium bg-[#7b6ea8]/10 text-[#c0c1ff]">
                     {contact.name.split(" ")[0]}
                   </span>
                 </>
@@ -513,7 +513,7 @@ function ContactAvatar({ name, warmth }: { name: string; warmth: number }) {
     warmth >= 70
       ? "bg-brand/20 text-brand"
       : warmth >= 40
-        ? "bg-[#5db8a6]/20 text-[#3a8f7e]"
+        ? "bg-[#5db8a6]/20 text-[#4edea3]"
         : "bg-muted text-muted-foreground";
   return (
     <div
@@ -1066,7 +1066,7 @@ Thanks,
       {/* ── PIPELINE VIEW ─────────────────────────────────────────────────────── */}
       {view === "pipeline" && (
         <>
-          <div className="animate-fade-up delay-1 rounded-[28px] border border-border/60 bg-card shadow-sm overflow-hidden">
+          <div className="animate-fade-up delay-1 rounded-md border border-[#464554] bg-[#201f22] overflow-hidden">
             <div className="border-b border-border/60 bg-muted/15 px-5 py-4">
               <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                 <div>
@@ -1156,7 +1156,7 @@ Thanks,
                     >
                       <div
                         className={cn(
-                          "rounded-[20px] border bg-white p-3 transition-colors",
+                          "rounded-md border bg-[#1c1b1d] p-3 transition-colors",
                           theme.border,
                           dragOverStage === stage && draggingId && "ring-2 ring-brand/20",
                         )}
@@ -1221,7 +1221,7 @@ Thanks,
                                   setDragOverStage(null);
                                 }}
                                 className={cn(
-                                  "cursor-grab rounded-xl border border-border/60 bg-white p-3 text-left shadow-sm transition-all active:cursor-grabbing",
+                                  "cursor-grab rounded-md border border-[#464554] bg-[#201f22] p-3 text-left transition-all active:cursor-grabbing",
                                   theme.cardBorder,
                                   "border-l-[3px]",
                                   isDragging
@@ -1246,7 +1246,7 @@ Thanks,
                                         ? "bg-emerald-100 text-emerald-700"
                                         : item.warmth >= 65
                                           ? "bg-amber-100 text-amber-700"
-                                          : "bg-slate-100 text-slate-600",
+                                          : "bg-[#353437] text-[#c7c4d7]",
                                     )}
                                   >
                                     {item.warmth}
@@ -1342,7 +1342,7 @@ Thanks,
                                       Move
                                     </Button>
                                   ) : (
-                                    <div className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#4a8a6a]/10 px-2 py-1.5 text-[10px] font-medium text-[#2d6b4e]">
+                                    <div className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#4a8a6a]/10 px-2 py-1.5 text-[10px] font-medium text-[#4edea3]">
                                       <CheckCircle2 className="h-3 w-3" />
                                       Booked
                                     </div>
@@ -1444,8 +1444,8 @@ Thanks,
                               idx === 0
                                 ? "bg-brand/10 text-brand border-brand/20"
                                 : idx === selectedCard.pathNodes!.length - 1
-                                  ? "bg-[#7b6ea8]/10 text-[#5c5180] border-[#7b6ea8]/20"
-                                  : "bg-[#5db8a6]/10 text-[#3a8f7e] border-[#5db8a6]/20"
+                                  ? "bg-[#7b6ea8]/10 text-[#c0c1ff] border-[#7b6ea8]/20"
+                                  : "bg-[#5db8a6]/10 text-[#4edea3] border-[#5db8a6]/20"
                             }`}
                           >
                             {node}

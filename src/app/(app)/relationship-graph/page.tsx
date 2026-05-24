@@ -1073,7 +1073,7 @@ export default function RelationshipGraphPage() {
                   }`}
                 >
                   <div
-                    className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-transform ${
+                    className={`absolute top-0.5 w-3 h-3 rounded-full bg-[#e5e1e4] shadow transition-transform ${
                       coverageMode ? "translate-x-3.5" : "translate-x-0.5"
                     }`}
                   />
