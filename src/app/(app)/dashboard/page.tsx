@@ -50,7 +50,7 @@ function warmthLabel(score: number) {
 }
 
 function warmthLabelColor(score: number) {
-  return score >= 70 ? "text-emerald-500" : score >= 50 ? "text-[#8083ff]" : "text-[#c7c4d7]";
+  return score >= 70 ? "text-emerald-500" : score >= 50 ? "text-[#4edea3]" : "text-[#c7c4d7]";
 }
 
 // ─── Re-engage Sheet ──────────────────────────────────────────────────────────
@@ -104,7 +104,7 @@ ${userName}`;
       <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
         <SheetHeader className="pb-2">
           <SheetTitle className="flex items-center gap-2">
-            <Link2Off className="w-4 h-4 text-[#8083ff]" />
+            <Link2Off className="w-4 h-4 text-[#4edea3]" />
             Re-engage {contactName}
           </SheetTitle>
           <p className="text-xs text-[#c7c4d7]">
@@ -127,7 +127,7 @@ ${userName}`;
           </div>
 
           {/* Note */}
-          <p className="text-[11px] text-[#c7c4d7] italic border-l-2 border-[#8083ff]/40 pl-3">
+          <p className="text-[11px] text-[#c7c4d7] italic border-l-2 border-[#4edea3]/40 pl-3">
             This message doesn't mention WarmPath or sales. Keep it authentic.
           </p>
 
@@ -253,7 +253,7 @@ ${userFirstName}`;
           <div className="flex gap-2 flex-col">
             <button
               type="button"
-              className="w-full h-9 rounded-md bg-[#8083ff] text-[#8083ff]-foreground text-sm font-medium flex items-center justify-center gap-2 hover:bg-[#8083ff]/90 transition-colors"
+              className="w-full h-9 rounded-md bg-[#8083ff] text-[#4edea3]-foreground text-sm font-medium flex items-center justify-center gap-2 hover:bg-[#8083ff]/90 transition-colors"
               onClick={copyMessage}
             >
               Copy message
@@ -428,7 +428,7 @@ export default function DashboardPage() {
             {totalPending > 0 && (
               <>
                 {" · "}
-                <Link href="/approval-queue" className="text-[#8083ff] hover:underline font-medium">
+                <Link href="/approval-queue" className="text-[#4edea3] hover:underline font-medium">
                   {totalPending} awaiting approval
                 </Link>
               </>
@@ -466,8 +466,8 @@ export default function DashboardPage() {
       {/* ── Decay Warning Banner ──────────────────────────────────────────── */}
       {decayingConnections.length > 0 && !bannerDismissed && (
         <div className="flex items-center gap-3 rounded-xl border border-[#8083ff]/20 bg-[#8083ff]/8 px-4 py-3 text-sm">
-          <AlertTriangle className="w-4 h-4 text-[#8083ff] flex-shrink-0" />
-          <span className="flex-1 text-[#8083ff]">
+          <AlertTriangle className="w-4 h-4 text-[#4edea3] flex-shrink-0" />
+          <span className="flex-1 text-[#4edea3]">
             <span className="font-semibold">
               {decayingConnections.length} relationships going cold
             </span>
@@ -476,13 +476,13 @@ export default function DashboardPage() {
           </span>
           <Link
             href="/relationship-graph?view=coverage"
-            className="text-xs font-semibold text-[#8083ff] hover:underline flex-shrink-0"
+            className="text-xs font-semibold text-[#4edea3] hover:underline flex-shrink-0"
           >
             View all →
           </Link>
           <button
             type="button"
-            className="p-1 rounded text-[#8083ff] hover:text-[#e5e1e4] hover:bg-[#8083ff]/10 transition-colors flex-shrink-0"
+            className="p-1 rounded text-[#4edea3] hover:text-[#e5e1e4] hover:bg-[#8083ff]/10 transition-colors flex-shrink-0"
             onClick={() => setBannerDismissed(true)}
           >
             <X className="w-3.5 h-3.5" />
@@ -496,8 +496,8 @@ export default function DashboardPage() {
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
-                <Flame className="w-4 h-4 text-[#8083ff] flex-shrink-0" />
-                <span className="text-[11px] font-semibold text-[#8083ff] uppercase tracking-wider">
+                <Flame className="w-4 h-4 text-[#4edea3] flex-shrink-0" />
+                <span className="text-[11px] font-semibold text-[#4edea3] uppercase tracking-wider">
                   Your warmest move today
                 </span>
               </div>
@@ -634,7 +634,7 @@ export default function DashboardPage() {
                   />
                 </div>
                 <span
-                  className={`text-[9px] ${isToday ? "text-[#8083ff] font-semibold" : "text-[#c7c4d7]/60"}`}
+                  className={`text-[9px] ${isToday ? "text-[#4edea3] font-semibold" : "text-[#c7c4d7]/60"}`}
                 >
                   {label}
                 </span>
@@ -686,7 +686,7 @@ export default function DashboardPage() {
                       </p>
                     )}
                     {via ? (
-                      <p className="text-[11px] text-[#8083ff] font-medium truncate mb-2">via {via}</p>
+                      <p className="text-[11px] text-[#4edea3] font-medium truncate mb-2">via {via}</p>
                     ) : (
                       <p className="text-[11px] text-[#c7c4d7] truncate mb-2">
                         No warm path
@@ -812,7 +812,7 @@ export default function DashboardPage() {
                 {totalPending > 0 && (
                   <Badge
                     variant="outline"
-                    className="text-[10px] bg-[#8083ff]/10 text-[#8083ff] border-[#8083ff]/20"
+                    className="text-[10px] bg-[#8083ff]/10 text-[#4edea3] border-[#8083ff]/20"
                   >
                     {totalPending}
                   </Badge>
@@ -836,7 +836,7 @@ export default function DashboardPage() {
                           className="flex items-center gap-2.5 p-2 rounded-lg bg-muted/30 border border-border/40"
                         >
                           <div className="w-7 h-7 rounded-md bg-[#8083ff]/10 flex items-center justify-center flex-shrink-0">
-                            <Icon className="w-3.5 h-3.5 text-[#8083ff]" />
+                            <Icon className="w-3.5 h-3.5 text-[#4edea3]" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-xs font-medium truncate">
@@ -894,7 +894,7 @@ export default function DashboardPage() {
                   const labelColor = warmthLabelColor(wp.warmth_score);
                   return (
                     <div key={wp.id} className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-md bg-[#8083ff]/10 flex items-center justify-center text-[10px] font-bold text-[#8083ff] flex-shrink-0">
+                      <div className="w-6 h-6 rounded-md bg-[#8083ff]/10 flex items-center justify-center text-[10px] font-bold text-[#4edea3] flex-shrink-0">
                         {acc?.name?.[0] ?? "?"}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -956,13 +956,13 @@ export default function DashboardPage() {
                     );
                     return (
                       <div key={edge.id} className="flex items-center gap-2 text-xs">
-                        <Link2Off className="w-3 h-3 text-[#8083ff] flex-shrink-0" />
+                        <Link2Off className="w-3 h-3 text-[#4edea3] flex-shrink-0" />
                         <span className="flex-1 truncate font-medium">{name}</span>
-                        <span className="text-[10px] text-[#8083ff]">{days}d ago</span>
+                        <span className="text-[10px] text-[#4edea3]">{days}d ago</span>
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-6 text-[10px] border-[#8083ff]/30 text-[#8083ff] hover:bg-[#8083ff]/10 flex-shrink-0"
+                          className="h-6 text-[10px] border-[#8083ff]/30 text-[#4edea3] hover:bg-[#8083ff]/10 flex-shrink-0"
                           onClick={() => openReEngage(edge)}
                         >
                           Re-engage

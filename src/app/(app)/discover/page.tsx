@@ -285,7 +285,7 @@ function FilterChip({
       onClick={onToggle}
       className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-all whitespace-nowrap ${
         selected
-          ? "bg-[#8083ff]/12 text-[#8083ff] border-brand/40"
+          ? "bg-[#8083ff]/12 text-[#4edea3] border-brand/40"
           : "bg-transparent text-[#c7c4d7] border-[#464554]/50 hover:border-brand/30 hover:text-[#e5e1e4]"
       }`}
     >
@@ -343,7 +343,7 @@ function LeadCard({
       <CardContent className="p-4 flex flex-col gap-3 flex-1">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-9 h-9 rounded-lg bg-[#8083ff]/10 flex items-center justify-center flex-shrink-0 text-sm font-bold text-[#8083ff]">
+            <div className="w-9 h-9 rounded-lg bg-[#8083ff]/10 flex items-center justify-center flex-shrink-0 text-sm font-bold text-[#4edea3]">
               {lead.name?.[0] ?? "?"}
             </div>
             <div className="min-w-0">
@@ -390,7 +390,7 @@ function LeadCard({
                 href={lead.website.startsWith("http") ? lead.website : `https://${lead.website}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="truncate hover:text-[#8083ff] transition-colors"
+                className="truncate hover:text-[#4edea3] transition-colors"
               >
                 {lead.website}
               </a>
@@ -718,7 +718,7 @@ export default function DiscoverPage() {
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-xl font-semibold flex items-center gap-2">
-            <Compass className="w-5 h-5 text-[#8083ff]" />
+            <Compass className="w-5 h-5 text-[#4edea3]" />
             Lead Discovery
           </h1>
           <p className="text-sm text-[#c7c4d7] mt-0.5">
@@ -739,7 +739,7 @@ export default function DiscoverPage() {
           >
             AI Enrichment
           </Badge>
-          <Badge variant="outline" className="text-xs bg-[#8083ff]/10 text-[#8083ff] border-brand/20">
+          <Badge variant="outline" className="text-xs bg-[#8083ff]/10 text-[#4edea3] border-brand/20">
             <Eye className="w-3 h-3 mr-1" />
             Visitor ID
           </Badge>
@@ -788,8 +788,8 @@ export default function DiscoverPage() {
           <div className="rounded-2xl border border-brand/20 bg-gradient-to-r from-brand/6 to-brand/2 p-5 flex flex-col sm:flex-row items-start sm:items-center gap-5">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1.5">
-                <Zap className="w-4 h-4 text-[#8083ff]" />
-                <span className="text-xs font-semibold text-[#8083ff] uppercase tracking-wider">
+                <Zap className="w-4 h-4 text-[#4edea3]" />
+                <span className="text-xs font-semibold text-[#4edea3] uppercase tracking-wider">
                   WarmPath USP
                 </span>
               </div>
@@ -804,7 +804,7 @@ export default function DiscoverPage() {
             </div>
             <div className="flex gap-3 flex-shrink-0">
               <div className="text-center px-4 py-2.5 rounded-xl bg-background border border-[#464554]/60">
-                <p className="text-2xl font-bold text-[#8083ff]">
+                <p className="text-2xl font-bold text-[#4edea3]">
                   {visitors.filter((v) => !v.converted).length}
                 </p>
                 <p className="text-[11px] text-[#c7c4d7]">new visitors</p>
@@ -823,7 +823,7 @@ export default function DiscoverPage() {
             <CardHeader className="pb-3 border-b border-[#464554]/60">
               <div className="flex items-center justify-between flex-wrap gap-3">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-[#8083ff]" />
+                  <Eye className="w-4 h-4 text-[#4edea3]" />
                   Identified Visitors
                   <Badge
                     variant="outline"
@@ -871,7 +871,7 @@ export default function DiscoverPage() {
                       >
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-lg bg-[#8083ff]/10 flex items-center justify-center text-xs font-bold text-[#8083ff] flex-shrink-0">
+                            <div className="w-8 h-8 rounded-lg bg-[#8083ff]/10 flex items-center justify-center text-xs font-bold text-[#4edea3] flex-shrink-0">
                               {v.company[0]}
                             </div>
                             <div>
@@ -997,7 +997,7 @@ export default function DiscoverPage() {
             <CardHeader className="pb-3 border-b border-[#464554]/60">
               <div className="flex items-center justify-between flex-wrap gap-3">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Search className="w-4 h-4 text-[#8083ff]" />
+                  <Search className="w-4 h-4 text-[#4edea3]" />
                   Apollo-style Filters
                 </CardTitle>
                 {activeFiltersCount > 0 && (
@@ -1180,7 +1180,7 @@ export default function DiscoverPage() {
           {searching && (
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-sm text-[#c7c4d7]">
-                <Loader2 className="w-4 h-4 animate-spin text-[#8083ff]" />
+                <Loader2 className="w-4 h-4 animate-spin text-[#4edea3]" />
                 Discovering companies matching your filters…
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -1256,7 +1256,7 @@ export default function DiscoverPage() {
           {!searching && !hasSearched && (
             <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
               <div className="w-16 h-16 rounded-2xl bg-[#8083ff]/10 flex items-center justify-center">
-                <Target className="w-8 h-8 text-[#8083ff]" />
+                <Target className="w-8 h-8 text-[#4edea3]" />
               </div>
               <div className="space-y-1">
                 <p className="font-semibold text-base">
@@ -1289,7 +1289,7 @@ export default function DiscoverPage() {
                     key={feat.title}
                     className="p-3 rounded-lg border border-[#464554]/50 bg-[#201f22] space-y-1"
                   >
-                    <feat.icon className="w-4 h-4 text-[#8083ff]" />
+                    <feat.icon className="w-4 h-4 text-[#4edea3]" />
                     <p className="text-xs font-medium">{feat.title}</p>
                     <p className="text-[11px] text-[#c7c4d7]">{feat.desc}</p>
                   </div>

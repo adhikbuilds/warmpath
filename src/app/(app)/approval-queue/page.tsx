@@ -119,7 +119,7 @@ function QualityScorer({ message }: { message: GeneratedMessage }) {
     <div className="rounded-2xl border border-[#464554]/60 bg-background p-4 space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <TrendingUp className="w-3.5 h-3.5 text-[#8083ff]" />
+          <TrendingUp className="w-3.5 h-3.5 text-[#4edea3]" />
           <span className="text-sm font-semibold">Message Quality</span>
         </div>
         <div className="flex items-center gap-2">
@@ -180,7 +180,7 @@ function ResearchCard({ message }: { message: GeneratedMessage }) {
   return (
     <div className="rounded-2xl border border-[#464554]/60 bg-background p-4 space-y-3">
       <div className="flex items-center gap-1.5">
-        <Sparkles className="w-3.5 h-3.5 text-[#8083ff]" />
+        <Sparkles className="w-3.5 h-3.5 text-[#4edea3]" />
         <span className="text-sm font-semibold">Personalization Hooks</span>
         <Badge
           variant="outline"
@@ -307,7 +307,7 @@ function WarmPathTrail({ message }: { message: GeneratedMessage }) {
           </div>
         ))}
         <span className="text-[#c7c4d7]/40">→</span>
-        <span className="inline-flex items-center gap-1 rounded-full border border-brand/20 bg-[#8083ff]/8 px-2.5 py-1 text-xs font-medium text-[#8083ff]">
+        <span className="inline-flex items-center gap-1 rounded-full border border-brand/20 bg-[#8083ff]/8 px-2.5 py-1 text-xs font-medium text-[#4edea3]">
           <ChannelIcon className="h-3 w-3" />
           {CHANNEL_CONFIG[message.channel]?.label ?? message.channel}
         </span>
@@ -357,7 +357,7 @@ function QueueRow({
         <div className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-muted text-sm font-semibold text-[#e5e1e4]">
           {getInitials(message.contact?.name ?? "WP")}
           <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border border-background bg-background shadow-sm">
-            <ContactIcon className="h-3.5 w-3.5 text-[#8083ff]" />
+            <ContactIcon className="h-3.5 w-3.5 text-[#4edea3]" />
           </div>
         </div>
         <div className="min-w-0">
@@ -367,7 +367,7 @@ function QueueRow({
           <p className="text-sm text-[#c7c4d7]">{message.contact?.title ?? "Prospect"}</p>
           <Badge
             variant="outline"
-            className="mt-1 text-[10px] bg-[#8083ff]/5 text-[#8083ff] border-brand/15 font-normal"
+            className="mt-1 text-[10px] bg-[#8083ff]/5 text-[#4edea3] border-brand/15 font-normal"
           >
             1:1 for {message.contact?.name?.split(" ")[0] ?? "this prospect"}
           </Badge>
@@ -420,7 +420,7 @@ function QueueRow({
             event.stopPropagation();
             onApprove();
           }}
-          className="bg-[#8083ff] text-[#8083ff]-foreground hover:bg-[#8083ff]/90"
+          className="bg-[#8083ff] text-[#4edea3]-foreground hover:bg-[#8083ff]/90"
         >
           Approve
         </Button>
@@ -606,7 +606,7 @@ export default function ApprovalQueuePage() {
           <div className="flex flex-col items-end gap-1.5">
             <div className="flex items-center gap-2">
               <Button
-                className="h-11 gap-2 bg-[#8083ff] px-5 text-[#8083ff]-foreground hover:bg-[#8083ff]/90"
+                className="h-11 gap-2 bg-[#8083ff] px-5 text-[#4edea3]-foreground hover:bg-[#8083ff]/90"
                 onClick={() => {
                   const first = filteredMessages[0];
                   if (first) setSelectedId(first.id);
@@ -646,7 +646,7 @@ export default function ApprovalQueuePage() {
                   className={cn(
                     "inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors",
                     activeTab === tab
-                      ? "bg-[#8083ff]/10 text-[#8083ff]"
+                      ? "bg-[#8083ff]/10 text-[#4edea3]"
                       : "text-[#c7c4d7] hover:bg-muted hover:text-[#e5e1e4]",
                   )}
                 >
@@ -712,7 +712,7 @@ export default function ApprovalQueuePage() {
                     <p className="text-sm text-[#c7c4d7]">
                       {selectedMessage.contact?.title ?? "Prospect"}
                     </p>
-                    <p className="text-xs text-[#8083ff]/70 italic mt-0.5">
+                    <p className="text-xs text-[#4edea3]/70 italic mt-0.5">
                       Personalized exclusively for this prospect
                     </p>
                     <div className="mt-1 flex items-center gap-1.5 text-sm text-[#c7c4d7]">
@@ -730,7 +730,7 @@ export default function ApprovalQueuePage() {
                     <div className="mt-2 flex items-center gap-2 text-sm font-medium">
                       {(() => {
                         const Icon = channelIcon(selectedMessage.channel);
-                        return <Icon className="h-4 w-4 text-[#8083ff]" />;
+                        return <Icon className="h-4 w-4 text-[#4edea3]" />;
                       })()}
                       {CHANNEL_CONFIG[selectedMessage.channel]?.label ?? selectedMessage.channel}
                     </div>
@@ -787,7 +787,7 @@ export default function ApprovalQueuePage() {
                   <div>
                     <p className="text-sm font-semibold">Next Best Step</p>
                     <div className="mt-2 flex items-start gap-2 text-sm text-[#c7c4d7]">
-                      <GitFork className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#8083ff]" />
+                      <GitFork className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#4edea3]" />
                       <span>{nextBestStep(selectedMessage)}</span>
                     </div>
                   </div>
@@ -797,7 +797,7 @@ export default function ApprovalQueuePage() {
 
                 <div className="rounded-2xl border border-[#464554]/60 bg-background p-4">
                   <div className="mb-3 flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-[#8083ff]" />
+                    <Sparkles className="h-4 w-4 text-[#4edea3]" />
                     <p className="text-sm font-semibold">Draft Review</p>
                   </div>
 
@@ -819,7 +819,7 @@ export default function ApprovalQueuePage() {
 
                   <div className="mt-4 flex flex-wrap gap-2">
                     <Button
-                      className="bg-[#8083ff] text-[#8083ff]-foreground hover:bg-[#8083ff]/90"
+                      className="bg-[#8083ff] text-[#4edea3]-foreground hover:bg-[#8083ff]/90"
                       onClick={() => approveMessage(selectedMessage.id, draftBody)}
                     >
                       Approve Draft
@@ -845,7 +845,7 @@ export default function ApprovalQueuePage() {
 
                 <div className="rounded-2xl border border-brand/15 bg-[#8083ff]/6 p-4">
                   <div className="mb-2 flex items-center gap-2">
-                    <Users className="h-4 w-4 text-[#8083ff]" />
+                    <Users className="h-4 w-4 text-[#4edea3]" />
                     <p className="text-sm font-semibold">AI Note</p>
                   </div>
                   <p className="text-sm leading-relaxed text-[#c7c4d7]">
