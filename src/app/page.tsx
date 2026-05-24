@@ -99,6 +99,31 @@ export default function LandingPage() {
                 Open demo workspace
               </Link>
             </div>
+            {/* Celebration doodle decoration */}
+            <div className="mt-8 pt-8 border-t" style={{ borderColor: "#464554" }}>
+              <svg className="w-full max-w-xs opacity-70" viewBox="0 0 400 250" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* Left person */}
+                <circle cx="80" cy="80" r="15" fill="none" stroke="white" strokeWidth="2"/>
+                <path d="M 80 100 L 80 140 M 70 115 L 50 135 M 90 115 L 110 135" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M 70 140 L 60 200 M 90 140 L 100 200" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+
+                {/* Center person */}
+                <circle cx="200" cy="60" r="15" fill="none" stroke="white" strokeWidth="2"/>
+                <path d="M 200 80 L 200 130 M 190 100 L 160 80 M 210 100 L 240 80 M 190 130 L 170 190 M 210 130 L 230 190" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+
+                {/* Right person */}
+                <circle cx="320" cy="85" r="15" fill="none" stroke="white" strokeWidth="2"/>
+                <path d="M 320 105 L 320 145 M 310 120 L 280 140 M 330 120 L 360 140 M 310 145 L 300 205 M 330 145 L 340 205" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+
+                {/* Flag */}
+                <path d="M 200 30 L 200 10 Q 220 20 240 15 L 240 35 Z" fill="white"/>
+                <circle cx="225" cy="22" r="4" fill="#8083ff"/>
+
+                {/* Stars */}
+                <path d="M 140 20 L 145 30 L 155 32 L 147 38 L 149 48 L 140 43 L 131 48 L 133 38 L 125 32 L 135 30 Z" fill="#F59E0B"/>
+                <path d="M 280 15 L 285 25 L 295 27 L 287 33 L 289 43 L 280 38 L 271 43 L 273 33 L 265 27 L 275 25 Z" fill="#F59E0B"/>
+              </svg>
+            </div>
           </div>
 
           {/* Right: Glass Panel Widget */}
@@ -232,20 +257,54 @@ export default function LandingPage() {
           <h2 className="text-3xl font-semibold text-white mb-2">Real results from enterprise sales teams.</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {TESTIMONIALS.map((t) => (
-            <div key={t.name} className="rounded-xl p-6 flex flex-col" style={{ backgroundColor: "#201f22", border: "1px solid #464554" }}>
-              <p className="text-sm leading-relaxed flex-1 mb-4 text-[#c7c4d7]">"{t.quote}"</p>
-              <div className="flex items-center gap-3">
-                <span className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ backgroundColor: "#8083ff" }}>
-                  {t.initials}
-                </span>
-                <div>
-                  <div className="text-sm font-medium text-white">{t.name}</div>
-                  <div className="text-xs text-[#c7c4d7]">{t.title} · {t.company}</div>
-                </div>
+          {/* Marcus Rodriguez */}
+          <div className="rounded-xl p-6 flex flex-col" style={{ backgroundColor: "#201f22", border: "1px solid #464554" }}>
+            <p className="text-sm leading-relaxed flex-1 mb-4 text-[#c7c4d7]">"{TESTIMONIALS[0].quote}"</p>
+            <div className="flex items-center gap-3">
+              <span className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ backgroundColor: "#8083ff" }}>
+                {TESTIMONIALS[0].initials}
+              </span>
+              <div>
+                <div className="text-sm font-medium text-white">{TESTIMONIALS[0].name}</div>
+                <div className="text-xs text-[#c7c4d7]">{TESTIMONIALS[0].title} · {TESTIMONIALS[0].company}</div>
               </div>
             </div>
-          ))}
+          </div>
+
+          {/* Jamie Chen */}
+          <div className="rounded-xl p-6 flex flex-col" style={{ backgroundColor: "#201f22", border: "1px solid #464554" }}>
+            <p className="text-sm leading-relaxed flex-1 mb-4 text-[#c7c4d7]">"{TESTIMONIALS[1].quote}"</p>
+            <div className="flex items-center gap-3">
+              <span className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ backgroundColor: "#8083ff" }}>
+                {TESTIMONIALS[1].initials}
+              </span>
+              <div>
+                <div className="text-sm font-medium text-white">{TESTIMONIALS[1].name}</div>
+                <div className="text-xs text-[#c7c4d7]">{TESTIMONIALS[1].title} · {TESTIMONIALS[1].company}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Dashboard Visual */}
+          <div className="rounded-xl p-6 flex flex-col items-center justify-center min-h-[280px]" style={{ backgroundColor: "#201f22", border: "1px solid #464554" }}>
+            <div className="text-center flex flex-col items-center gap-4">
+              <div className="w-16 h-16 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#8083ff" }}>
+                <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="12 3 20 7.5 20 16.5 12 21 4 16.5 4 7.5 12 3"></polyline>
+                  <polyline points="12 12 20 7.5"></polyline>
+                  <polyline points="12 12 12 21"></polyline>
+                  <polyline points="12 12 4 7.5"></polyline>
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-white mb-1">See it in action</h3>
+                <p className="text-xs text-[#c7c4d7]">Explore the live dashboard with real warm paths and signal-triggered sequences</p>
+              </div>
+              <Link href="/login" className="text-xs font-medium px-3 py-1.5 rounded text-[#131315] transition-colors hover:bg-gray-100 mt-2" style={{ backgroundColor: "#4edea3" }}>
+                Open demo
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
