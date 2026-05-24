@@ -1,9 +1,7 @@
 "use client";
 
-import { ArrowRight, CheckCircle, GitFork, Minus, X } from "lucide-react";
+import { ArrowRight, GitFork } from "lucide-react";
 import Link from "next/link";
-
-/* ─── Comparison ────────────────────────────────────────────────────────── */
 
 type CompareVal = boolean | "partial";
 interface CompareRow {
@@ -15,92 +13,32 @@ interface CompareRow {
 }
 
 const COMPARISON: CompareRow[] = [
-  {
-    feature: "Team-wide relationship graph",
-    warmpath: true,
-    apollo: false,
-    clay: "partial",
-    artisan: false,
-  },
-  {
-    feature: "Warm intro path routing",
-    warmpath: true,
-    apollo: false,
-    clay: false,
-    artisan: false,
-  },
-  {
-    feature: "Connector approval before any send",
-    warmpath: true,
-    apollo: false,
-    clay: false,
-    artisan: false,
-  },
-  {
-    feature: "Signal-triggered sequences (13+ types)",
-    warmpath: true,
-    apollo: "partial",
-    clay: "partial",
-    artisan: "partial",
-  },
-  {
-    feature: "Per-message 1:1 AI personalization",
-    warmpath: true,
-    apollo: "partial",
-    clay: "partial",
-    artisan: true,
-  },
-  {
-    feature: "Relationship quality evidence",
-    warmpath: true,
-    apollo: false,
-    clay: false,
-    artisan: false,
-  },
-  {
-    feature: "Multi-channel (email, LinkedIn, WhatsApp, phone)",
-    warmpath: true,
-    apollo: true,
-    clay: "partial",
-    artisan: true,
-  },
+  { feature: "Team-wide relationship graph", warmpath: true, apollo: false, clay: "partial", artisan: false },
+  { feature: "Warm intro path routing", warmpath: true, apollo: false, clay: false, artisan: false },
+  { feature: "Connector approval before any send", warmpath: true, apollo: false, clay: false, artisan: false },
+  { feature: "Signal-triggered sequences (13+ types)", warmpath: true, apollo: "partial", clay: "partial", artisan: "partial" },
+  { feature: "Per-message 1:1 AI personalization", warmpath: true, apollo: "partial", clay: "partial", artisan: true },
+  { feature: "Relationship quality evidence", warmpath: true, apollo: false, clay: false, artisan: false },
+  { feature: "Multi-channel (email, LinkedIn, WhatsApp, phone)", warmpath: true, apollo: true, clay: "partial", artisan: true },
 ];
-
-function CompareCell({ val, isWarmPath }: { val: CompareVal; isWarmPath?: boolean }) {
-  if (val === true)
-    return (
-      <CheckCircle
-        className="mx-auto h-4 w-4"
-        style={{ color: isWarmPath ? "oklch(0.50 0.20 250)" : "#5db872" }}
-      />
-    );
-  if (val === "partial")
-    return <Minus className="mx-auto h-3.5 w-3.5" style={{ color: "#cbd5e1" }} />;
-  return <X className="mx-auto h-3.5 w-3.5" style={{ color: "#e2e8f0" }} />;
-}
-
-/* ─── Testimonials ──────────────────────────────────────────────────────── */
 
 const TESTIMONIALS = [
   {
-    quote:
-      "First sequence I ran had a 41% reply rate. My previous Apollo sequences never broke 8%. Every message sounds like it was written for that specific person — because it was.",
+    quote: "First sequence I ran had a 41% reply rate. My previous Apollo sequences never broke 8%. Every message sounds like it was written for that specific person — because it was.",
     name: "Marcus Rodriguez",
     title: "Senior Account Executive",
     company: "Rippling",
     initials: "MR",
   },
   {
-    quote:
-      "We mapped 3,400 connections across our team in under 5 minutes. Found warm paths to 78% of our ICP — accounts we'd been cold-calling for months.",
+    quote: "We mapped 3,400 connections across our team in under 5 minutes. Found warm paths to 78% of our ICP — accounts we'd been cold-calling for months.",
     name: "Jamie Chen",
     title: "VP of Sales",
     company: "Lattice",
     initials: "JC",
   },
   {
-    quote:
-      "The approval queue is what sold our leadership. Nothing sends under a connector's name without their explicit OK. That removed every legal and reputational concern overnight.",
+    quote: "The approval queue is what sold our leadership. Nothing sends under a connector's name without their explicit OK. That removed every legal and reputational concern overnight.",
     name: "Priya Sharma",
     title: "Head of Revenue",
     company: "Notion",
@@ -108,685 +46,265 @@ const TESTIMONIALS = [
   },
 ];
 
-/* ─── Page ──────────────────────────────────────────────────────────────── */
+function CompareCell({ val, isWarmPath }: { val: CompareVal; isWarmPath?: boolean }) {
+  if (val === true)
+    return (
+      <svg className="mx-auto w-4 h-4" viewBox="0 0 24 24" fill="none" stroke={isWarmPath ? "#8083ff" : "#4edea3"} strokeWidth="3">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    );
+  if (val === "partial")
+    return <div className="mx-auto w-3 h-0.5" style={{ backgroundColor: "#908fa0" }} />;
+  return <svg className="mx-auto w-4 h-4 opacity-30" viewBox="0 0 24 24" fill="none" stroke="#908fa0" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>;
+}
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#ffffff", color: "#111827" }}>
-      {/* NAV */}
-      <nav
-        className="sticky top-0 z-50 border-b"
-        style={{
-          backgroundColor: "rgba(255,255,255,0.95)",
-          borderColor: "#e2e8f0",
-          backdropFilter: "blur(12px)",
-        }}
-      >
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
+    <div className="min-h-screen" style={{ backgroundColor: "#131315", color: "#e5e1e4" }}>
+      {/* NAVIGATION */}
+      <nav className="fixed top-0 w-full z-50" style={{ backgroundColor: "rgba(19, 19, 21, 0.8)", backdropFilter: "blur(12px)", borderBottom: "1px solid #464554" }}>
+        <div className="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2">
-            <div
-              className="flex h-6 w-6 items-center justify-center rounded-md"
-              style={{ backgroundColor: "oklch(0.50 0.20 250)" }}
-            >
-              <GitFork className="h-3 w-3 text-white" />
+            <div className="w-6 h-6 rounded-md" style={{ backgroundColor: "#8083ff" }}>
+              <GitFork className="w-3.5 h-3.5 text-white m-1" />
             </div>
-            <span
-              className="text-[15px] font-semibold tracking-tight"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              WarmPath
-            </span>
+            <span className="text-sm font-semibold text-white tracking-tight">WarmPath</span>
           </Link>
-          <div className="hidden md:flex items-center gap-6">
-            <a href="#how" className="text-[13px]" style={{ color: "#6b7280" }}>
-              How it works
-            </a>
-            <a href="#compare" className="text-[13px]" style={{ color: "#6b7280" }}>
-              Compare
-            </a>
+          <div className="hidden md:flex items-center gap-8">
+            <a href="#how" className="text-sm text-[#c7c4d7] hover:text-white transition-colors">How it works</a>
+            <a href="#compare" className="text-sm text-[#c7c4d7] hover:text-white transition-colors">Compare</a>
           </div>
-          <div className="flex items-center gap-2">
-            <Link
-              href="/login"
-              className="text-[13px] px-3 py-1.5 rounded-md"
-              style={{ color: "#6b7280" }}
-            >
-              Sign in
-            </Link>
-            <Link
-              href="/login"
-              className="text-[13px] font-semibold px-4 py-1.5 rounded-lg text-white hover:opacity-90 transition-opacity"
-              style={{ backgroundColor: "oklch(0.50 0.20 250)" }}
-            >
+          <div className="flex items-center gap-3">
+            <Link href="/login" className="hidden md:block text-sm text-[#c7c4d7] hover:text-white transition-colors">Sign in</Link>
+            <Link href="/login" className="text-sm font-medium px-4 py-2 rounded-full text-[#131315] transition-colors hover:bg-gray-100" style={{ backgroundColor: "white" }}>
               Try demo
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* HERO */}
-      <section className="px-6 pt-16 pb-20">
-        <div className="mx-auto max-w-6xl">
-          <div className="flex flex-col lg:flex-row gap-16 items-center">
-            {/* Left */}
-            <div className="lg:w-[44%]">
-              <p
-                className="text-[11px] font-bold uppercase tracking-widest mb-5"
-                style={{ color: "oklch(0.50 0.20 250)" }}
-              >
-                Relationship intelligence · B2B sales
-              </p>
-              <h1
-                className="text-[54px] sm:text-[64px] font-normal leading-[1.05] mb-6"
-                style={{
-                  fontFamily: "var(--font-display)",
-                  letterSpacing: "-2.5px",
-                  color: "#111827",
-                }}
-              >
-                See which deals
-                <br />
-                your team can
-                <br />
-                <span style={{ color: "oklch(0.50 0.20 250)" }}>close this week.</span>
-              </h1>
-              <p
-                className="text-[16px] leading-relaxed mb-8"
-                style={{ color: "#4b5563", maxWidth: "360px" }}
-              >
-                WarmPath maps every relationship your team has, finds the warmest path to every
-                buyer, and drafts the intro. One person approves it. One deal moves forward.
-              </p>
-              <Link
-                href="/login"
-                className="inline-flex items-center gap-2 h-12 px-8 rounded-xl text-[15px] font-semibold text-white transition-opacity hover:opacity-90"
-                style={{ backgroundColor: "oklch(0.50 0.20 250)" }}
-              >
+      {/* HERO SECTION */}
+      <section className="max-w-7xl mx-auto px-6 pt-32 pb-24">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          {/* Left: Text */}
+          <div className="flex flex-col gap-6">
+            <h1 className="text-5xl lg:text-6xl font-semibold leading-tight text-white tracking-tight">
+              See which deals your team can close this week.
+            </h1>
+            <p className="text-base text-[#c7c4d7] max-w-md">
+              WarmPath maps every relationship your team has, finds the warmest path to every buyer, and drafts the intro. One person approves it. One deal moves forward.
+            </p>
+            <div className="flex gap-3 pt-2">
+              <Link href="/login" className="text-sm font-medium px-6 py-3 rounded-full text-[#131315] transition-colors hover:bg-gray-100" style={{ backgroundColor: "white" }}>
                 Open demo workspace
-                <ArrowRight className="h-4 w-4" />
               </Link>
-              <p className="text-[12px] mt-3" style={{ color: "#9ca3af" }}>
-                No signup required · Live data · Full product
-              </p>
             </div>
+          </div>
 
-            {/* Right: product diagram */}
-            <div className="lg:w-[56%] w-full">
-              <div
-                className="rounded-2xl p-6"
-                style={{ backgroundColor: "#f8fafc", border: "1px solid #e2e8f0" }}
-              >
-                {/* Signal */}
-                <div
-                  className="flex items-center gap-3 rounded-xl px-4 py-3 mb-5"
-                  style={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0" }}
-                >
-                  <span
-                    className="w-2 h-2 rounded-full flex-shrink-0 animate-pulse"
-                    style={{ backgroundColor: "oklch(0.50 0.20 250)" }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <span className="text-[13px] font-semibold" style={{ color: "#111827" }}>
-                      Stripe raised $694M Series H
-                    </span>
-                    <span className="text-[12px] ml-2" style={{ color: "#6b7280" }}>
-                      · budget cycle unlocked
-                    </span>
-                  </div>
-                  <span className="text-[11px] flex-shrink-0" style={{ color: "#9ca3af" }}>
-                    2h ago
-                  </span>
+          {/* Right: Glass Panel Widget */}
+          <div className="rounded-xl p-6 shadow-2xl" style={{ backgroundColor: "#201f22", border: "1px solid #464554" }}>
+            {/* Header */}
+            <div className="flex justify-between items-center mb-6 pb-4" style={{ borderBottom: "1px solid #464554" }}>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: "rgba(128, 131, 255, 0.1)", border: "1px solid rgba(128, 131, 255, 0.3)" }}>
+                  <div className="w-4 h-4 rounded-full" style={{ backgroundColor: "#8083ff" }} />
                 </div>
-
-                {/* Relationship path */}
-                <div className="mb-2">
-                  <p className="text-[11px] font-semibold mb-3" style={{ color: "#6b7280" }}>
-                    Warm path found · 1 hop · 94 warmth score
-                  </p>
-                  <svg viewBox="0 0 480 200" className="w-full" aria-hidden="true">
-                    {/* Glow */}
-                    <line
-                      x1="85"
-                      y1="100"
-                      x2="240"
-                      y2="40"
-                      stroke="#2563eb"
-                      strokeWidth="14"
-                      strokeOpacity="0.06"
-                      strokeLinecap="round"
-                    />
-                    <line
-                      x1="240"
-                      y1="40"
-                      x2="395"
-                      y2="100"
-                      stroke="#2563eb"
-                      strokeWidth="14"
-                      strokeOpacity="0.06"
-                      strokeLinecap="round"
-                    />
-                    {/* Warm path */}
-                    <line
-                      x1="85"
-                      y1="100"
-                      x2="240"
-                      y2="40"
-                      stroke="#2563eb"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                    <line
-                      x1="240"
-                      y1="40"
-                      x2="395"
-                      y2="100"
-                      stroke="#2563eb"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                    {/* Cold dashed */}
-                    <line
-                      x1="85"
-                      y1="100"
-                      x2="240"
-                      y2="165"
-                      stroke="#e2e8f0"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeDasharray="4 3"
-                    />
-                    <line
-                      x1="240"
-                      y1="165"
-                      x2="395"
-                      y2="100"
-                      stroke="#e2e8f0"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeDasharray="4 3"
-                    />
-                    {/* YOU */}
-                    <circle
-                      cx="85"
-                      cy="100"
-                      r="28"
-                      fill="#ffffff"
-                      stroke="#2563eb"
-                      strokeWidth="1.5"
-                    />
-                    <text
-                      x="85"
-                      y="96"
-                      fontSize="11"
-                      fontWeight="700"
-                      textAnchor="middle"
-                      fill="#111827"
-                      fontFamily="Inter, sans-serif"
-                    >
-                      You
-                    </text>
-                    <text
-                      x="85"
-                      y="109"
-                      fontSize="9"
-                      textAnchor="middle"
-                      fill="#6b7280"
-                      fontFamily="Inter, sans-serif"
-                    >
-                      AE
-                    </text>
-                    <text
-                      x="85"
-                      y="138"
-                      fontSize="9"
-                      textAnchor="middle"
-                      fill="#9ca3af"
-                      fontFamily="Inter, sans-serif"
-                    >
-                      you
-                    </text>
-                    {/* CONNECTOR */}
-                    <circle
-                      cx="240"
-                      cy="40"
-                      r="30"
-                      fill="#ffffff"
-                      stroke="#2563eb"
-                      strokeWidth="1.5"
-                    />
-                    <text
-                      x="240"
-                      y="35"
-                      fontSize="10.5"
-                      fontWeight="700"
-                      textAnchor="middle"
-                      fill="#111827"
-                      fontFamily="Inter, sans-serif"
-                    >
-                      James
-                    </text>
-                    <text
-                      x="240"
-                      y="48"
-                      fontSize="10.5"
-                      fontWeight="700"
-                      textAnchor="middle"
-                      fill="#111827"
-                      fontFamily="Inter, sans-serif"
-                    >
-                      Liu
-                    </text>
-                    <rect x="212" y="5" width="56" height="16" rx="8" fill="oklch(0.50 0.20 250)" />
-                    <text
-                      x="240"
-                      y="16.5"
-                      fontSize="9"
-                      fontWeight="700"
-                      textAnchor="middle"
-                      fill="white"
-                      fontFamily="Inter, sans-serif"
-                    >
-                      connector
-                    </text>
-                    <text
-                      x="240"
-                      y="76"
-                      fontSize="9"
-                      textAnchor="middle"
-                      fill="#6b7280"
-                      fontFamily="Inter, sans-serif"
-                    >
-                      ex-Rippling · 2 yrs
-                    </text>
-                    {/* TARGET */}
-                    <circle
-                      cx="395"
-                      cy="100"
-                      r="34"
-                      fill="#ffffff"
-                      stroke="#2563eb"
-                      strokeWidth="2"
-                    />
-                    <rect
-                      x="368"
-                      y="57"
-                      width="54"
-                      height="17"
-                      rx="8.5"
-                      fill="oklch(0.50 0.20 250)"
-                    />
-                    <text
-                      x="395"
-                      y="68"
-                      fontSize="9"
-                      fontWeight="700"
-                      textAnchor="middle"
-                      fill="white"
-                      fontFamily="Inter, sans-serif"
-                    >
-                      94 warm
-                    </text>
-                    <text
-                      x="395"
-                      y="97"
-                      fontSize="13"
-                      fontWeight="800"
-                      textAnchor="middle"
-                      fill="#111827"
-                      fontFamily="Inter, sans-serif"
-                    >
-                      CTO
-                    </text>
-                    <text
-                      x="395"
-                      y="112"
-                      fontSize="10"
-                      fontWeight="600"
-                      textAnchor="middle"
-                      fill="#111827"
-                      fontFamily="Inter, sans-serif"
-                    >
-                      at Stripe
-                    </text>
-                    <text
-                      x="395"
-                      y="143"
-                      fontSize="9"
-                      textAnchor="middle"
-                      fill="#6b7280"
-                      fontFamily="Inter, sans-serif"
-                    >
-                      Decision maker
-                    </text>
-                    {/* Cold node */}
-                    <circle
-                      cx="240"
-                      cy="165"
-                      r="18"
-                      fill="#f8fafc"
-                      stroke="#e2e8f0"
-                      strokeWidth="1.5"
-                    />
-                    <text
-                      x="240"
-                      y="162"
-                      fontSize="8.5"
-                      textAnchor="middle"
-                      fill="#cbd5e1"
-                      fontFamily="Inter, sans-serif"
-                    >
-                      cold
-                    </text>
-                    <text
-                      x="240"
-                      y="173"
-                      fontSize="8.5"
-                      textAnchor="middle"
-                      fill="#cbd5e1"
-                      fontFamily="Inter, sans-serif"
-                    >
-                      path
-                    </text>
-                  </svg>
-                </div>
-
-                <div
-                  className="flex items-center justify-between pt-4"
-                  style={{ borderTop: "1px solid #e2e8f0" }}
-                >
-                  <span className="text-[11px]" style={{ color: "#9ca3af" }}>
-                    4 team connections mapped to Stripe
-                  </span>
-                  <span
-                    className="text-[11px] font-semibold"
-                    style={{ color: "oklch(0.50 0.20 250)" }}
-                  >
-                    Best path: 1 hop
-                  </span>
+                <div>
+                  <h3 className="text-sm font-medium text-white">Stripe raised $694M Series H</h3>
+                  <p className="text-xs text-[#c7c4d7]">budget cycle unlocked</p>
                 </div>
               </div>
+              <span className="text-xs text-[#c7c4d7]">2h ago</span>
+            </div>
+
+            {/* Warm Path Info */}
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-4 h-4" style={{ color: "#4edea3" }}>→</div>
+                <span className="text-sm font-medium text-white">Warm path found</span>
+              </div>
+              <p className="text-xs text-[#c7c4d7]">1 hop · 94 warmth score</p>
+            </div>
+
+            {/* Path Nodes */}
+            <div className="flex flex-col gap-4 relative">
+              <div className="absolute left-6 top-6 bottom-6 w-px" style={{ backgroundColor: "#464554" }} />
+
+              {/* Node 1: You */}
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full flex items-center justify-center z-10" style={{ backgroundColor: "#131315", border: "1px solid #464554" }}>
+                  <div className="w-10 h-10 rounded-full" style={{ backgroundColor: "#908fa0" }} />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-white">You</p>
+                  <p className="text-xs text-[#c7c4d7]">AE</p>
+                </div>
+              </div>
+
+              {/* Node 2: Connector */}
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full flex items-center justify-center z-10" style={{ backgroundColor: "#131315", border: "1px solid rgba(128, 131, 255, 0.5)" }}>
+                  <div className="w-10 h-10 rounded-full" style={{ backgroundColor: "#908fa0" }} />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-white">James Liu</p>
+                    <span className="text-xs font-medium px-2 py-0.5 rounded" style={{ backgroundColor: "rgba(16, 185, 129, 0.1)", color: "#4edea3", border: "1px solid rgba(16, 185, 129, 0.2)" }}>
+                      94 warm
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#c7c4d7]">connector / ex-Rippling · 2 yrs</p>
+                </div>
+              </div>
+
+              {/* Node 3: Target */}
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full flex items-center justify-center z-10" style={{ backgroundColor: "#201f22", border: "1px solid #464554" }}>
+                  <div className="w-10 h-10 rounded-full" style={{ backgroundColor: "#908fa0" }} />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-white">CTO at Stripe</p>
+                  <p className="text-xs text-[#c7c4d7]">Decision maker</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="mt-8 pt-4 flex justify-between items-center" style={{ borderTop: "1px solid #464554" }}>
+              <p className="text-xs text-[#c7c4d7]">4 team connections mapped to Stripe</p>
+              <p className="text-xs font-medium text-white">Best path: 1 hop</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* PROOF STRIP */}
-      <section
-        className="px-6 py-10"
-        style={{
-          backgroundColor: "#f8fafc",
-          borderTop: "1px solid #e2e8f0",
-          borderBottom: "1px solid #e2e8f0",
-        }}
-      >
-        <div className="mx-auto max-w-6xl">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
-            {[
-              { val: "3×", label: "higher reply rate than cold email" },
-              { val: "47%", label: "reply rate on warm intros" },
-              { val: "1-hop", label: "average intro path length" },
-              { val: "100%", label: "connector-approved before send" },
-            ].map((s) => (
-              <div key={s.label}>
-                <div
-                  className="text-[32px] font-semibold leading-none mb-1.5"
-                  style={{ fontFamily: "var(--font-display)", color: "oklch(0.50 0.20 250)" }}
-                >
-                  {s.val}
-                </div>
-                <div className="text-[12px] leading-snug" style={{ color: "#6b7280" }}>
-                  {s.label}
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* STATS SECTION */}
+      <section className="max-w-7xl mx-auto px-6 mb-32">
+        <div className="rounded-xl p-8 grid grid-cols-2 md:grid-cols-4 gap-8" style={{ backgroundColor: "#201f22", border: "1px solid #464554" }}>
+          {[
+            { val: "3x", label: "higher reply rate\nthan cold email" },
+            { val: "47%", label: "reply rate on\nwarm intros" },
+            { val: "1-hop", label: "average intro\npath length" },
+            { val: "100%", label: "connector-approved\nbefore send" },
+          ].map((stat) => (
+            <div key={stat.val} className="flex flex-col items-center text-center px-4" style={{ borderRight: stat.val !== "100%" ? "1px solid #464554" : "none" }}>
+              <span className="text-4xl font-semibold mb-2" style={{ color: "#4edea3" }}>{stat.val}</span>
+              <span className="text-xs uppercase tracking-wider text-[#c7c4d7]">{stat.label}</span>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* HOW IT WORKS */}
-      <section id="how" className="px-6 py-20">
-        <div className="mx-auto max-w-6xl">
-          <p
-            className="text-[11px] font-bold uppercase tracking-widest mb-3"
-            style={{ color: "oklch(0.50 0.20 250)" }}
-          >
-            How it works
-          </p>
-          <h2
-            className="text-[38px] font-normal tracking-tight mb-2"
-            style={{ fontFamily: "var(--font-display)", letterSpacing: "-1px", color: "#111827" }}
-          >
-            From signal to meeting — in hours, not weeks.
-          </h2>
-          <p className="text-[14px] mb-12" style={{ color: "#6b7280" }}>
-            The entire workflow lives in one place. No spreadsheets, no guessing who knows who.
-          </p>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              {
-                n: "01",
-                title: "Your team's network, mapped",
-                body: "LinkedIn connections, shared employers, alumni networks — aggregated across every team member into one searchable relationship graph. What was invisible is now searchable.",
-              },
-              {
-                n: "02",
-                title: "WarmPath finds the route",
-                body: "The moment a buying signal fires — funding, hiring, leadership change — the AI finds who on your team knows the decision maker and why. Evidence-backed, not guessed.",
-              },
-              {
-                n: "03",
-                title: "Draft, approve, send",
-                body: "AI writes a 1:1 intro request grounded in the real shared history. Your connector reviews and approves it personally before anything sends under their name. Every time.",
-              },
-            ].map((step) => (
-              <div
-                key={step.n}
-                className="rounded-2xl p-6"
-                style={{ backgroundColor: "#f8fafc", border: "1px solid #e2e8f0" }}
-              >
-                <div
-                  className="text-[11px] font-bold mb-4 tracking-widest"
-                  style={{ color: "oklch(0.50 0.20 250)" }}
-                >
-                  {step.n}
-                </div>
-                <h3
-                  className="font-semibold text-[15px] mb-3 leading-snug"
-                  style={{ color: "#111827" }}
-                >
-                  {step.title}
-                </h3>
-                <p className="text-[13px] leading-relaxed" style={{ color: "#4b5563" }}>
-                  {step.body}
-                </p>
+      <section id="how" className="max-w-7xl mx-auto px-6 mb-32">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-semibold text-white mb-4">From signal to meeting — in hours, not weeks.</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {[
+            {
+              title: "Your team's network, mapped",
+              body: "LinkedIn connections, shared employers, alumni networks — aggregated across every team member into one searchable relationship graph. What was invisible is now searchable.",
+            },
+            {
+              title: "WarmPath finds the route",
+              body: "The moment a buying signal fires — funding, hiring, leadership change — the AI finds who on your team knows the decision maker and why. Evidence-backed, not guessed.",
+            },
+            {
+              title: "Draft, approve, send",
+              body: "AI writes a 1:1 intro request grounded in the real shared history. Your connector reviews and approves it personally before anything sends under their name. Every time.",
+            },
+          ].map((step, i) => (
+            <div key={i} className="rounded-xl p-8" style={{ backgroundColor: "#201f22", border: "1px solid #464554" }}>
+              <div className="w-10 h-10 rounded flex items-center justify-center mb-6" style={{ backgroundColor: "#464554" }}>
+                <div className="w-5 h-5" style={{ color: "white" }}>○</div>
               </div>
-            ))}
-          </div>
+              <h3 className="text-xl font-semibold text-white mb-3">{step.title}</h3>
+              <p className="text-sm text-[#c7c4d7] leading-relaxed">{step.body}</p>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* TESTIMONIALS */}
-      <section
-        className="px-6 py-20"
-        style={{ backgroundColor: "#f8fafc", borderTop: "1px solid #e2e8f0" }}
-      >
-        <div className="mx-auto max-w-6xl">
-          <p
-            className="text-[11px] font-bold uppercase tracking-widest mb-3"
-            style={{ color: "oklch(0.50 0.20 250)" }}
-          >
-            What teams say
-          </p>
-          <h2
-            className="text-[36px] font-normal tracking-tight mb-12"
-            style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.8px", color: "#111827" }}
-          >
-            Real results from enterprise sales teams.
-          </h2>
-          <div className="grid md:grid-cols-3 gap-5">
-            {TESTIMONIALS.map((t) => (
-              <div
-                key={t.name}
-                className="rounded-2xl p-6 flex flex-col"
-                style={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0" }}
-              >
-                <p className="text-[13px] leading-relaxed flex-1 mb-5" style={{ color: "#374151" }}>
-                  "{t.quote}"
-                </p>
-                <div className="flex items-center gap-3">
-                  <span
-                    className="w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-bold text-white flex-shrink-0"
-                    style={{ backgroundColor: "oklch(0.50 0.20 250)" }}
-                  >
-                    {t.initials}
-                  </span>
-                  <div>
-                    <div className="text-[13px] font-semibold" style={{ color: "#111827" }}>
-                      {t.name}
-                    </div>
-                    <div className="text-[11px]" style={{ color: "#6b7280" }}>
-                      {t.title} · {t.company}
-                    </div>
-                  </div>
+      <section className="max-w-7xl mx-auto px-6 mb-32">
+        <div className="mb-16">
+          <h2 className="text-3xl font-semibold text-white mb-2">Real results from enterprise sales teams.</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {TESTIMONIALS.map((t) => (
+            <div key={t.name} className="rounded-xl p-6 flex flex-col" style={{ backgroundColor: "#201f22", border: "1px solid #464554" }}>
+              <p className="text-sm leading-relaxed flex-1 mb-4 text-[#c7c4d7]">"{t.quote}"</p>
+              <div className="flex items-center gap-3">
+                <span className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ backgroundColor: "#8083ff" }}>
+                  {t.initials}
+                </span>
+                <div>
+                  <div className="text-sm font-medium text-white">{t.name}</div>
+                  <div className="text-xs text-[#c7c4d7]">{t.title} · {t.company}</div>
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* COMPARE */}
-      <section id="compare" className="px-6 py-20">
-        <div className="mx-auto max-w-6xl">
-          <p
-            className="text-[11px] font-bold uppercase tracking-widest mb-3"
-            style={{ color: "oklch(0.50 0.20 250)" }}
-          >
-            Compare
+      <section id="compare" className="max-w-7xl mx-auto px-6 mb-32">
+        <div className="mb-8">
+          <h2 className="text-3xl font-semibold text-white mb-3">Built differently.</h2>
+          <p className="text-sm text-[#c7c4d7]">
+            Apollo finds prospects. Clay enriches them. Artisan auto-sends. WarmPath routes through relationships first — then gets human approval on every message.
           </p>
-          <h2
-            className="text-[36px] font-normal tracking-tight mb-2"
-            style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.8px", color: "#111827" }}
-          >
-            Built differently.
-          </h2>
-          <p className="text-[13px] mb-8" style={{ color: "#6b7280" }}>
-            Apollo finds prospects. Clay enriches them. Artisan auto-sends. WarmPath routes through
-            relationships first — then gets human approval on every message.
-          </p>
-          <div className="overflow-x-auto rounded-2xl" style={{ border: "1px solid #e2e8f0" }}>
-            <table className="w-full text-sm">
-              <thead>
-                <tr style={{ borderBottom: "1px solid #e2e8f0", backgroundColor: "#f8fafc" }}>
-                  <th
-                    className="px-5 py-4 text-left text-[11px] font-semibold"
-                    style={{ color: "#6b7280" }}
-                  >
-                    Capability
+        </div>
+        <div className="rounded-xl overflow-hidden" style={{ border: "1px solid #464554" }}>
+          <table className="w-full text-sm">
+            <thead>
+              <tr style={{ backgroundColor: "#201f22", borderBottom: "1px solid #464554" }}>
+                <th className="px-5 py-4 text-left text-xs font-medium text-[#c7c4d7]">Capability</th>
+                <th className="px-4 py-4 text-center text-xs font-bold text-[#8083ff]">WarmPath</th>
+                {["Apollo", "Clay", "Artisan"].map((c) => (
+                  <th key={c} className="px-4 py-4 text-center text-xs font-medium text-[#c7c4d7]">
+                    {c}
                   </th>
-                  <th
-                    className="px-4 py-4 text-center text-[12px] font-bold"
-                    style={{ color: "oklch(0.50 0.20 250)" }}
-                  >
-                    WarmPath
-                  </th>
-                  {["Apollo", "Clay", "Artisan"].map((c) => (
-                    <th
-                      key={c}
-                      className="px-4 py-4 text-center text-[11px] font-semibold"
-                      style={{ color: "#9ca3af" }}
-                    >
-                      {c}
-                    </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {COMPARISON.map((row, i) => (
+                <tr key={row.feature} style={{ backgroundColor: "#131315", borderBottom: i < COMPARISON.length - 1 ? "1px solid #464554" : "none" }}>
+                  <td className="px-5 py-3 text-xs text-[#c7c4d7]">{row.feature}</td>
+                  {(["warmpath", "apollo", "clay", "artisan"] as const).map((col) => (
+                    <td key={col} className="px-4 py-3 text-center">
+                      <CompareCell val={row[col]} isWarmPath={col === "warmpath"} />
+                    </td>
                   ))}
                 </tr>
-              </thead>
-              <tbody>
-                {COMPARISON.map((row, i) => (
-                  <tr
-                    key={row.feature}
-                    style={{
-                      borderBottom: i < COMPARISON.length - 1 ? "1px solid #f1f5f9" : "none",
-                    }}
-                  >
-                    <td className="px-5 py-3 text-[12px]" style={{ color: "#4b5563" }}>
-                      {row.feature}
-                    </td>
-                    {(["warmpath", "apollo", "clay", "artisan"] as const).map((col) => (
-                      <td key={col} className="px-4 py-3 text-center">
-                        <CompareCell val={row[col]} isWarmPath={col === "warmpath"} />
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="px-6 py-24" style={{ backgroundColor: "#0f172a" }}>
-        <div className="mx-auto max-w-6xl text-center">
-          <p
-            className="text-[11px] font-bold uppercase tracking-widest mb-5"
-            style={{ color: "oklch(0.65 0.18 250)" }}
-          >
-            Get started
-          </p>
-          <h2
-            className="text-[46px] sm:text-[56px] font-normal leading-tight mb-5"
-            style={{ fontFamily: "var(--font-display)", letterSpacing: "-1.5px", color: "#f1f5f9" }}
-          >
-            Your best deal is one
-            <br />
-            <span style={{ color: "oklch(0.65 0.18 250)" }}>warm intro away.</span>
-          </h2>
-          <p
-            className="text-[15px] mb-10 max-w-md mx-auto leading-relaxed"
-            style={{ color: "#64748b" }}
-          >
-            Explore a live demo workspace — real signals, real relationship paths, real AI drafts
-            waiting for approval.
-          </p>
-          <Link
-            href="/login"
-            className="inline-flex items-center gap-2 h-12 px-9 rounded-xl text-[15px] font-semibold text-white transition-opacity hover:opacity-90"
-            style={{ backgroundColor: "oklch(0.50 0.20 250)" }}
-          >
+      {/* CTA SECTION */}
+      <section className="max-w-7xl mx-auto px-6 mb-32">
+        <div className="rounded-xl p-12 text-center" style={{ backgroundColor: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.05)", backdropFilter: "blur(12px)" }}>
+          <h2 className="text-4xl font-semibold text-white mb-6">Your best deal is one warm intro away.</h2>
+          <Link href="/login" className="inline-block text-sm font-medium px-6 py-3 rounded-full text-[#131315] transition-colors hover:bg-gray-100" style={{ backgroundColor: "white" }}>
             Open demo workspace
-            <ArrowRight className="h-4 w-4" />
           </Link>
-          <p className="text-[12px] mt-4" style={{ color: "#475569" }}>
-            No signup · No credit card · Full product access
-          </p>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer
-        className="px-6 py-8 border-t"
-        style={{ backgroundColor: "#0f172a", borderColor: "#1e293b" }}
-      >
-        <div className="mx-auto max-w-6xl flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div
-              className="flex h-5 w-5 items-center justify-center rounded"
-              style={{ backgroundColor: "oklch(0.50 0.20 250)" }}
-            >
-              <GitFork className="h-2.5 w-2.5 text-white" />
-            </div>
-            <span
-              className="text-[13px] font-semibold"
-              style={{ fontFamily: "var(--font-display)", color: "#f1f5f9" }}
-            >
-              WarmPath
-            </span>
+      <footer className="border-t" style={{ backgroundColor: "#131315", borderColor: "#464554" }}>
+        <div className="max-w-7xl mx-auto px-6 py-12 text-center">
+          <h3 className="text-lg font-bold text-white mb-6">WarmPath</h3>
+          <p className="text-xs text-[#c7c4d7] mb-4">© 2026 WarmPath Relationship Intelligence. All rights reserved.</p>
+          <div className="flex gap-4 justify-center">
+            <a href="#" className="text-xs text-[#c7c4d7] hover:text-white transition-colors">Privacy Policy</a>
+            <a href="#" className="text-xs text-[#c7c4d7] hover:text-white transition-colors">Terms of Service</a>
           </div>
-          <p className="text-[12px]" style={{ color: "#475569" }}>
-            © 2026 WarmPath
-          </p>
         </div>
       </footer>
     </div>
