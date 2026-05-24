@@ -50,7 +50,7 @@ function warmthLabel(score: number) {
 }
 
 function warmthLabelColor(score: number) {
-  return score >= 70 ? "text-emerald-500" : score >= 50 ? "text-brand" : "text-muted-foreground";
+  return score >= 70 ? "text-emerald-500" : score >= 50 ? "text-[#8083ff]" : "text-[#c7c4d7]";
 }
 
 // ─── Re-engage Sheet ──────────────────────────────────────────────────────────
@@ -104,10 +104,10 @@ ${userName}`;
       <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
         <SheetHeader className="pb-2">
           <SheetTitle className="flex items-center gap-2">
-            <Link2Off className="w-4 h-4 text-brand" />
+            <Link2Off className="w-4 h-4 text-[#8083ff]" />
             Re-engage {contactName}
           </SheetTitle>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-[#c7c4d7]">
             Last interaction{" "}
             {Math.round((Date.now() - new Date(edge.last_interaction_at).getTime()) / 86_400_000)}d
             ago · warmth score {computeEdgeWarmth(edge)}
@@ -116,18 +116,18 @@ ${userName}`;
 
         <div className="px-6 space-y-4 pb-6">
           {/* Draft message */}
-          <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-2">
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+          <div className="rounded-xl border border-[#464554] bg-muted/30 p-4 space-y-2">
+            <p className="text-[10px] font-semibold text-[#c7c4d7] uppercase tracking-wider">
               Pre-drafted check-in
             </p>
-            <p className="text-xs font-semibold text-foreground">Subject: {messageSubject}</p>
-            <div className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
+            <p className="text-xs font-semibold text-[#e5e1e4]">Subject: {messageSubject}</p>
+            <div className="text-xs text-[#c7c4d7] leading-relaxed whitespace-pre-wrap">
               {messageBody}
             </div>
           </div>
 
           {/* Note */}
-          <p className="text-[11px] text-muted-foreground italic border-l-2 border-brand/40 pl-3">
+          <p className="text-[11px] text-[#c7c4d7] italic border-l-2 border-[#8083ff]/40 pl-3">
             This message doesn't mention WarmPath or sales. Keep it authentic.
           </p>
 
@@ -227,25 +227,25 @@ ${userFirstName}`;
             <Trophy className="w-4 h-4 text-violet-500" />
             Reach out to {contactName}
           </SheetTitle>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-[#c7c4d7]">
             {oldCo} → {newCo} · {newTitle}
           </p>
         </SheetHeader>
 
         <div className="px-6 space-y-4 pb-6">
           {/* Draft message */}
-          <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-2">
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+          <div className="rounded-xl border border-[#464554] bg-muted/30 p-4 space-y-2">
+            <p className="text-[10px] font-semibold text-[#c7c4d7] uppercase tracking-wider">
               Pre-drafted message
             </p>
-            <p className="text-xs font-semibold text-foreground">Subject: {subject}</p>
-            <div className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
+            <p className="text-xs font-semibold text-[#e5e1e4]">Subject: {subject}</p>
+            <div className="text-xs text-[#c7c4d7] leading-relaxed whitespace-pre-wrap">
               {body}
             </div>
           </div>
 
           {/* Note */}
-          <p className="text-[11px] text-muted-foreground italic border-l-2 border-violet-500/40 pl-3">
+          <p className="text-[11px] text-[#c7c4d7] italic border-l-2 border-violet-500/40 pl-3">
             This message references your existing relationship, not WarmPath. Keep it authentic.
           </p>
 
@@ -253,7 +253,7 @@ ${userFirstName}`;
           <div className="flex gap-2 flex-col">
             <button
               type="button"
-              className="w-full h-9 rounded-md bg-brand text-brand-foreground text-sm font-medium flex items-center justify-center gap-2 hover:bg-brand/90 transition-colors"
+              className="w-full h-9 rounded-md bg-[#8083ff] text-[#8083ff]-foreground text-sm font-medium flex items-center justify-center gap-2 hover:bg-[#8083ff]/90 transition-colors"
               onClick={copyMessage}
             >
               Copy message
@@ -414,21 +414,21 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-[1280px] mx-auto">
+    <div className="p-6 space-y-6 max-w-[1280px] mx-auto" style={{ backgroundColor: "#131315", color: "#e5e1e4" }}>
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
             {greeting}, {user?.name?.split(" ")[0] ?? "there"}
           </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <p className="text-sm text-[#c7c4d7] mt-0.5">
             {plays.length > 0
               ? `${plays.length} warm ${plays.length === 1 ? "intro opportunity" : "intro opportunities"} ready`
               : "No urgent plays right now"}
             {totalPending > 0 && (
               <>
                 {" · "}
-                <Link href="/approval-queue" className="text-brand hover:underline font-medium">
+                <Link href="/approval-queue" className="text-[#8083ff] hover:underline font-medium">
                   {totalPending} awaiting approval
                 </Link>
               </>
@@ -438,7 +438,7 @@ export default function DashboardPage() {
 
         <div className="flex items-center gap-2 flex-shrink-0">
           {totalPending > 0 && (
-            <Button size="sm" className="bg-brand hover:bg-brand/90 text-white gap-1.5" asChild>
+            <Button size="sm" className="bg-[#8083ff] hover:bg-[#8083ff]/90 text-white gap-1.5" asChild>
               <Link href="/approval-queue">
                 <Bell className="w-3.5 h-3.5" />
                 Review {totalPending}
@@ -455,7 +455,7 @@ export default function DashboardPage() {
             size="sm"
             variant="ghost"
             onClick={() => setTourOpen(true)}
-            className="gap-1.5 text-muted-foreground hover:text-foreground"
+            className="gap-1.5 text-[#c7c4d7] hover:text-[#e5e1e4]"
           >
             <HelpCircle className="w-3.5 h-3.5" />
             Tour
@@ -465,9 +465,9 @@ export default function DashboardPage() {
 
       {/* ── Decay Warning Banner ──────────────────────────────────────────── */}
       {decayingConnections.length > 0 && !bannerDismissed && (
-        <div className="flex items-center gap-3 rounded-xl border border-brand/20 bg-brand/8 px-4 py-3 text-sm">
-          <AlertTriangle className="w-4 h-4 text-brand flex-shrink-0" />
-          <span className="flex-1 text-brand">
+        <div className="flex items-center gap-3 rounded-xl border border-[#8083ff]/20 bg-[#8083ff]/8 px-4 py-3 text-sm">
+          <AlertTriangle className="w-4 h-4 text-[#8083ff] flex-shrink-0" />
+          <span className="flex-1 text-[#8083ff]">
             <span className="font-semibold">
               {decayingConnections.length} relationships going cold
             </span>
@@ -476,13 +476,13 @@ export default function DashboardPage() {
           </span>
           <Link
             href="/relationship-graph?view=coverage"
-            className="text-xs font-semibold text-brand hover:underline flex-shrink-0"
+            className="text-xs font-semibold text-[#8083ff] hover:underline flex-shrink-0"
           >
             View all →
           </Link>
           <button
             type="button"
-            className="p-1 rounded text-brand hover:text-foreground hover:bg-brand/10 transition-colors flex-shrink-0"
+            className="p-1 rounded text-[#8083ff] hover:text-[#e5e1e4] hover:bg-[#8083ff]/10 transition-colors flex-shrink-0"
             onClick={() => setBannerDismissed(true)}
           >
             <X className="w-3.5 h-3.5" />
@@ -492,27 +492,27 @@ export default function DashboardPage() {
 
       {/* ── Hero action card (featured play) ─────────────────────────────── */}
       {topPlay && !dismissed.has(topPlay.signal.id) && (
-        <div className="relative rounded-2xl border border-border/50 border-l-4 border-l-brand bg-gradient-to-r from-brand/8 to-transparent p-5">
+        <div className="relative rounded-2xl border border-[#464554] border-l-4 border-l-brand bg-gradient-to-r from-brand/8 to-transparent p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
-                <Flame className="w-4 h-4 text-brand flex-shrink-0" />
-                <span className="text-[11px] font-semibold text-brand uppercase tracking-wider">
+                <Flame className="w-4 h-4 text-[#8083ff] flex-shrink-0" />
+                <span className="text-[11px] font-semibold text-[#8083ff] uppercase tracking-wider">
                   Your warmest move today
                 </span>
               </div>
               <h2 className="text-xl font-bold mb-1">
                 {topPlay.contact?.name ?? topPlay.account?.name ?? "Unknown"}
                 {topPlay.contact && topPlay.account && (
-                  <span className="text-muted-foreground font-normal text-base">
+                  <span className="text-[#c7c4d7] font-normal text-base">
                     {" "}
                     · {topPlay.contact.title} at {topPlay.account.name}
                   </span>
                 )}
               </h2>
               {topPlay.via && (
-                <p className="text-sm text-muted-foreground mb-1">
-                  via <span className="font-semibold text-foreground">{topPlay.via}</span>
+                <p className="text-sm text-[#c7c4d7] mb-1">
+                  via <span className="font-semibold text-[#e5e1e4]">{topPlay.via}</span>
                   {" · "}
                   <Badge
                     variant="outline"
@@ -522,13 +522,13 @@ export default function DashboardPage() {
                   </Badge>
                 </p>
               )}
-              <p className="text-sm text-muted-foreground italic mb-4 leading-relaxed line-clamp-2">
+              <p className="text-sm text-[#c7c4d7] italic mb-4 leading-relaxed line-clamp-2">
                 {topPlay.signal.description ?? topPlay.signal.title}
               </p>
               <div className="flex items-center gap-2 flex-wrap">
                 <Button
                   size="sm"
-                  className="gap-1.5 bg-brand hover:bg-brand/90 text-white"
+                  className="gap-1.5 bg-[#8083ff] hover:bg-[#8083ff]/90 text-white"
                   onClick={() => {
                     const contact = contacts.find(
                       (c) => c.account_id === topPlay.signal.account_id,
@@ -565,7 +565,7 @@ export default function DashboardPage() {
                   <Link href={`/accounts/${topPlay.signal.account_id}`}>View account</Link>
                 </Button>
                 {plays.length > 1 && (
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-[#c7c4d7]">
                     +{plays.length - 1} more plays below
                   </span>
                 )}
@@ -573,7 +573,7 @@ export default function DashboardPage() {
             </div>
             <button
               type="button"
-              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors flex-shrink-0"
+              className="p-1.5 rounded-lg text-[#c7c4d7] hover:text-[#e5e1e4] hover:bg-muted/50 transition-colors flex-shrink-0"
               onClick={() => setDismissed((prev) => new Set([...prev, topPlay.signal.id]))}
             >
               <X className="w-4 h-4" />
@@ -585,7 +585,7 @@ export default function DashboardPage() {
       {/* ── Today's tasks strip ───────────────────────────────────────────── */}
       {todayTasks.length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <p className="text-xs font-semibold text-[#c7c4d7] uppercase tracking-wider mb-2 flex items-center gap-1.5">
             <ListChecks className="w-3.5 h-3.5" />
             Due today
           </p>
@@ -593,7 +593,7 @@ export default function DashboardPage() {
             {todayTasks.map((task) => (
               <div
                 key={task.id}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-lg border border-border/50 bg-card/50 flex-shrink-0 min-w-[200px] max-w-[260px]"
+                className="flex items-center gap-2.5 px-3 py-2 rounded-lg border border-[#464554] bg-[#201f22]/50 flex-shrink-0 min-w-[200px] max-w-[260px]"
               >
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium truncate">{task.title}</p>
@@ -615,7 +615,7 @@ export default function DashboardPage() {
 
       {/* ── 7-day activity bar chart ──────────────────────────────────────── */}
       <div>
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+        <p className="text-xs font-semibold text-[#c7c4d7] uppercase tracking-wider mb-2 flex items-center gap-1.5">
           <Activity className="w-3.5 h-3.5" />
           Personalized drafts this week
         </p>
@@ -629,17 +629,17 @@ export default function DashboardPage() {
               <div key={day.toDateString()} className="flex flex-col items-center gap-1 flex-1">
                 <div className="w-full flex items-end justify-center" style={{ height: 40 }}>
                   <div
-                    className={`w-full rounded-sm transition-all ${isToday ? "bg-brand" : "bg-brand/30"}`}
+                    className={`w-full rounded-sm transition-all ${isToday ? "bg-[#8083ff]" : "bg-[#8083ff]/30"}`}
                     style={{ height: `${heightPct}%` }}
                   />
                 </div>
                 <span
-                  className={`text-[9px] ${isToday ? "text-brand font-semibold" : "text-muted-foreground/60"}`}
+                  className={`text-[9px] ${isToday ? "text-[#8083ff] font-semibold" : "text-[#c7c4d7]/60"}`}
                 >
                   {label}
                 </span>
                 {count > 0 && (
-                  <span className="text-[9px] text-muted-foreground tabular-nums">{count}</span>
+                  <span className="text-[9px] text-[#c7c4d7] tabular-nums">{count}</span>
                 )}
               </div>
             );
@@ -654,13 +654,13 @@ export default function DashboardPage() {
           {plays.length > 1 && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                <p className="text-xs font-semibold text-[#c7c4d7] uppercase tracking-wider flex items-center gap-1.5">
                   <Zap className="w-3.5 h-3.5" />
                   More warm plays
                 </p>
                 <Link
                   href="/warm-leads"
-                  className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-0.5"
+                  className="text-[11px] text-[#c7c4d7] hover:text-[#e5e1e4] flex items-center gap-0.5"
                 >
                   All accounts <ChevronRight className="w-3 h-3" />
                 </Link>
@@ -669,7 +669,7 @@ export default function DashboardPage() {
                 {plays.slice(1).map(({ signal, account, contact, via, urgency }) => (
                   <div
                     key={signal.id}
-                    className={`flex-shrink-0 w-56 snap-start rounded-xl border border-l-2 p-3 bg-card ${URGENCY_RING[urgency]}`}
+                    className={`flex-shrink-0 w-56 snap-start rounded-xl border border-l-2 p-3 bg-[#201f22] ${URGENCY_RING[urgency]}`}
                   >
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="text-xs font-semibold truncate">{account?.name}</span>
@@ -681,14 +681,14 @@ export default function DashboardPage() {
                       </Badge>
                     </div>
                     {contact && (
-                      <p className="text-[11px] text-muted-foreground truncate mb-1">
+                      <p className="text-[11px] text-[#c7c4d7] truncate mb-1">
                         {contact.name}
                       </p>
                     )}
                     {via ? (
-                      <p className="text-[11px] text-brand font-medium truncate mb-2">via {via}</p>
+                      <p className="text-[11px] text-[#8083ff] font-medium truncate mb-2">via {via}</p>
                     ) : (
-                      <p className="text-[11px] text-muted-foreground truncate mb-2">
+                      <p className="text-[11px] text-[#c7c4d7] truncate mb-2">
                         No warm path
                       </p>
                     )}
@@ -705,7 +705,7 @@ export default function DashboardPage() {
               {dismissed.size > 0 && (
                 <button
                   type="button"
-                  className="text-[11px] text-muted-foreground hover:text-foreground w-full text-center py-1"
+                  className="text-[11px] text-[#c7c4d7] hover:text-[#e5e1e4] w-full text-center py-1"
                   onClick={() => setDismissed(new Set())}
                 >
                   Restore {dismissed.size} dismissed
@@ -715,10 +715,10 @@ export default function DashboardPage() {
           )}
 
           {plays.length === 0 && (
-            <div className="rounded-xl border border-border/50 bg-card/50 p-8 text-center">
-              <Zap className="w-6 h-6 text-muted-foreground/40 mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">No high-urgency signals right now.</p>
-              <p className="text-xs text-muted-foreground/70 mt-1">
+            <div className="rounded-xl border border-[#464554] bg-[#201f22]/50 p-8 text-center">
+              <Zap className="w-6 h-6 text-[#c7c4d7]/40 mx-auto mb-2" />
+              <p className="text-sm text-[#c7c4d7]">No high-urgency signals right now.</p>
+              <p className="text-xs text-[#c7c4d7]/70 mt-1">
                 Your agent is monitoring 50+ sources.
               </p>
             </div>
@@ -737,7 +737,7 @@ export default function DashboardPage() {
                     {championSignals.length}
                   </Badge>
                 </div>
-                <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
+                <p className="text-[11px] text-[#c7c4d7] mb-3 leading-relaxed">
                   Your champions changed jobs. Reach out now your relationship gives you a warm path
                   advantage at their new company.
                 </p>
@@ -760,13 +760,13 @@ export default function DashboardPage() {
                           {initials}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-foreground truncate">
+                          <p className="font-medium text-[#e5e1e4] truncate">
                             {contactName}
                             {newCo && (
-                              <span className="font-normal text-muted-foreground"> → {newCo}</span>
+                              <span className="font-normal text-[#c7c4d7]"> → {newCo}</span>
                             )}
                             {newTitle && (
-                              <span className="font-normal text-muted-foreground">
+                              <span className="font-normal text-[#c7c4d7]">
                                 {" "}
                                 as {newTitle}
                               </span>
@@ -802,17 +802,17 @@ export default function DashboardPage() {
         {/* ── Right column ─────────────────────────────────────────────────── */}
         <div className="space-y-4">
           {/* Pending approvals */}
-          <Card className="border-border/60">
+          <Card className="border-[#464554]">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs font-semibold flex items-center gap-1.5">
-                  <Bell className="w-3.5 h-3.5 text-muted-foreground" />
+                  <Bell className="w-3.5 h-3.5 text-[#c7c4d7]" />
                   Pending review
                 </p>
                 {totalPending > 0 && (
                   <Badge
                     variant="outline"
-                    className="text-[10px] bg-brand/10 text-brand border-brand/20"
+                    className="text-[10px] bg-[#8083ff]/10 text-[#8083ff] border-[#8083ff]/20"
                   >
                     {totalPending}
                   </Badge>
@@ -835,14 +835,14 @@ export default function DashboardPage() {
                           key={msg.id}
                           className="flex items-center gap-2.5 p-2 rounded-lg bg-muted/30 border border-border/40"
                         >
-                          <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center flex-shrink-0">
-                            <Icon className="w-3.5 h-3.5 text-brand" />
+                          <div className="w-7 h-7 rounded-md bg-[#8083ff]/10 flex items-center justify-center flex-shrink-0">
+                            <Icon className="w-3.5 h-3.5 text-[#8083ff]" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-xs font-medium truncate">
                               {msg.subject ?? `${msg.channel.replace("_", " ")} message`}
                             </p>
-                            <p className="text-[10px] text-muted-foreground truncate">
+                            <p className="text-[10px] text-[#c7c4d7] truncate">
                               {msg.contact?.name ?? "Contact"} · {msg.account?.name ?? "Account"}
                             </p>
                           </div>
@@ -857,7 +857,7 @@ export default function DashboardPage() {
                       );
                     })}
                     {totalPending > 2 && (
-                      <p className="text-[11px] text-muted-foreground pl-1">
+                      <p className="text-[11px] text-[#c7c4d7] pl-1">
                         +{totalPending - 2} more
                       </p>
                     )}
@@ -873,16 +873,16 @@ export default function DashboardPage() {
           </Card>
 
           {/* Warm paths quick view */}
-          <Card className="border-border/60">
+          <Card className="border-[#464554]">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs font-semibold flex items-center gap-1.5">
-                  <GitFork className="w-3.5 h-3.5 text-muted-foreground" />
+                  <GitFork className="w-3.5 h-3.5 text-[#c7c4d7]" />
                   Warm paths
                 </p>
                 <Link
                   href="/relationship-graph"
-                  className="text-[11px] text-muted-foreground hover:text-foreground"
+                  className="text-[11px] text-[#c7c4d7] hover:text-[#e5e1e4]"
                 >
                   View graph
                 </Link>
@@ -894,12 +894,12 @@ export default function DashboardPage() {
                   const labelColor = warmthLabelColor(wp.warmth_score);
                   return (
                     <div key={wp.id} className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-md bg-brand/10 flex items-center justify-center text-[10px] font-bold text-brand flex-shrink-0">
+                      <div className="w-6 h-6 rounded-md bg-[#8083ff]/10 flex items-center justify-center text-[10px] font-bold text-[#8083ff] flex-shrink-0">
                         {acc?.name?.[0] ?? "?"}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium truncate">{acc?.name}</p>
-                        <p className="text-[10px] text-muted-foreground truncate">
+                        <p className="text-[10px] text-[#c7c4d7] truncate">
                           via {wp.recommended_intro_person ?? "your network"}
                         </p>
                       </div>
@@ -915,10 +915,10 @@ export default function DashboardPage() {
           </Card>
 
           {/* Network health */}
-          <Card className="border-border/60">
+          <Card className="border-[#464554]">
             <CardContent className="p-4">
               <p className="text-xs font-semibold mb-3 flex items-center gap-1.5">
-                <Network className="w-3.5 h-3.5 text-muted-foreground" />
+                <Network className="w-3.5 h-3.5 text-[#c7c4d7]" />
                 Network health
               </p>
               <div className="flex h-2.5 rounded-full overflow-hidden mb-2">
@@ -927,7 +927,7 @@ export default function DashboardPage() {
                   style={{ width: `${(warmEdges / totalEdges) * 100}%` }}
                 />
                 <div
-                  className="bg-brand h-full"
+                  className="bg-[#8083ff] h-full"
                   style={{ width: `${(coolingEdges / totalEdges) * 100}%` }}
                 />
                 <div className="bg-muted h-full flex-1" />
@@ -938,7 +938,7 @@ export default function DashboardPage() {
                   {warmEdges} warm
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-brand" />
+                  <span className="w-2 h-2 rounded-full bg-[#8083ff]" />
                   {coolingEdges} cooling
                 </span>
                 <span className="flex items-center gap-1">
@@ -956,13 +956,13 @@ export default function DashboardPage() {
                     );
                     return (
                       <div key={edge.id} className="flex items-center gap-2 text-xs">
-                        <Link2Off className="w-3 h-3 text-brand flex-shrink-0" />
+                        <Link2Off className="w-3 h-3 text-[#8083ff] flex-shrink-0" />
                         <span className="flex-1 truncate font-medium">{name}</span>
-                        <span className="text-[10px] text-brand">{days}d ago</span>
+                        <span className="text-[10px] text-[#8083ff]">{days}d ago</span>
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-6 text-[10px] border-brand/30 text-brand hover:bg-brand/10 flex-shrink-0"
+                          className="h-6 text-[10px] border-[#8083ff]/30 text-[#8083ff] hover:bg-[#8083ff]/10 flex-shrink-0"
                           onClick={() => openReEngage(edge)}
                         >
                           Re-engage
@@ -980,25 +980,25 @@ export default function DashboardPage() {
 
           {/* Team */}
           {teamMembers.length > 0 && (
-            <Card className="border-border/60">
+            <Card className="border-[#464554]">
               <CardContent className="p-4">
                 <p className="text-xs font-semibold mb-3 flex items-center gap-1.5">
-                  <Users className="w-3.5 h-3.5 text-muted-foreground" />
+                  <Users className="w-3.5 h-3.5 text-[#c7c4d7]" />
                   Your network ({teamMembers.length} members)
                 </p>
                 <div className="space-y-2">
                   {teamMembers.slice(0, 4).map((tm) => (
                     <div key={tm.id} className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground flex-shrink-0">
+                      <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-[#c7c4d7] flex-shrink-0">
                         {tm.name[0]}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium truncate">{tm.name}</p>
-                        <p className="text-[10px] text-muted-foreground truncate">{tm.title}</p>
+                        <p className="text-[10px] text-[#c7c4d7] truncate">{tm.title}</p>
                       </div>
                       <div className="w-12 h-1.5 rounded-full bg-muted overflow-hidden flex-shrink-0">
                         <div
-                          className="h-full bg-brand rounded-full"
+                          className="h-full bg-[#8083ff] rounded-full"
                           style={{ width: `${tm.relationship_score}%` }}
                         />
                       </div>

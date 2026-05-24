@@ -116,14 +116,14 @@ function QualityScorer({ message }: { message: GeneratedMessage }) {
   };
 
   return (
-    <div className="rounded-2xl border border-border/60 bg-background p-4 space-y-3">
+    <div className="rounded-2xl border border-[#464554]/60 bg-background p-4 space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <TrendingUp className="w-3.5 h-3.5 text-brand" />
+          <TrendingUp className="w-3.5 h-3.5 text-[#8083ff]" />
           <span className="text-sm font-semibold">Message Quality</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">{q.wordCount} words</span>
+          <span className="text-xs text-[#c7c4d7]">{q.wordCount} words</span>
           <Badge
             variant="outline"
             className={`text-xs font-bold px-2 py-0.5 ${qualityBadgeClass(q.overall)}`}
@@ -137,7 +137,7 @@ function QualityScorer({ message }: { message: GeneratedMessage }) {
         {dimensions.map((dim) => (
           <div key={dim.label}>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[11px] text-muted-foreground">{dim.label}</span>
+              <span className="text-[11px] text-[#c7c4d7]">{dim.label}</span>
               <span
                 className="text-[11px] font-semibold tabular-nums"
                 style={{ color: qualityColor(dim.score) }}
@@ -159,8 +159,8 @@ function QualityScorer({ message }: { message: GeneratedMessage }) {
         <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
           <div className="flex items-start gap-1.5">
             <AlertTriangle className="w-3 h-3 text-amber-600 flex-shrink-0 mt-0.5" />
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
-              <span className="font-semibold text-foreground">Tip ({weakest.label}): </span>
+            <p className="text-[11px] text-[#c7c4d7] leading-relaxed">
+              <span className="font-semibold text-[#e5e1e4]">Tip ({weakest.label}): </span>
               {tips[weakest.label]}
             </p>
           </div>
@@ -178,9 +178,9 @@ function ResearchCard({ message }: { message: GeneratedMessage }) {
   const hasContent = !!message.personalization_reason || claims.length > 0;
 
   return (
-    <div className="rounded-2xl border border-border/60 bg-background p-4 space-y-3">
+    <div className="rounded-2xl border border-[#464554]/60 bg-background p-4 space-y-3">
       <div className="flex items-center gap-1.5">
-        <Sparkles className="w-3.5 h-3.5 text-brand" />
+        <Sparkles className="w-3.5 h-3.5 text-[#8083ff]" />
         <span className="text-sm font-semibold">Personalization Hooks</span>
         <Badge
           variant="outline"
@@ -191,7 +191,7 @@ function ResearchCard({ message }: { message: GeneratedMessage }) {
       </div>
 
       {!hasContent ? (
-        <p className="text-[11px] text-muted-foreground italic">
+        <p className="text-[11px] text-[#c7c4d7] italic">
           No research hooks — add specifics to increase reply rate.
         </p>
       ) : (
@@ -208,11 +208,11 @@ function ResearchCard({ message }: { message: GeneratedMessage }) {
           {claims.map((claim) => (
             <div
               key={claim}
-              className="flex items-start gap-2 rounded-xl border border-border/50 bg-muted/20 p-3"
+              className="flex items-start gap-2 rounded-xl border border-[#464554]/50 bg-muted/20 p-3"
             >
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
-                <p className="text-[11px] text-foreground leading-relaxed">{claim}</p>
+                <p className="text-[11px] text-[#e5e1e4] leading-relaxed">{claim}</p>
                 <span className="text-[10px] text-emerald-600 font-medium">Verified</span>
               </div>
             </div>
@@ -223,7 +223,7 @@ function ResearchCard({ message }: { message: GeneratedMessage }) {
               {sources.map((source) => (
                 <span
                   key={source}
-                  className="inline-flex items-center gap-1 rounded-full border border-border/50 bg-background px-2.5 py-1 text-[10px] text-muted-foreground"
+                  className="inline-flex items-center gap-1 rounded-full border border-[#464554]/50 bg-background px-2.5 py-1 text-[10px] text-[#c7c4d7]"
                 >
                   <ExternalLink className="w-2.5 h-2.5" />
                   {source}
@@ -234,7 +234,7 @@ function ResearchCard({ message }: { message: GeneratedMessage }) {
         </div>
       )}
 
-      <p className="text-[10px] text-muted-foreground border-t border-border/40 pt-2">
+      <p className="text-[10px] text-[#c7c4d7] border-t border-[#464554]/40 pt-2">
         Messages with 2+ specific hooks get 2.4× more replies
       </p>
     </div>
@@ -289,7 +289,7 @@ function WarmPathTrail({ message }: { message: GeneratedMessage }) {
 
   if (pathNodes.length === 0) {
     return (
-      <div className="text-sm text-muted-foreground">
+      <div className="text-sm text-[#c7c4d7]">
         {CHANNEL_CONFIG[message.channel]?.label ?? message.channel} follow-up path
       </div>
     );
@@ -300,19 +300,19 @@ function WarmPathTrail({ message }: { message: GeneratedMessage }) {
       <div className="flex flex-wrap items-center gap-1.5">
         {pathNodes.slice(0, 3).map((node, index) => (
           <div key={node.id} className="flex items-center gap-1.5">
-            {index > 0 && <span className="text-muted-foreground/40">→</span>}
-            <span className="rounded-full border border-border/60 bg-background px-2.5 py-1 text-xs font-medium">
+            {index > 0 && <span className="text-[#c7c4d7]/40">→</span>}
+            <span className="rounded-full border border-[#464554]/60 bg-background px-2.5 py-1 text-xs font-medium">
               {node.name.split(" ")[0]}
             </span>
           </div>
         ))}
-        <span className="text-muted-foreground/40">→</span>
-        <span className="inline-flex items-center gap-1 rounded-full border border-brand/20 bg-brand/8 px-2.5 py-1 text-xs font-medium text-brand">
+        <span className="text-[#c7c4d7]/40">→</span>
+        <span className="inline-flex items-center gap-1 rounded-full border border-brand/20 bg-[#8083ff]/8 px-2.5 py-1 text-xs font-medium text-[#8083ff]">
           <ChannelIcon className="h-3 w-3" />
           {CHANNEL_CONFIG[message.channel]?.label ?? message.channel}
         </span>
       </div>
-      <p className="text-xs text-muted-foreground">
+      <p className="text-xs text-[#c7c4d7]">
         {message.warm_path?.path_explanation ||
           "Best available path ranked by connection strength and recency."}
       </p>
@@ -349,29 +349,29 @@ function QueueRow({
         }
       }}
       className={cn(
-        "grid w-full gap-5 border-b border-border/50 px-5 py-5 text-left transition-colors last:border-b-0 hover:bg-muted/20 xl:grid-cols-[1.2fr_1fr_1fr_0.5fr_0.5fr]",
-        selected && "bg-brand/5",
+        "grid w-full gap-5 border-b border-[#464554]/50 px-5 py-5 text-left transition-colors last:border-b-0 hover:bg-muted/20 xl:grid-cols-[1.2fr_1fr_1fr_0.5fr_0.5fr]",
+        selected && "bg-[#8083ff]/5",
       )}
     >
       <div className="flex items-center gap-4">
-        <div className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-muted text-sm font-semibold text-foreground">
+        <div className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-muted text-sm font-semibold text-[#e5e1e4]">
           {getInitials(message.contact?.name ?? "WP")}
           <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border border-background bg-background shadow-sm">
-            <ContactIcon className="h-3.5 w-3.5 text-brand" />
+            <ContactIcon className="h-3.5 w-3.5 text-[#8083ff]" />
           </div>
         </div>
         <div className="min-w-0">
           <p className="truncate text-lg font-semibold">
             {message.contact?.name ?? "Unknown Contact"}
           </p>
-          <p className="text-sm text-muted-foreground">{message.contact?.title ?? "Prospect"}</p>
+          <p className="text-sm text-[#c7c4d7]">{message.contact?.title ?? "Prospect"}</p>
           <Badge
             variant="outline"
-            className="mt-1 text-[10px] bg-brand/5 text-brand border-brand/15 font-normal"
+            className="mt-1 text-[10px] bg-[#8083ff]/5 text-[#8083ff] border-brand/15 font-normal"
           >
             1:1 for {message.contact?.name?.split(" ")[0] ?? "this prospect"}
           </Badge>
-          <div className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+          <div className="mt-1 flex items-center gap-1.5 text-sm text-[#c7c4d7]">
             <Building2 className="h-3.5 w-3.5" />
             <span>{message.account?.name ?? "Unassigned account"}</span>
           </div>
@@ -380,10 +380,10 @@ function QueueRow({
 
       <div>
         <p className="mb-2 text-sm font-semibold">Buying Signals</p>
-        <ul className="space-y-1.5 text-sm text-muted-foreground">
+        <ul className="space-y-1.5 text-sm text-[#c7c4d7]">
           {signals.map((signal) => (
             <li key={signal} className="flex items-start gap-2">
-              <span className="mt-1 h-1.5 w-1.5 rounded-full bg-brand" />
+              <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#8083ff]" />
               <span>{signal}</span>
             </li>
           ))}
@@ -420,14 +420,14 @@ function QueueRow({
             event.stopPropagation();
             onApprove();
           }}
-          className="bg-brand text-brand-foreground hover:bg-brand/90"
+          className="bg-[#8083ff] text-[#8083ff]-foreground hover:bg-[#8083ff]/90"
         >
           Approve
         </Button>
         <Button
           variant="ghost"
           size="sm"
-          className="text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
+          className="text-[#c7c4d7] hover:text-red-500 hover:bg-red-500/10 transition-colors"
           onClick={(event) => {
             event.stopPropagation();
             onReject();
@@ -536,9 +536,9 @@ export default function ApprovalQueuePage() {
   }
 
   return (
-    <div className="space-y-6 px-4 py-6 md:px-6">
-      <div className="rounded-[28px] border border-border/60 bg-background shadow-sm">
-        <div className="flex flex-col gap-5 border-b border-border/60 px-6 py-6 xl:flex-row xl:items-start xl:justify-between">
+    <div className="space-y-6 px-4 py-6 md:px-6" style={{ backgroundColor: "#131315", color: "#e5e1e4" }}>
+      <div className="rounded-[28px] border border-[#464554]/60 bg-background shadow-sm">
+        <div className="flex flex-col gap-5 border-b border-[#464554]/60 px-6 py-6 xl:flex-row xl:items-start xl:justify-between">
           <div>
             <div className="mb-3 flex items-center gap-3">
               <h1 className="text-4xl font-bold tracking-tight">Outreach Review</h1>
@@ -546,12 +546,12 @@ export default function ApprovalQueuePage() {
                 <Badge variant="secondary" className="h-8 rounded-full px-3 text-sm">
                   {pendingMessages.length}
                 </Badge>
-                <span className="text-[10px] text-muted-foreground/70 pl-1">
+                <span className="text-[10px] text-[#c7c4d7]/70 pl-1">
                   Each written uniquely
                 </span>
               </div>
             </div>
-            <p className="max-w-2xl text-base text-muted-foreground">
+            <p className="max-w-2xl text-base text-[#c7c4d7]">
               Every draft is written 1:1 for this specific person — grounded in their account's
               signals, relationship context, and your team's knowledge base. Read each one before it
               sends.
@@ -561,7 +561,7 @@ export default function ApprovalQueuePage() {
           <div className="grid gap-3 sm:grid-cols-3 xl:min-w-[440px]">
             <Card size="sm" className="bg-muted/15 shadow-none">
               <CardContent className="p-4">
-                <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#c7c4d7]">
                   Ready to review
                 </p>
                 <p className="mt-2 text-3xl font-bold">{pendingMessages.length}</p>
@@ -569,7 +569,7 @@ export default function ApprovalQueuePage() {
             </Card>
             <Card size="sm" className="bg-muted/15 shadow-none">
               <CardContent className="p-4">
-                <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#c7c4d7]">
                   Avg Warmth
                 </p>
                 <p className="mt-2 text-3xl font-bold">{averageWarmth}</p>
@@ -577,7 +577,7 @@ export default function ApprovalQueuePage() {
             </Card>
             <Card size="sm" className="bg-muted/15 shadow-none">
               <CardContent className="p-4">
-                <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#c7c4d7]">
                   Confidence
                 </p>
                 <p className="mt-2 text-3xl font-bold">{averageConfidence}%</p>
@@ -589,12 +589,12 @@ export default function ApprovalQueuePage() {
         <div className="flex flex-col gap-4 px-6 py-5 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex flex-1 flex-col gap-3 lg:flex-row lg:items-center">
             <div className="relative w-full max-w-xl">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#c7c4d7]" />
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search prospects, accounts, or signals..."
-                className="h-11 w-full rounded-xl border border-border/60 bg-background pl-10 pr-4 text-sm outline-none transition-colors placeholder:text-muted-foreground/70 focus:border-brand/40"
+                className="h-11 w-full rounded-xl border border-[#464554]/60 bg-background pl-10 pr-4 text-sm outline-none transition-colors placeholder:text-[#c7c4d7]/70 focus:border-brand/40"
               />
             </div>
             <Button variant="outline" className="h-11 gap-2 self-start">
@@ -606,7 +606,7 @@ export default function ApprovalQueuePage() {
           <div className="flex flex-col items-end gap-1.5">
             <div className="flex items-center gap-2">
               <Button
-                className="h-11 gap-2 bg-brand px-5 text-brand-foreground hover:bg-brand/90"
+                className="h-11 gap-2 bg-[#8083ff] px-5 text-[#8083ff]-foreground hover:bg-[#8083ff]/90"
                 onClick={() => {
                   const first = filteredMessages[0];
                   if (first) setSelectedId(first.id);
@@ -636,8 +636,8 @@ export default function ApprovalQueuePage() {
         </div>
 
         <div className="grid gap-6 px-6 pb-6 xl:grid-cols-[1.65fr_0.85fr]">
-          <div className="overflow-hidden rounded-[24px] border border-border/60 bg-card">
-            <div className="flex flex-wrap gap-2 border-b border-border/60 px-4 py-3">
+          <div className="overflow-hidden rounded-[24px] border border-[#464554]/60 bg-[#201f22]">
+            <div className="flex flex-wrap gap-2 border-b border-[#464554]/60 px-4 py-3">
               {CHANNEL_TABS.map((tab) => (
                 <button
                   key={tab}
@@ -646,8 +646,8 @@ export default function ApprovalQueuePage() {
                   className={cn(
                     "inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors",
                     activeTab === tab
-                      ? "bg-brand/10 text-brand"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      ? "bg-[#8083ff]/10 text-[#8083ff]"
+                      : "text-[#c7c4d7] hover:bg-muted hover:text-[#e5e1e4]",
                   )}
                 >
                   <span>
@@ -656,7 +656,7 @@ export default function ApprovalQueuePage() {
                       : (CHANNEL_CONFIG[tab]?.label ?? tab)}
                   </span>
                   {tab !== "all" && (
-                    <span className="rounded-full bg-background px-2 py-0.5 text-xs text-muted-foreground">
+                    <span className="rounded-full bg-background px-2 py-0.5 text-xs text-[#c7c4d7]">
                       {counts[tab]}
                     </span>
                   )}
@@ -694,8 +694,8 @@ export default function ApprovalQueuePage() {
             )}
           </div>
 
-          <Card className="overflow-hidden rounded-[24px] border-border/60 shadow-none">
-            <CardHeader className="border-b border-border/50 pb-4">
+          <Card className="overflow-hidden rounded-[24px] border-[#464554]/60 shadow-none">
+            <CardHeader className="border-b border-[#464554]/50 pb-4">
               <CardTitle className="text-xl">Prospect Intelligence</CardTitle>
             </CardHeader>
 
@@ -709,35 +709,35 @@ export default function ApprovalQueuePage() {
                     <p className="text-xl font-semibold">
                       {selectedMessage.contact?.name ?? "Unknown Contact"}
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-[#c7c4d7]">
                       {selectedMessage.contact?.title ?? "Prospect"}
                     </p>
-                    <p className="text-xs text-brand/70 italic mt-0.5">
+                    <p className="text-xs text-[#8083ff]/70 italic mt-0.5">
                       Personalized exclusively for this prospect
                     </p>
-                    <div className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <div className="mt-1 flex items-center gap-1.5 text-sm text-[#c7c4d7]">
                       <Building2 className="h-3.5 w-3.5" />
                       {selectedMessage.account?.name ?? "Unassigned account"}
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-4 rounded-2xl border border-border/60 bg-muted/20 p-4">
+                <div className="space-y-4 rounded-2xl border border-[#464554]/60 bg-muted/20 p-4">
                   <div>
-                    <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                    <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#c7c4d7]">
                       Best Channel
                     </p>
                     <div className="mt-2 flex items-center gap-2 text-sm font-medium">
                       {(() => {
                         const Icon = channelIcon(selectedMessage.channel);
-                        return <Icon className="h-4 w-4 text-brand" />;
+                        return <Icon className="h-4 w-4 text-[#8083ff]" />;
                       })()}
                       {CHANNEL_CONFIG[selectedMessage.channel]?.label ?? selectedMessage.channel}
                     </div>
                   </div>
 
                   <div>
-                    <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                    <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#c7c4d7]">
                       Top Signal
                     </p>
                     <div className="mt-2 flex items-start gap-2 text-sm">
@@ -746,7 +746,7 @@ export default function ApprovalQueuePage() {
                         <p className="font-medium">
                           {selectedMessage.signal?.title ?? "Relationship context available"}
                         </p>
-                        <p className="text-muted-foreground">
+                        <p className="text-[#c7c4d7]">
                           {selectedMessage.signal
                             ? `${signalTypeLabel(selectedMessage.signal.type)} • ${formatRelativeTime(selectedMessage.signal.detected_at)}`
                             : "No explicit signal attached"}
@@ -757,7 +757,7 @@ export default function ApprovalQueuePage() {
 
                   <div>
                     <div className="mb-2 flex items-center justify-between">
-                      <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                      <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#c7c4d7]">
                         Warmth Score
                       </p>
                       <span className="text-sm font-semibold">
@@ -766,11 +766,11 @@ export default function ApprovalQueuePage() {
                     </div>
                     <div className="h-2 rounded-full bg-muted">
                       <div
-                        className="h-2 rounded-full bg-brand"
+                        className="h-2 rounded-full bg-[#8083ff]"
                         style={{ width: `${getWarmthScore(selectedMessage)}%` }}
                       />
                     </div>
-                    <p className="mt-2 text-sm text-muted-foreground">
+                    <p className="mt-2 text-sm text-[#c7c4d7]">
                       {warmthLabel(getWarmthScore(selectedMessage))}
                     </p>
                   </div>
@@ -779,15 +779,15 @@ export default function ApprovalQueuePage() {
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm font-semibold">Why this prospect?</p>
-                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    <p className="mt-2 text-sm leading-relaxed text-[#c7c4d7]">
                       {whyThisProspect(selectedMessage)}
                     </p>
                   </div>
 
                   <div>
                     <p className="text-sm font-semibold">Next Best Step</p>
-                    <div className="mt-2 flex items-start gap-2 text-sm text-muted-foreground">
-                      <GitFork className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand" />
+                    <div className="mt-2 flex items-start gap-2 text-sm text-[#c7c4d7]">
+                      <GitFork className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#8083ff]" />
                       <span>{nextBestStep(selectedMessage)}</span>
                     </div>
                   </div>
@@ -795,9 +795,9 @@ export default function ApprovalQueuePage() {
 
                 <QualityScorer message={selectedMessage} />
 
-                <div className="rounded-2xl border border-border/60 bg-background p-4">
+                <div className="rounded-2xl border border-[#464554]/60 bg-background p-4">
                   <div className="mb-3 flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-brand" />
+                    <Sparkles className="h-4 w-4 text-[#8083ff]" />
                     <p className="text-sm font-semibold">Draft Review</p>
                   </div>
 
@@ -810,7 +810,7 @@ export default function ApprovalQueuePage() {
                   <Textarea
                     value={draftBody}
                     onChange={(event) => setDraftBody(event.target.value)}
-                    className="min-h-[180px] resize-none border-border/60 bg-background"
+                    className="min-h-[180px] resize-none border-[#464554]/60 bg-background"
                   />
 
                   <div className="mt-4">
@@ -819,7 +819,7 @@ export default function ApprovalQueuePage() {
 
                   <div className="mt-4 flex flex-wrap gap-2">
                     <Button
-                      className="bg-brand text-brand-foreground hover:bg-brand/90"
+                      className="bg-[#8083ff] text-[#8083ff]-foreground hover:bg-[#8083ff]/90"
                       onClick={() => approveMessage(selectedMessage.id, draftBody)}
                     >
                       Approve Draft
@@ -843,12 +843,12 @@ export default function ApprovalQueuePage() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-brand/15 bg-brand/6 p-4">
+                <div className="rounded-2xl border border-brand/15 bg-[#8083ff]/6 p-4">
                   <div className="mb-2 flex items-center gap-2">
-                    <Users className="h-4 w-4 text-brand" />
+                    <Users className="h-4 w-4 text-[#8083ff]" />
                     <p className="text-sm font-semibold">AI Note</p>
                   </div>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
+                  <p className="text-sm leading-relaxed text-[#c7c4d7]">
                     {selectedMessage.signal?.description ||
                       "This draft is ranked highly because the account has timely intent context and a credible path for outreach."}
                   </p>
