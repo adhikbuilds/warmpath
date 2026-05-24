@@ -1,266 +1,1034 @@
 "use client";
 
-import { Calendar } from "lucide-react";
-import { AppShell } from "@/components/app-shell";
+import {
+  Activity,
+  AlertTriangle,
+  ArrowRight,
+  Bell,
+  CheckCircle,
+  ChevronRight,
+  Flame,
+  GitFork,
+  HelpCircle,
+  Link2Off,
+  Linkedin,
+  ListChecks,
+  Mail,
+  Network,
+  Phone,
+  Trophy,
+  Users,
+  X,
+  Zap,
+} from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { computeEdgeWarmth } from "@/lib/graph";
+import { formatRelativeTime, signalTypeColor, signalTypeLabel } from "@/lib/utils";
+import { useAuthStore } from "@/stores/authStore";
+import { useSalesStore } from "@/stores/salesStore";
+import type { RelationshipEdge, Signal } from "@/types";
 
-export default function DashboardPage() {
+const URGENCY_RING: Record<string, string> = {
+  high: "border-l-red-500",
+  medium: "border-l-brand",
+  low: "border-l-border",
+};
+
+const CHANNEL_PREVIEW_ICON = { email: Mail, linkedin: Users, warm_intro: GitFork, phone: Phone };
+
+// ─── Warmth label helper ──────────────────────────────────────────────────────
+
+function warmthLabel(score: number) {
+  return score >= 70 ? "Strong" : score >= 50 ? "Warm" : "Cool";
+}
+
+function warmthLabelColor(score: number) {
+  return score >= 70 ? "text-emerald-500" : score >= 50 ? "text-brand" : "text-muted-foreground";
+}
+
+// ─── Re-engage Sheet ──────────────────────────────────────────────────────────
+
+interface ReEngageSheetProps {
+  edge: RelationshipEdge | null;
+  userName: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+function ReEngageSheet({ edge, userName, open, onOpenChange }: ReEngageSheetProps) {
+  if (!edge) return null;
+
+  const isFromTeamMember = edge.from_type === "team_member" || edge.from_type === "user";
+  const contactName = isFromTeamMember ? edge.to_name : edge.from_name;
+  const firstName = contactName.split(" ")[0];
+  const companyHint = isFromTeamMember ? edge.to_name : edge.from_name;
+
+  const messageSubject = "Checking in how's everything going?";
+  const messageBody = `Hey ${firstName},
+
+Hope you're doing well! It's been a while since we last connected and I've been meaning to reach out.
+
+Saw ${companyHint} has been growing fast really impressive what you've been building.
+
+Would love to catch up no agenda, just reconnecting. Are you open for a quick 15-min call sometime?
+
+Best,
+${userName}`;
+
+  const fullMessage = `Subject: ${messageSubject}\n\n${messageBody}`;
+
+  function copyMessage() {
+    navigator.clipboard.writeText(fullMessage).then(() => {
+      toast.success("Copied to clipboard");
+    });
+  }
+
+  function openLinkedIn() {
+    const encoded = encodeURIComponent(contactName);
+    window.open(
+      `https://www.linkedin.com/search/results/people/?keywords=${encoded}`,
+      "_blank",
+      "noopener",
+    );
+  }
+
   return (
-    <AppShell activeNav="dashboard">
-      <main className="p-6 min-h-screen" style={{ backgroundColor: "#131315" }}>
-        {/* Header */}
-        <header className="flex justify-between items-center mb-8">
-          <div>
-            <h2 className="text-4xl font-bold text-[#e5e1e4]" style={{ letterSpacing: "-0.02em" }}>
-              Executive Insights
-            </h2>
-            <p className="text-sm text-[#c7c4d7] mt-1">
-              Network performance and relationship velocity over the last 30 days.
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+        <SheetHeader className="pb-2">
+          <SheetTitle className="flex items-center gap-2">
+            <Link2Off className="w-4 h-4 text-brand" />
+            Re-engage {contactName}
+          </SheetTitle>
+          <p className="text-xs text-muted-foreground">
+            Last interaction{" "}
+            {Math.round((Date.now() - new Date(edge.last_interaction_at).getTime()) / 86_400_000)}d
+            ago · warmth score {computeEdgeWarmth(edge)}
+          </p>
+        </SheetHeader>
+
+        <div className="px-6 space-y-4 pb-6">
+          {/* Draft message */}
+          <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-2">
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+              Pre-drafted check-in
             </p>
-          </div>
-          <div className="flex gap-3">
-            <button
-              className="border border-[#464554] bg-[#201f22] hover:bg-[#2a2a2c] text-[#e5e1e4] font-medium text-sm px-4 py-1.5 rounded transition-colors flex items-center gap-2"
-            >
-              <Calendar className="w-4 h-4" /> Last 30 Days
-            </button>
-            <button className="bg-[#8083ff] hover:bg-[#c0c1ff] hover:text-[#1000a9] text-white font-medium text-sm px-4 py-1.5 rounded transition-colors">
-              Export Report
-            </button>
-          </div>
-        </header>
-
-        {/* Bento Grid */}
-        <div className="grid grid-cols-12 gap-3">
-          {/* Card A: Reply Rate */}
-          <div
-            className="col-span-12 md:col-span-4 rounded-lg p-5 flex flex-col justify-between hover:opacity-80 transition-opacity border"
-            style={{
-              backgroundColor: "#201f22",
-              borderColor: "#2a2a2c",
-            }}
-          >
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-sm text-[#c7c4d7]">Warm Intro Reply Rate</span>
-              <span className="text-lg text-[#c7c4d7]">💬</span>
-            </div>
-            <div>
-              <div className="flex items-end gap-2 mb-2">
-                <span className="text-4xl font-bold text-[#e5e1e4]" style={{ letterSpacing: "-0.02em" }}>
-                  47%
-                </span>
-                <span
-                  className="text-xs font-medium px-1.5 py-0.5 rounded flex items-center gap-1 mb-1"
-                  style={{ backgroundColor: "#4edea3", color: "#131315" }}
-                >
-                  <span>📈</span> +39% vs cold
-                </span>
-              </div>
-              {/* Sparkline bars */}
-              <div className="h-8 w-full flex items-end gap-0.5 mt-2 opacity-60 hover:opacity-100 transition-opacity">
-                <div className="flex-1 bg-[#353437] rounded-t h-[30%]" />
-                <div className="flex-1 bg-[#353437] rounded-t h-[45%]" />
-                <div className="flex-1 bg-[#353437] rounded-t h-[35%]" />
-                <div className="flex-1 bg-[#353437] rounded-t h-[60%]" />
-                <div className="flex-1 bg-[#353437] rounded-t h-[50%]" />
-                <div className="flex-1 bg-[#353437] rounded-t h-[75%]" />
-                <div
-                  className="flex-1 rounded-t h-[90%] relative"
-                  style={{
-                    backgroundColor: "#4edea3",
-                    boxShadow: "0 0 8px rgba(78, 222, 163, 0.4)",
-                  }}
-                />
-              </div>
+            <p className="text-xs font-semibold text-foreground">Subject: {messageSubject}</p>
+            <div className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
+              {messageBody}
             </div>
           </div>
 
-          {/* Card B: Path Length */}
-          <div
-            className="col-span-12 md:col-span-4 rounded-lg p-5 flex flex-col justify-between hover:opacity-80 transition-opacity border"
-            style={{
-              backgroundColor: "#201f22",
-              borderColor: "#2a2a2c",
-            }}
-          >
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-sm text-[#c7c4d7]">Avg Path Length</span>
-              <span className="text-lg text-[#c7c4d7]">🛣️</span>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-[#e5e1e4] mb-2">1.2 Hops</div>
-              <p className="text-xs text-[#908fa0] uppercase tracking-widest mb-3">Direct relationships highly utilized</p>
-              <div className="flex items-center gap-3 mt-4">
-                <div className="flex-1 h-1 bg-[#353437] rounded-full overflow-hidden">
-                  <div className="w-[85%] h-full bg-[#c0c1ff]" />
-                </div>
-                <span className="text-xs text-[#c7c4d7]">85% Tier 1</span>
-              </div>
-            </div>
-          </div>
+          {/* Note */}
+          <p className="text-[11px] text-muted-foreground italic border-l-2 border-brand/40 pl-3">
+            This message doesn't mention WarmPath or sales. Keep it authentic.
+          </p>
 
-          {/* Card C: Control */}
-          <div
-            className="col-span-12 md:col-span-4 rounded-lg p-5 flex flex-col justify-between hover:opacity-80 transition-opacity border relative overflow-hidden"
-            style={{
-              backgroundColor: "#201f22",
-              borderColor: "#2a2a2c",
-            }}
-          >
-            <div className="absolute -right-4 -bottom-4 text-[#2a2a2c] opacity-20 pointer-events-none" style={{ fontSize: "120px" }}>
-              🔒
-            </div>
-            <div className="relative z-10">
-              <div className="flex justify-between items-start mb-4">
-                <span className="text-sm text-[#c7c4d7]">Security & Control</span>
-              </div>
-              <div className="text-3xl font-bold text-[#e5e1e4] mb-3">100%</div>
-              <div
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border"
-                style={{ backgroundColor: "rgba(78, 222, 163, 0.1)", borderColor: "rgba(78, 222, 163, 0.3)" }}
-              >
-                <span className="text-sm text-[#4edea3]">✓</span>
-                <span className="text-sm text-[#4edea3]">Connector-Approved Before Send</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Main Chart Card */}
-          <div
-            className="col-span-12 md:col-span-8 rounded-lg p-4 h-[420px] border flex flex-col"
-            style={{
-              backgroundColor: "#201f22",
-              borderColor: "#2a2a2c",
-            }}
-          >
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-semibold text-[#e5e1e4]">Meetings Booked via Warm Intro Paths</h3>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#c0c1ff" }} />
-                  <span className="text-xs text-[#c7c4d7] uppercase">Platform</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#353437" }} />
-                  <span className="text-xs text-[#c7c4d7] uppercase">External</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Chart placeholder with SVG */}
-            <div className="flex-grow relative border-b border-l" style={{ borderColor: "rgba(144, 143, 160, 0.3)" }}>
-              <svg
-                className="absolute bottom-0 w-full h-full"
-                preserveAspectRatio="none"
-                viewBox="0 0 100 100"
-                style={{
-                  overflow: "visible",
-                }}
-              >
-                <path
-                  d="M0,100 L0,80 Q10,75 20,60 T40,40 T60,50 T80,20 T100,10 L100,100 Z"
-                  fill="rgba(192, 193, 255, 0.1)"
-                  stroke="#c0c1ff"
-                  strokeWidth="2"
-                  vectorEffect="non-scaling-stroke"
-                />
-              </svg>
-              {/* Data points */}
-              <div className="absolute left-[20%] bottom-[40%] w-2 h-2 bg-[#131315] border-2 border-[#c0c1ff] rounded-full" />
-              <div className="absolute left-[40%] bottom-[60%] w-2 h-2 bg-[#131315] border-2 border-[#c0c1ff] rounded-full" />
-              <div className="absolute left-[60%] bottom-[50%] w-2 h-2 bg-[#131315] border-2 border-[#c0c1ff] rounded-full" />
-              <div className="absolute left-[80%] bottom-[80%] w-2 h-2 bg-[#131315] border-2 border-[#c0c1ff] rounded-full" style={{ boxShadow: "0 0 12px rgba(192, 193, 255, 0.8)" }}>
-                {/* Tooltip */}
-                <div
-                  className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded text-center text-sm whitespace-nowrap z-10 border"
-                  style={{
-                    backgroundColor: "#2a2a2c",
-                    borderColor: "#464554",
-                  }}
-                >
-                  <div className="text-[#e5e1e4] font-medium">24 Meetings</div>
-                  <div className="text-xs text-[#c7c4d7]">Nov 18</div>
-                </div>
-              </div>
-            </div>
-
-            {/* X Axis Labels */}
-            <div className="flex justify-between mt-3 text-xs text-[#c7c4d7] px-2">
-              <span>Nov 01</span>
-              <span>Nov 08</span>
-              <span>Nov 15</span>
-              <span>Nov 22</span>
-              <span>Nov 30</span>
-            </div>
-          </div>
-
-          {/* Activity Log Sidebar */}
-          <div
-            className="col-span-12 md:col-span-4 rounded-lg p-4 h-[420px] border flex flex-col overflow-hidden"
-            style={{
-              backgroundColor: "#201f22",
-              borderColor: "#2a2a2c",
-            }}
-          >
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-semibold text-[#e5e1e4]">Sequence Activity</h3>
-              <button className="text-[#c7c4d7] hover:text-[#e5e1e4] transition-colors">⋮</button>
-            </div>
-
-            {/* Timeline */}
-            <div className="flex-grow overflow-y-auto pr-2" style={{ scrollbarWidth: "thin", scrollbarColor: "#353437 transparent" }}>
-              <div className="relative border-l pl-6 space-y-6 pb-4" style={{ borderColor: "#353437" }}>
-                {/* Event 1 */}
-                <div className="relative">
-                  <div className="absolute -left-[11px] top-1 w-2.5 h-2.5 rounded-full border-2" style={{ backgroundColor: "#4edea3", borderColor: "#201f22" }} />
-                  <div className="text-sm text-[#e5e1e4] mb-0.5">
-                    Intro Sequence Closed <span style={{ color: "#4edea3" }}>Won</span>
-                  </div>
-                  <p className="text-sm text-[#c7c4d7] leading-snug">Sarah Jenkins accepted intro to Michael Chen (Acme Corp).</p>
-                  <span className="text-xs text-[#908fa0] mt-1.5 block">2 hours ago</span>
-                </div>
-
-                {/* Event 2 */}
-                <div className="relative">
-                  <div className="absolute -left-[11px] top-1 w-2.5 h-2.5 rounded-full border-2" style={{ backgroundColor: "#c0c1ff", borderColor: "#201f22" }} />
-                  <div className="text-sm text-[#e5e1e4] mb-0.5">Double Opt-in Triggered</div>
-                  <p className="text-sm text-[#c7c4d7] leading-snug">Automated request sent to David Miller regarding Project Phoenix.</p>
-                  <span className="text-xs text-[#908fa0] mt-1.5 block">5 hours ago</span>
-                </div>
-
-                {/* Event 3 */}
-                <div className="relative">
-                  <div className="absolute -left-[11px] top-1 w-2.5 h-2.5 rounded-full border-2" style={{ backgroundColor: "#353437", borderColor: "#201f22" }} />
-                  <div className="text-sm text-[#e5e1e4] mb-0.5">Path Discovered</div>
-                  <div
-                    className="rounded p-2 mt-2 border"
-                    style={{
-                      backgroundColor: "#2a2a2c",
-                      borderColor: "#2a2a2c",
-                    }}
-                  >
-                    <p className="text-xs text-[#e5e1e4] flex items-center gap-1.5">
-                      <span>👤</span> You
-                      <span style={{ color: "#908fa0" }}>→</span>
-                      <span>👤</span> E. Reed
-                      <span style={{ color: "#908fa0" }}>→</span>
-                      <span>🏢</span> Vertex Inc.
-                    </p>
-                  </div>
-                  <span className="text-xs text-[#908fa0] mt-1.5 block">Yesterday, 14:20</span>
-                </div>
-
-                {/* Event 4 */}
-                <div className="relative">
-                  <div className="absolute -left-[11px] top-1 w-2.5 h-2.5 rounded-full border-2" style={{ backgroundColor: "#353437", borderColor: "#201f22" }} />
-                  <div className="text-sm text-[#e5e1e4] mb-0.5">Relationship Synced</div>
-                  <p className="text-sm text-[#c7c4d7] leading-snug">142 new edge connections added from Workspace Email.</p>
-                  <span className="text-xs text-[#908fa0] mt-1.5 block">Yesterday, 09:00</span>
-                </div>
-              </div>
-            </div>
+          {/* Actions */}
+          <div className="flex gap-2 flex-col">
+            <Button className="w-full gap-2" onClick={copyMessage}>
+              Copy message
+            </Button>
+            <Button variant="outline" className="w-full gap-2" onClick={openLinkedIn}>
+              <Linkedin className="w-3.5 h-3.5" />
+              Open LinkedIn
+            </Button>
           </div>
         </div>
-      </main>
-    </AppShell>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+// ─── Champion Outreach Sheet ──────────────────────────────────────────────────
+
+function parseChampTitle(title: string) {
+  const m = title.match(/^(.+) moved from (.+) to (.+)$/);
+  return m ? { name: m[1], oldCo: m[2], newCo: m[3] } : null;
+}
+
+function parseChampDesc(desc: string) {
+  const m = desc.match(/joined (.+) as (.+?)\.?$/);
+  return m ? { newCo: m[1], newTitle: m[2] } : null;
+}
+
+interface ChampionOutreachSheetProps {
+  signal: Signal | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  userName: string;
+}
+
+function ChampionOutreachSheet({
+  signal,
+  open,
+  onOpenChange,
+  userName,
+}: ChampionOutreachSheetProps) {
+  if (!signal) return null;
+
+  const titleParsed = parseChampTitle(signal.title);
+  const descParsed = parseChampDesc(signal.description);
+
+  const contactName = titleParsed?.name ?? "Champion";
+  const firstName = contactName.split(" ")[0];
+  const oldCo = titleParsed?.oldCo ?? "their previous company";
+  const newCo = titleParsed?.newCo ?? descParsed?.newCo ?? "their new company";
+  const newTitle = descParsed?.newTitle ?? "their new role";
+  const userFirstName = userName.split(" ")[0];
+
+  const subject = `Congrats on the move to ${newCo}!`;
+  const body = `Hey ${firstName},
+
+Saw that you just joined ${newCo} as ${newTitle} congrats on the new role!
+
+We'd crossed paths when you were at ${oldCo}, and I've always had a lot of respect for the work you were doing there.
+
+Thought I'd reach out because a lot of ${newTitle} leaders we talk to are thinking about how to build warm pipeline without burning their new team's reputation on cold outreach. Given your background, I thought you might have a take on it.
+
+No agenda at all if you're open to reconnecting once you've settled in, would love a quick catch-up.
+
+Best,
+${userFirstName}`;
+
+  const fullMessage = `Subject: ${subject}\n\n${body}`;
+
+  function copyMessage() {
+    navigator.clipboard.writeText(fullMessage).then(() => {
+      toast.success("Copied!");
+    });
+  }
+
+  function openLinkedIn() {
+    const encoded = encodeURIComponent(contactName);
+    window.open(
+      `https://www.linkedin.com/search/results/people/?keywords=${encoded}`,
+      "_blank",
+      "noopener",
+    );
+  }
+
+  function createAccount() {
+    toast.success(`Account created for ${newCo} check Accounts`);
+  }
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+        <SheetHeader className="pb-2">
+          <SheetTitle className="flex items-center gap-2">
+            <Trophy className="w-4 h-4 text-violet-500" />
+            Reach out to {contactName}
+          </SheetTitle>
+          <p className="text-xs text-muted-foreground">
+            {oldCo} → {newCo} · {newTitle}
+          </p>
+        </SheetHeader>
+
+        <div className="px-6 space-y-4 pb-6">
+          {/* Draft message */}
+          <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-2">
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+              Pre-drafted message
+            </p>
+            <p className="text-xs font-semibold text-foreground">Subject: {subject}</p>
+            <div className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
+              {body}
+            </div>
+          </div>
+
+          {/* Note */}
+          <p className="text-[11px] text-muted-foreground italic border-l-2 border-violet-500/40 pl-3">
+            This message references your existing relationship, not WarmPath. Keep it authentic.
+          </p>
+
+          {/* Actions */}
+          <div className="flex gap-2 flex-col">
+            <button
+              type="button"
+              className="w-full h-9 rounded-md bg-brand text-brand-foreground text-sm font-medium flex items-center justify-center gap-2 hover:bg-brand/90 transition-colors"
+              onClick={copyMessage}
+            >
+              Copy message
+            </button>
+            <button
+              type="button"
+              className="w-full h-9 rounded-md border border-border text-sm font-medium flex items-center justify-center gap-2 hover:bg-muted/60 transition-colors"
+              onClick={openLinkedIn}
+            >
+              <Linkedin className="w-3.5 h-3.5" />
+              Open LinkedIn
+            </button>
+            <button
+              type="button"
+              className="w-full h-9 rounded-md border border-violet-500/30 text-violet-600 dark:text-violet-400 text-sm font-medium flex items-center justify-center gap-2 hover:bg-violet-500/10 transition-colors"
+              onClick={createAccount}
+            >
+              Auto-create account for {newCo}
+            </button>
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+export default function DashboardPage() {
+  const router = useRouter();
+  const { user } = useAuthStore();
+  const {
+    messages,
+    warmPaths,
+    accounts,
+    contacts,
+    signals,
+    campaignAssets,
+    teamMembers,
+    relationshipEdges,
+    followUpTasks,
+    completeFollowUpTask,
+    addMessageToQueue,
+    setTourOpen,
+  } = useSalesStore();
+
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [reEngageEdge, setReEngageEdge] = useState<RelationshipEdge | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [champSheetSignal, setChampSheetSignal] = useState<(typeof signals)[0] | null>(null);
+  const [champSheetOpen, setChampSheetOpen] = useState(false);
+
+  // ── Derived counts ────────────────────────────────────────────────────────
+  const pendingMessages = messages.filter((m) => m.approval_status === "pending");
+  const pendingAssets = campaignAssets.filter((a) => a.status === "pending_approval");
+  const totalPending = pendingMessages.length + pendingAssets.length;
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+
+  // ── 7-day activity strip ──────────────────────────────────────────────────
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return d;
+  });
+  // Fallback demo counts since demo messages use historical dates far from today
+  const DEMO_DAY_COUNTS = [2, 1, 4, 3, 5, 0, 0];
+  const dayMessages = (day: Date): number => {
+    return messages.filter((m) => {
+      const msgDate = m.sent_at ?? m.scheduled_at;
+      if (!msgDate) return false;
+      const d = new Date(msgDate);
+      return (
+        d.getFullYear() === day.getFullYear() &&
+        d.getMonth() === day.getMonth() &&
+        d.getDate() === day.getDate()
+      );
+    }).length;
+  };
+  const dayCounts = weekDays.map((d, i) => {
+    const real = dayMessages(d);
+    return real > 0 ? real : (DEMO_DAY_COUNTS[i] ?? 0);
+  });
+  const maxDayCount = Math.max(1, ...dayCounts);
+
+  // ── Today's warm plays ────────────────────────────────────────────────────
+  const plays = signals
+    .filter((s) => s.urgency_score >= 70 && !dismissed.has(s.id))
+    .sort((a, b) => b.urgency_score - a.urgency_score)
+    .slice(0, 5)
+    .map((signal) => {
+      const account = accounts.find((a) => a.id === signal.account_id);
+      const contact = contacts.find((c) => c.account_id === signal.account_id);
+      const path = warmPaths.find((w) => w.account_id === signal.account_id);
+      const via = path?.recommended_intro_person;
+      const urgency =
+        signal.urgency_score >= 85 ? "high" : signal.urgency_score >= 70 ? "medium" : "low";
+      return { signal, account, contact, path, via, urgency };
+    });
+
+  const topPlay = plays[0];
+
+  // ── Today's tasks ─────────────────────────────────────────────────────────
+  const todayTasks = followUpTasks
+    .filter((t) => t.status === "pending" && new Date(t.due_date) <= new Date())
+    .slice(0, 3);
+
+  // ── Champion moves ────────────────────────────────────────────────────────
+  const championSignals = useMemo(
+    () => signals.filter((s) => s.type === "champion_job_change").slice(0, 3),
+    [signals],
+  );
+
+  // ── Network decay alerts ──────────────────────────────────────────────────
+  const decayingConnections = useMemo(() => {
+    const now = Date.now();
+    return relationshipEdges
+      .filter((e) => {
+        const days = (now - new Date(e.last_interaction_at).getTime()) / (1000 * 60 * 60 * 24);
+        return days > 45;
+      })
+      .map((e) => {
+        const bridgeCount = warmPaths.filter((wp) =>
+          wp.path_nodes.some((n) => n.id === e.from_id || n.id === e.to_id),
+        ).length;
+        return { edge: e, bridgeCount, warmth: computeEdgeWarmth(e) };
+      })
+      .sort(
+        (a, b) =>
+          new Date(a.edge.last_interaction_at).getTime() -
+          new Date(b.edge.last_interaction_at).getTime(),
+      )
+      .slice(0, 4);
+  }, [relationshipEdges, warmPaths]);
+
+  // Coverage drop estimate
+  const totalAccounts = accounts.length || 1;
+  const coverageDrop = Math.round((decayingConnections.length / totalAccounts) * 100);
+
+  // ── Network health segments ───────────────────────────────────────────────
+  const warmEdges = relationshipEdges.filter((e) => computeEdgeWarmth(e) >= 70).length;
+  const coolingEdges = relationshipEdges.filter((e) => {
+    const w = computeEdgeWarmth(e);
+    return w >= 45 && w < 70;
+  }).length;
+  const coldEdges = relationshipEdges.filter((e) => computeEdgeWarmth(e) < 45).length;
+  const totalEdges = relationshipEdges.length || 1;
+
+  function openReEngage(edge: RelationshipEdge) {
+    setReEngageEdge(edge);
+    setSheetOpen(true);
+  }
+
+  function openChampSheet(signal: (typeof signals)[0]) {
+    setChampSheetSignal(signal);
+    setChampSheetOpen(true);
+  }
+
+  return (
+    <div className="p-6 space-y-6 max-w-[1280px] mx-auto">
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {greeting}, {user?.name?.split(" ")[0] ?? "there"}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {plays.length > 0
+              ? `${plays.length} warm ${plays.length === 1 ? "intro opportunity" : "intro opportunities"} ready`
+              : "No urgent plays right now"}
+            {totalPending > 0 && (
+              <>
+                {" · "}
+                <Link href="/approval-queue" className="text-brand hover:underline font-medium">
+                  {totalPending} awaiting approval
+                </Link>
+              </>
+            )}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {totalPending > 0 && (
+            <Button size="sm" className="bg-brand hover:bg-brand/90 text-white gap-1.5" asChild>
+              <Link href="/approval-queue">
+                <Bell className="w-3.5 h-3.5" />
+                Review {totalPending}
+              </Link>
+            </Button>
+          )}
+          <Button size="sm" variant="outline" asChild>
+            <Link href="/campaigns/new">
+              <ArrowRight className="w-3.5 h-3.5 mr-1" />
+              New campaign
+            </Link>
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setTourOpen(true)}
+            className="gap-1.5 text-muted-foreground hover:text-foreground"
+          >
+            <HelpCircle className="w-3.5 h-3.5" />
+            Tour
+          </Button>
+        </div>
+      </div>
+
+      {/* ── Decay Warning Banner ──────────────────────────────────────────── */}
+      {decayingConnections.length > 0 && !bannerDismissed && (
+        <div className="flex items-center gap-3 rounded-xl border border-brand/20 bg-brand/8 px-4 py-3 text-sm">
+          <AlertTriangle className="w-4 h-4 text-brand flex-shrink-0" />
+          <span className="flex-1 text-brand">
+            <span className="font-semibold">
+              {decayingConnections.length} relationships going cold
+            </span>
+            {" · "}Your warm path coverage drops{" "}
+            <span className="font-semibold">{coverageDrop}%</span> if these connections lapse.
+          </span>
+          <Link
+            href="/relationship-graph?view=coverage"
+            className="text-xs font-semibold text-brand hover:underline flex-shrink-0"
+          >
+            View all →
+          </Link>
+          <button
+            type="button"
+            className="p-1 rounded text-brand hover:text-foreground hover:bg-brand/10 transition-colors flex-shrink-0"
+            onClick={() => setBannerDismissed(true)}
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* ── Hero action card (featured play) ─────────────────────────────── */}
+      {topPlay && !dismissed.has(topPlay.signal.id) && (
+        <div className="relative rounded-2xl border border-border/50 border-l-4 border-l-brand bg-gradient-to-r from-brand/8 to-transparent p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <Flame className="w-4 h-4 text-brand flex-shrink-0" />
+                <span className="text-[11px] font-semibold text-brand uppercase tracking-wider">
+                  Your warmest move today
+                </span>
+              </div>
+              <h2 className="text-xl font-bold mb-1">
+                {topPlay.contact?.name ?? topPlay.account?.name ?? "Unknown"}
+                {topPlay.contact && topPlay.account && (
+                  <span className="text-muted-foreground font-normal text-base">
+                    {" "}
+                    · {topPlay.contact.title} at {topPlay.account.name}
+                  </span>
+                )}
+              </h2>
+              {topPlay.via && (
+                <p className="text-sm text-muted-foreground mb-1">
+                  via <span className="font-semibold text-foreground">{topPlay.via}</span>
+                  {" · "}
+                  <Badge
+                    variant="outline"
+                    className={`text-[10px] ${signalTypeColor(topPlay.signal.type)}`}
+                  >
+                    {signalTypeLabel(topPlay.signal.type)}
+                  </Badge>
+                </p>
+              )}
+              <p className="text-sm text-muted-foreground italic mb-4 leading-relaxed line-clamp-2">
+                {topPlay.signal.description ?? topPlay.signal.title}
+              </p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button
+                  size="sm"
+                  className="gap-1.5 bg-brand hover:bg-brand/90 text-white"
+                  onClick={() => {
+                    const contact = contacts.find(
+                      (c) => c.account_id === topPlay.signal.account_id,
+                    );
+                    const warmPath = warmPaths.find(
+                      (wp) => wp.account_id === topPlay.signal.account_id,
+                    );
+                    addMessageToQueue({
+                      account_id: topPlay.signal.account_id,
+                      contact_id: contact?.id ?? "",
+                      warm_path_id: warmPath?.id,
+                      signal_id: topPlay.signal.id,
+                      channel: "warm_intro",
+                      subject: `Intro request — ${topPlay.account?.name}`,
+                      body: `Hi,\n\nI noticed ${topPlay.signal.title} and wanted to reach out about ${topPlay.account?.name}.\n\n${topPlay.signal.description}\n\nWould you be open to a quick intro?`,
+                      intro_request: `Would you mind connecting me with someone at ${topPlay.account?.name}? The timing looks great based on their recent activity.`,
+                      status: "draft",
+                      approval_status: "pending",
+                      generated_by_ai: true,
+                      confidence_score: 0.85,
+                      personalization_reason: topPlay.signal.description ?? topPlay.signal.title,
+                      factual_claims: [topPlay.signal.title],
+                      supporting_sources: ["WarmPath signal monitor"],
+                      risk_flags: [],
+                    });
+                    toast.success("1:1 intro request drafted — review it before sending");
+                    router.push("/approval-queue");
+                  }}
+                >
+                  <GitFork className="w-3.5 h-3.5" />
+                  Draft intro request
+                </Button>
+                <Button size="sm" variant="outline" asChild>
+                  <Link href={`/accounts/${topPlay.signal.account_id}`}>View account</Link>
+                </Button>
+                {plays.length > 1 && (
+                  <span className="text-xs text-muted-foreground">
+                    +{plays.length - 1} more plays below
+                  </span>
+                )}
+              </div>
+            </div>
+            <button
+              type="button"
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors flex-shrink-0"
+              onClick={() => setDismissed((prev) => new Set([...prev, topPlay.signal.id]))}
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Today's tasks strip ───────────────────────────────────────────── */}
+      {todayTasks.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <ListChecks className="w-3.5 h-3.5" />
+            Due today
+          </p>
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {todayTasks.map((task) => (
+              <div
+                key={task.id}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-lg border border-border/50 bg-card/50 flex-shrink-0 min-w-[200px] max-w-[260px]"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium truncate">{task.title}</p>
+                  <p className="text-[10px] text-red-500">Overdue</p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 w-6 p-0 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10 flex-shrink-0"
+                  onClick={() => completeFollowUpTask(task.id)}
+                >
+                  <CheckCircle className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── 7-day activity bar chart ──────────────────────────────────────── */}
+      <div>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <Activity className="w-3.5 h-3.5" />
+          Personalized drafts this week
+        </p>
+        <div className="flex items-end gap-1 h-14">
+          {weekDays.map((day, i) => {
+            const count = dayCounts[i];
+            const heightPct = count > 0 ? Math.max(15, (count / maxDayCount) * 100) : 4;
+            const isToday = i === 6;
+            const label = day.toLocaleDateString("en-US", { weekday: "short" });
+            return (
+              <div key={day.toDateString()} className="flex flex-col items-center gap-1 flex-1">
+                <div className="w-full flex items-end justify-center" style={{ height: 40 }}>
+                  <div
+                    className={`w-full rounded-sm transition-all ${isToday ? "bg-brand" : "bg-brand/30"}`}
+                    style={{ height: `${heightPct}%` }}
+                  />
+                </div>
+                <span
+                  className={`text-[9px] ${isToday ? "text-brand font-semibold" : "text-muted-foreground/60"}`}
+                >
+                  {label}
+                </span>
+                {count > 0 && (
+                  <span className="text-[9px] text-muted-foreground tabular-nums">{count}</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-[1fr_320px] gap-6">
+        {/* ── Left column ──────────────────────────────────────────────────── */}
+        <div className="space-y-5">
+          {/* More warm plays (compact horizontal scroll, index 1-4) */}
+          {plays.length > 1 && (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                  <Zap className="w-3.5 h-3.5" />
+                  More warm plays
+                </p>
+                <Link
+                  href="/warm-leads"
+                  className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-0.5"
+                >
+                  All accounts <ChevronRight className="w-3 h-3" />
+                </Link>
+              </div>
+              <div className="flex gap-3 overflow-x-auto pb-2 snap-x">
+                {plays.slice(1).map(({ signal, account, contact, via, urgency }) => (
+                  <div
+                    key={signal.id}
+                    className={`flex-shrink-0 w-56 snap-start rounded-xl border border-l-2 p-3 bg-card ${URGENCY_RING[urgency]}`}
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs font-semibold truncate">{account?.name}</span>
+                      <Badge
+                        variant="outline"
+                        className={`text-[9px] flex-shrink-0 ml-1 ${signalTypeColor(signal.type)}`}
+                      >
+                        {signalTypeLabel(signal.type)}
+                      </Badge>
+                    </div>
+                    {contact && (
+                      <p className="text-[11px] text-muted-foreground truncate mb-1">
+                        {contact.name}
+                      </p>
+                    )}
+                    {via ? (
+                      <p className="text-[11px] text-brand font-medium truncate mb-2">via {via}</p>
+                    ) : (
+                      <p className="text-[11px] text-muted-foreground truncate mb-2">
+                        No warm path
+                      </p>
+                    )}
+                    <Button
+                      size="sm"
+                      className="h-6 text-[10px] w-full"
+                      onClick={() => toast.success(`Drafting for ${account?.name}…`)}
+                    >
+                      Draft 1:1 intro
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              {dismissed.size > 0 && (
+                <button
+                  type="button"
+                  className="text-[11px] text-muted-foreground hover:text-foreground w-full text-center py-1"
+                  onClick={() => setDismissed(new Set())}
+                >
+                  Restore {dismissed.size} dismissed
+                </button>
+              )}
+            </div>
+          )}
+
+          {plays.length === 0 && (
+            <div className="rounded-xl border border-border/50 bg-card/50 p-8 text-center">
+              <Zap className="w-6 h-6 text-muted-foreground/40 mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">No high-urgency signals right now.</p>
+              <p className="text-xs text-muted-foreground/70 mt-1">
+                Your agent is monitoring 50+ sources.
+              </p>
+            </div>
+          )}
+
+          {/* Champion moves */}
+          {championSignals.length > 0 && (
+            <Card className="border-violet-500/20 bg-violet-500/[0.02]">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-semibold flex items-center gap-1.5">Champion moves</p>
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] bg-violet-500/10 text-violet-500 border-violet-500/20"
+                  >
+                    {championSignals.length}
+                  </Badge>
+                </div>
+                <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
+                  Your champions changed jobs. Reach out now your relationship gives you a warm path
+                  advantage at their new company.
+                </p>
+                <div className="space-y-2.5 mb-3">
+                  {championSignals.map((signal) => {
+                    const titleParsed = parseChampTitle(signal.title);
+                    const descParsed = parseChampDesc(signal.description);
+                    const contactName = titleParsed?.name ?? "Champion";
+                    const newCo = titleParsed?.newCo ?? descParsed?.newCo ?? "New Company";
+                    const newTitle = descParsed?.newTitle ?? "";
+                    const initials = contactName
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .slice(0, 2)
+                      .toUpperCase();
+                    return (
+                      <div key={signal.id} className="flex items-start gap-2 text-xs">
+                        <div className="w-7 h-7 rounded-full bg-violet-500/15 flex items-center justify-center text-[10px] font-bold text-violet-600 flex-shrink-0">
+                          {initials}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-foreground truncate">
+                            {contactName}
+                            {newCo && (
+                              <span className="font-normal text-muted-foreground"> → {newCo}</span>
+                            )}
+                            {newTitle && (
+                              <span className="font-normal text-muted-foreground">
+                                {" "}
+                                as {newTitle}
+                              </span>
+                            )}
+                          </p>
+                          <span className="text-[10px] text-violet-500">
+                            {formatRelativeTime(signal.detected_at)}
+                          </span>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-6 text-[10px] flex-shrink-0 border-violet-500/30 text-violet-600 dark:text-violet-400 hover:bg-violet-500/10"
+                          onClick={() => openChampSheet(signal)}
+                        >
+                          Reach out
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+                <Link
+                  href="/signals?type=champion_job_change"
+                  className="text-[11px] text-violet-500 hover:text-violet-600 hover:underline"
+                >
+                  View all champion moves →
+                </Link>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* ── Right column ─────────────────────────────────────────────────── */}
+        <div className="space-y-4">
+          {/* Pending approvals */}
+          <Card className="border-border/60">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold flex items-center gap-1.5">
+                  <Bell className="w-3.5 h-3.5 text-muted-foreground" />
+                  Pending review
+                </p>
+                {totalPending > 0 && (
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] bg-brand/10 text-brand border-brand/20"
+                  >
+                    {totalPending}
+                  </Badge>
+                )}
+              </div>
+              {totalPending === 0 ? (
+                <div className="flex items-center gap-2 text-emerald-500 text-xs">
+                  <CheckCircle className="w-3.5 h-3.5" />
+                  All caught up
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-2 mb-3">
+                    {pendingMessages.slice(0, 2).map((msg) => {
+                      const Icon =
+                        CHANNEL_PREVIEW_ICON[msg.channel as keyof typeof CHANNEL_PREVIEW_ICON] ??
+                        Mail;
+                      return (
+                        <div
+                          key={msg.id}
+                          className="flex items-center gap-2.5 p-2 rounded-lg bg-muted/30 border border-border/40"
+                        >
+                          <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center flex-shrink-0">
+                            <Icon className="w-3.5 h-3.5 text-brand" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium truncate">
+                              {msg.subject ?? `${msg.channel.replace("_", " ")} message`}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground truncate">
+                              {msg.contact?.name ?? "Contact"} · {msg.account?.name ?? "Account"}
+                            </p>
+                          </div>
+                          <Button
+                            size="sm"
+                            className="h-6 text-[10px] flex-shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white"
+                            onClick={() => toast.success("Approved!")}
+                          >
+                            ✓
+                          </Button>
+                        </div>
+                      );
+                    })}
+                    {totalPending > 2 && (
+                      <p className="text-[11px] text-muted-foreground pl-1">
+                        +{totalPending - 2} more
+                      </p>
+                    )}
+                  </div>
+                  <Button size="sm" className="w-full h-8 text-xs" asChild>
+                    <Link href="/approval-queue">
+                      Review each one <ArrowRight className="w-3 h-3 ml-1.5" />
+                    </Link>
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Warm paths quick view */}
+          <Card className="border-border/60">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold flex items-center gap-1.5">
+                  <GitFork className="w-3.5 h-3.5 text-muted-foreground" />
+                  Warm paths
+                </p>
+                <Link
+                  href="/relationship-graph"
+                  className="text-[11px] text-muted-foreground hover:text-foreground"
+                >
+                  View graph
+                </Link>
+              </div>
+              <div className="space-y-2.5">
+                {warmPaths.slice(0, 4).map((wp) => {
+                  const acc = accounts.find((a) => a.id === wp.account_id);
+                  const label = warmthLabel(wp.warmth_score);
+                  const labelColor = warmthLabelColor(wp.warmth_score);
+                  return (
+                    <div key={wp.id} className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-md bg-brand/10 flex items-center justify-center text-[10px] font-bold text-brand flex-shrink-0">
+                        {acc?.name?.[0] ?? "?"}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium truncate">{acc?.name}</p>
+                        <p className="text-[10px] text-muted-foreground truncate">
+                          via {wp.recommended_intro_person ?? "your network"}
+                        </p>
+                      </div>
+                      <div className={`text-[10px] font-semibold ${labelColor}`}>{label}</div>
+                    </div>
+                  );
+                })}
+              </div>
+              <Button size="sm" variant="outline" className="w-full h-8 text-xs mt-3" asChild>
+                <Link href="/warm-leads">Find more warm paths</Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Network health */}
+          <Card className="border-border/60">
+            <CardContent className="p-4">
+              <p className="text-xs font-semibold mb-3 flex items-center gap-1.5">
+                <Network className="w-3.5 h-3.5 text-muted-foreground" />
+                Network health
+              </p>
+              <div className="flex h-2.5 rounded-full overflow-hidden mb-2">
+                <div
+                  className="bg-emerald-500 h-full"
+                  style={{ width: `${(warmEdges / totalEdges) * 100}%` }}
+                />
+                <div
+                  className="bg-brand h-full"
+                  style={{ width: `${(coolingEdges / totalEdges) * 100}%` }}
+                />
+                <div className="bg-muted h-full flex-1" />
+              </div>
+              <div className="flex items-center gap-3 text-[11px] mb-3">
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  {warmEdges} warm
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-brand" />
+                  {coolingEdges} cooling
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-muted-foreground/30" />
+                  {coldEdges} cold
+                </span>
+              </div>
+              {decayingConnections.length > 0 && (
+                <div className="space-y-2 border-t border-border/40 pt-3">
+                  {decayingConnections.slice(0, 2).map(({ edge }) => {
+                    const isFrom = edge.from_type === "team_member" || edge.from_type === "user";
+                    const name = isFrom ? edge.to_name : edge.from_name;
+                    const days = Math.round(
+                      (Date.now() - new Date(edge.last_interaction_at).getTime()) / 86400000,
+                    );
+                    return (
+                      <div key={edge.id} className="flex items-center gap-2 text-xs">
+                        <Link2Off className="w-3 h-3 text-brand flex-shrink-0" />
+                        <span className="flex-1 truncate font-medium">{name}</span>
+                        <span className="text-[10px] text-brand">{days}d ago</span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-6 text-[10px] border-brand/30 text-brand hover:bg-brand/10 flex-shrink-0"
+                          onClick={() => openReEngage(edge)}
+                        >
+                          Re-engage
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              <Button size="sm" variant="outline" className="w-full h-8 text-xs mt-3" asChild>
+                <Link href="/relationship-graph?view=coverage">View full network</Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Team */}
+          {teamMembers.length > 0 && (
+            <Card className="border-border/60">
+              <CardContent className="p-4">
+                <p className="text-xs font-semibold mb-3 flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5 text-muted-foreground" />
+                  Your network ({teamMembers.length} members)
+                </p>
+                <div className="space-y-2">
+                  {teamMembers.slice(0, 4).map((tm) => (
+                    <div key={tm.id} className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground flex-shrink-0">
+                        {tm.name[0]}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium truncate">{tm.name}</p>
+                        <p className="text-[10px] text-muted-foreground truncate">{tm.title}</p>
+                      </div>
+                      <div className="w-12 h-1.5 rounded-full bg-muted overflow-hidden flex-shrink-0">
+                        <div
+                          className="h-full bg-brand rounded-full"
+                          style={{ width: `${tm.relationship_score}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <Button size="sm" variant="outline" className="w-full h-8 text-xs mt-3" asChild>
+                  <Link href="/relationship-graph">Explore relationship graph</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+
+      {/* ── Re-engage Sheet ───────────────────────────────────────────────── */}
+      <ReEngageSheet
+        edge={reEngageEdge}
+        userName={user?.name ?? "You"}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+      />
+
+      {/* ── Champion Outreach Sheet ───────────────────────────────────────── */}
+      <ChampionOutreachSheet
+        signal={champSheetSignal}
+        open={champSheetOpen}
+        onOpenChange={setChampSheetOpen}
+        userName={user?.name ?? "You"}
+      />
+    </div>
   );
 }
