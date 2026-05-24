@@ -31,10 +31,10 @@ import type { Account } from "@/types";
 
 const STAGE_COLORS: Record<string, string> = {
   prospect: "bg-muted text-muted-foreground",
-  engaged: "bg-[#5db8a6]/10 text-[#3a8f7e] border-[#5db8a6]/20",
-  meeting: "bg-[#7b6ea8]/10 text-[#5c5180] border-[#7b6ea8]/20",
+  engaged: "bg-[#5db8a6]/10 text-[#4edea3] border-[#5db8a6]/20",
+  meeting: "bg-[#7b6ea8]/10 text-[#c0c1ff] border-[#7b6ea8]/20",
   proposal: "bg-brand/10 text-brand border-brand/20",
-  closed_won: "bg-[#5db872]/10 text-[#3a8f4e] border-[#5db872]/20",
+  closed_won: "bg-[#5db872]/10 text-[#5db872] border-[#5db872]/20",
   closed_lost: "bg-red-500/10 text-red-500 border-red-500/20",
 };
 

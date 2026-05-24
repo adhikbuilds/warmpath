@@ -94,6 +94,8 @@ export interface WarmPath {
 }
 
 export type SignalType =
+  | "linkedin_engagement"
+  | "linkedin_post"
   | "job_posting"
   | "funding"
   | "website_visit"
@@ -101,7 +103,6 @@ export type SignalType =
   | "competitor_hiring"
   | "tech_stack_change"
   | "leadership_change"
-  | "linkedin_post"
   | "product_launch"
   | "g2_review"
   | "champion_job_change"
@@ -121,6 +122,11 @@ export interface Signal {
   urgency_score: number;
   confidence_score: number;
   recommended_action: string;
+  // LinkedIn engagement enrichment
+  engagement_type?: "liked" | "commented" | "reposted";
+  post_snippet?: string;
+  team_member_name?: string;
+  team_member_id?: string;
 }
 
 export interface Campaign {

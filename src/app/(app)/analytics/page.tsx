@@ -152,10 +152,10 @@ function ReplyRateTooltip({
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  active: "bg-[#5db872]/10 text-[#3a8f4e] border-[#5db872]/20",
+  active: "bg-[#5db872]/10 text-[#5db872] border-[#5db872]/20",
   draft: "bg-muted text-muted-foreground border-border/40",
   paused: "bg-brand/10 text-brand border-brand/20",
-  completed: "bg-[#5db8a6]/10 text-[#3a8f7e] border-[#5db8a6]/20",
+  completed: "bg-[#4edea3]/10 text-[#4edea3] border-[#4edea3]/20",
 };
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -318,7 +318,7 @@ export default function AnalyticsPage() {
       {/* ── Hero banner ───────────────────────────────────────────────────── */}
       <div className="rounded-2xl border border-[#5db872]/25 bg-[#5db872]/6 p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <div className="flex-1 min-w-0">
-          <p className="text-xl font-bold text-[#4a8a6a]">
+          <p className="text-xl font-bold text-[#4edea3]">
             Warm outreach books{" "}
             <span className="text-3xl font-extrabold tabular-nums" style={{ color: "#5db872" }}>
               6.2×
@@ -709,7 +709,7 @@ export default function AnalyticsPage() {
                     </div>
                     <div className="h-2 rounded-full bg-muted overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-slate-400 transition-all duration-500"
+                        className="h-full rounded-full bg-[#908fa0] transition-all duration-500"
                         style={{ width: `${pct}%` }}
                       />
                     </div>
@@ -792,7 +792,7 @@ export default function AnalyticsPage() {
                       Top signals (most frequent)
                     </span>
                     <span className="flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-sm bg-slate-400 flex-shrink-0" />
+                      <span className="w-2.5 h-2.5 rounded-sm bg-[#908fa0] flex-shrink-0" />
                       Other signals
                     </span>
                   </div>

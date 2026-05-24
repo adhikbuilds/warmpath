@@ -7,15 +7,31 @@ import { DEMO_CONTACTS_EXTRA } from "@/lib/demo-data-extended";
 export async function GET() {
   try {
     const workspaceId = await getWorkspaceId();
-    const contacts = await prisma.contact.findMany({
+    const prismaContacts = await prisma.contact.findMany({
       where: { workspaceId },
       include: { account: true },
       orderBy: { createdAt: "desc" },
     });
-    if (contacts.length === 0) {
-      return NextResponse.json([...DEMO_CONTACTS, ...DEMO_CONTACTS_EXTRA]);
+    const baseContacts =
+      prismaContacts.length > 0 ? prismaContacts : [...DEMO_CONTACTS, ...DEMO_CONTACTS_EXTRA];
+
+    // Try Twenty CRM if configured
+    if (process.env.TWENTY_API_KEY) {
+      try {
+        const { syncFromTwenty } = await import("@/lib/twenty/sync");
+        const twentyData = await syncFromTwenty();
+        // Merge: Twenty contacts come first (they are the CRM of record)
+        const prismaSet = new Set(baseContacts.map((c) => c.email?.toLowerCase()).filter(Boolean));
+        const newFromTwenty = twentyData.contacts.filter(
+          (c) => !c.email || !prismaSet.has(c.email.toLowerCase()),
+        );
+        return NextResponse.json([...newFromTwenty, ...baseContacts]);
+      } catch {
+        // Twenty not available, use Prisma/demo only
+      }
     }
-    return NextResponse.json(contacts);
+
+    return NextResponse.json(baseContacts);
   } catch {
     return NextResponse.json([...DEMO_CONTACTS, ...DEMO_CONTACTS_EXTRA]);
   }

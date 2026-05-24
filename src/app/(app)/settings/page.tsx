@@ -436,7 +436,7 @@ export default function SettingsPage() {
                     }`}
                   >
                     <div
-                      className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+                      className={`absolute top-0.5 w-4 h-4 rounded-full bg-[#e5e1e4] shadow transition-transform ${
                         enabledSignals[signal.id] ? "left-4" : "left-0.5"
                       }`}
                     />
