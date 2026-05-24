@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   ExternalLink,
   Filter,
+  Flame,
   GitFork,
   Info,
   Linkedin,
@@ -448,6 +449,7 @@ export default function ApprovalQueuePage() {
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draftBody, setDraftBody] = useState("");
+  const [showHistory, setShowHistory] = useState(false);
 
   const pendingMessages = useMemo(
     () =>
@@ -536,336 +538,301 @@ export default function ApprovalQueuePage() {
   }
 
   return (
-    <div className="space-y-6 px-4 py-6 md:px-6" style={{ backgroundColor: "#131315", color: "#e5e1e4" }}>
-      <div className="rounded-[28px] border border-[#464554]/60 bg-background shadow-sm">
-        <div className="flex flex-col gap-5 border-b border-[#464554]/60 px-6 py-6 xl:flex-row xl:items-start xl:justify-between">
-          <div>
-            <div className="mb-3 flex items-center gap-3">
-              <h1 className="text-4xl font-bold tracking-tight">Outreach Review</h1>
-              <div className="flex flex-col items-start gap-0.5">
-                <Badge variant="secondary" className="h-8 rounded-full px-3 text-sm">
-                  {pendingMessages.length}
-                </Badge>
-                <span className="text-[10px] text-[#c7c4d7]/70 pl-1">
-                  Each written uniquely
-                </span>
-              </div>
-            </div>
-            <p className="max-w-2xl text-base text-[#c7c4d7]">
-              Every draft is written 1:1 for this specific person — grounded in their account's
-              signals, relationship context, and your team's knowledge base. Read each one before it
-              sends.
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-3 xl:min-w-[440px]">
-            <Card size="sm" className="bg-muted/15 shadow-none">
-              <CardContent className="p-4">
-                <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#c7c4d7]">
-                  Ready to review
-                </p>
-                <p className="mt-2 text-3xl font-bold">{pendingMessages.length}</p>
-              </CardContent>
-            </Card>
-            <Card size="sm" className="bg-muted/15 shadow-none">
-              <CardContent className="p-4">
-                <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#c7c4d7]">
-                  Avg Warmth
-                </p>
-                <p className="mt-2 text-3xl font-bold">{averageWarmth}</p>
-              </CardContent>
-            </Card>
-            <Card size="sm" className="bg-muted/15 shadow-none">
-              <CardContent className="p-4">
-                <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#c7c4d7]">
-                  Confidence
-                </p>
-                <p className="mt-2 text-3xl font-bold">{averageConfidence}%</p>
-              </CardContent>
-            </Card>
+    <div className="flex h-full overflow-hidden bg-[#131315]">
+      {/* Left Pane: Queue List (35%) */}
+      <div className="w-[35%] min-w-[320px] max-w-[400px] border-r border-[#464554] bg-[#131315] flex flex-col z-10 overflow-y-auto">
+        {/* Queue Header */}
+        <div className="h-12 border-b border-[#464554] flex items-center justify-between px-4 shrink-0 bg-[#131315]">
+          <h2 className="text-sm font-semibold text-[#e5e1e4]">Pending Intros</h2>
+          <div className="flex gap-2">
+            <button className="p-1 text-[#c7c4d7] hover:text-[#e5e1e4] transition-colors">
+              <Filter className="w-4 h-4" />
+            </button>
+            <button className="p-1 text-[#c7c4d7] hover:text-[#e5e1e4] transition-colors">
+              <Zap className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 px-6 py-5 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex flex-1 flex-col gap-3 lg:flex-row lg:items-center">
-            <div className="relative w-full max-w-xl">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#c7c4d7]" />
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search prospects, accounts, or signals..."
-                className="h-11 w-full rounded-xl border border-[#464554]/60 bg-background pl-10 pr-4 text-sm outline-none transition-colors placeholder:text-[#c7c4d7]/70 focus:border-brand/40"
+        {/* Queue Scrollable List */}
+        <div className="flex-1 overflow-y-auto">
+          {filteredMessages.length === 0 ? (
+            <div className="px-4 py-16">
+              <EmptyState
+                variant="no-results"
+                title="No drafts match"
+                description="Try another channel or search query."
               />
             </div>
-            <Button variant="outline" className="h-11 gap-2 self-start">
-              <Filter className="h-4 w-4" />
-              Filter
-            </Button>
-          </div>
+          ) : (
+            filteredMessages.map((message) => {
+              const ContactIcon = channelIcon(message.channel);
+              const warmthScore = getWarmthScore(message);
+              const isSelected = selectedMessage?.id === message.id;
 
-          <div className="flex flex-col items-end gap-1.5">
-            <div className="flex items-center gap-2">
-              <Button
-                className="h-11 gap-2 bg-[#8083ff] px-5 text-[#4edea3]-foreground hover:bg-[#8083ff]/90"
-                onClick={() => {
-                  const first = filteredMessages[0];
-                  if (first) setSelectedId(first.id);
-                }}
-                disabled={filteredMessages.length === 0}
-              >
-                Review next draft
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                className="h-11 gap-2 px-5"
-                onClick={handleApproveAll}
-                disabled={filteredMessages.length === 0}
-              >
-                <Check className="h-4 w-4" />
-                Send all {filteredMessages.length} drafts
-              </Button>
-            </div>
-            {hasWarmIntro && (
-              <p className="flex items-center gap-1 text-[11px] text-amber-600">
-                <AlertTriangle className="h-3 w-3" />
-                Warm intros still need each connector's personal OK
-              </p>
+              return (
+                <div
+                  key={message.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setSelectedId(message.id)}
+                  className={cn(
+                    "p-4 border-b border-[#464554] cursor-pointer transition-colors hover:bg-[#201f22] flex flex-col gap-2",
+                    isSelected ? "bg-[#201f22] border-l-2 border-l-[#8083ff]" : "border-l-2 border-l-transparent",
+                  )}
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-medium text-[#e5e1e4]">
+                        {message.contact?.name ?? "Unknown"}
+                      </h3>
+                      <p className="text-xs text-[#c7c4d7]">
+                        {message.contact?.title ?? "Prospect"}
+                      </p>
+                    </div>
+                    <span className="text-xs text-[#c7c4d7]">
+                      {warmthScore > 0 && `${warmthScore} warmth`}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 bg-[#4edea3]/10 text-[#4edea3] border border-[#4edea3]/20 px-2 py-0.5 rounded text-xs">
+                      <Flame className="w-3 h-3" />
+                      {warmthScore} Warmth
+                    </span>
+                    {message.warm_path?.recommended_intro_person && (
+                      <span className="inline-flex items-center bg-[#353437] text-[#c7c4d7] px-2 py-0.5 rounded text-xs">
+                        {message.warm_path.recommended_intro_person}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      {/* Right Pane: Review Dashboard (65%) */}
+      <div className="flex-1 flex flex-col bg-[#131315] relative overflow-y-auto">
+        {/* TopAppBar Context */}
+        <div className="h-12 border-b border-[#464554] bg-[#131315] flex items-center justify-between px-6 shrink-0 sticky top-0 z-20">
+          <div className="flex items-center gap-4">
+            {selectedMessage ? (
+              <>
+                <h2 className="text-sm font-semibold text-[#e5e1e4]">
+                  Review Request: {selectedMessage.contact?.name}
+                </h2>
+                <span className="bg-[#353437] text-[#c7c4d7] px-2 py-0.5 rounded text-xs border border-[#464554]">
+                  ID: {selectedMessage.id.slice(0, 8)}
+                </span>
+              </>
+            ) : (
+              <h2 className="text-sm font-semibold text-[#c7c4d7]">Select a draft to review</h2>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {selectedMessage && (
+              <>
+                <button
+                  onClick={() => setShowHistory(!showHistory)}
+                  className="h-8 px-3 flex items-center justify-center border border-[#464554] text-[#e5e1e4] rounded text-xs hover:bg-[#201f22] transition-colors"
+                >
+                  <HistoryIcon className="w-4 h-4 mr-1" />
+                  History
+                </button>
+                <button className="h-8 w-8 flex items-center justify-center border border-[#464554] text-[#e5e1e4] rounded hover:bg-[#201f22] transition-colors">
+                  <Zap className="w-4 h-4" />
+                </button>
+              </>
             )}
           </div>
         </div>
 
-        <div className="grid gap-6 px-6 pb-6 xl:grid-cols-[1.65fr_0.85fr]">
-          <div className="overflow-hidden rounded-[24px] border border-[#464554]/60 bg-[#201f22]">
-            <div className="flex flex-wrap gap-2 border-b border-[#464554]/60 px-4 py-3">
-              {CHANNEL_TABS.map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => setActiveTab(tab)}
-                  className={cn(
-                    "inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors",
-                    activeTab === tab
-                      ? "bg-[#8083ff]/10 text-[#4edea3]"
-                      : "text-[#c7c4d7] hover:bg-muted hover:text-[#e5e1e4]",
-                  )}
-                >
-                  <span>
-                    {tab === "all"
-                      ? `${counts[tab]} drafts to review`
-                      : (CHANNEL_CONFIG[tab]?.label ?? tab)}
-                  </span>
-                  {tab !== "all" && (
-                    <span className="rounded-full bg-background px-2 py-0.5 text-xs text-[#c7c4d7]">
-                      {counts[tab]}
+        {/* Content Canvas */}
+        {selectedMessage ? (
+          <div className="p-6 max-w-[800px] flex flex-col gap-6 flex-1 overflow-y-auto">
+            {/* Path Context Banner (Bento Style) */}
+            <div className="grid grid-cols-3 gap-4">
+              {/* Target Card */}
+              <div className="col-span-2 bg-[#201f22] border border-[#464554] rounded p-4 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs text-[#c7c4d7] uppercase tracking-wider">
+                      Target Node
                     </span>
-                  )}
-                </button>
-              ))}
-            </div>
-
-            {filteredMessages.length === 0 ? (
-              <div className="px-6 py-16">
-                <EmptyState
-                  variant="no-results"
-                  title="No drafts match this view"
-                  description="Try another channel or search query."
-                />
-              </div>
-            ) : (
-              <div>
-                {filteredMessages.map((message) => (
-                  <QueueRow
-                    key={message.id}
-                    message={message}
-                    selected={selectedMessage?.id === message.id}
-                    onSelect={() => setSelectedId(message.id)}
-                    onApprove={() => {
-                      approveMessage(message.id);
-                      toast.success("Approved");
-                    }}
-                    onReject={() => {
-                      rejectMessage(message.id);
-                      toast.success("Rejected");
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
-          <Card className="overflow-hidden rounded-[24px] border-[#464554]/60 shadow-none">
-            <CardHeader className="border-b border-[#464554]/50 pb-4">
-              <CardTitle className="text-xl">Prospect Intelligence</CardTitle>
-            </CardHeader>
-
-            {selectedMessage ? (
-              <CardContent className="space-y-6 p-5">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted text-base font-semibold">
-                    {getInitials(selectedMessage.contact?.name ?? "WP")}
                   </div>
-                  <div>
-                    <p className="text-xl font-semibold">
-                      {selectedMessage.contact?.name ?? "Unknown Contact"}
-                    </p>
-                    <p className="text-sm text-[#c7c4d7]">
-                      {selectedMessage.contact?.title ?? "Prospect"}
-                    </p>
-                    <p className="text-xs text-[#4edea3]/70 italic mt-0.5">
-                      Personalized exclusively for this prospect
-                    </p>
-                    <div className="mt-1 flex items-center gap-1.5 text-sm text-[#c7c4d7]">
-                      <Building2 className="h-3.5 w-3.5" />
-                      {selectedMessage.account?.name ?? "Unassigned account"}
-                    </div>
-                  </div>
+                  <h3 className="text-lg font-semibold text-[#e5e1e4]">
+                    {selectedMessage.contact?.name}
+                  </h3>
+                  <p className="text-sm text-[#c7c4d7] mt-1">
+                    {selectedMessage.contact?.title} at {selectedMessage.account?.name}
+                  </p>
                 </div>
+                <div className="mt-4 flex gap-2">
+                  <a
+                    href="#"
+                    className="text-[#8083ff] hover:text-[#b3b4ff] text-xs flex items-center gap-1 transition-colors"
+                  >
+                    <ExternalLink className="w-3 h-3" /> LinkedIn
+                  </a>
+                </div>
+              </div>
 
-                <div className="space-y-4 rounded-2xl border border-[#464554]/60 bg-muted/20 p-4">
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#c7c4d7]">
-                      Best Channel
-                    </p>
-                    <div className="mt-2 flex items-center gap-2 text-sm font-medium">
-                      {(() => {
-                        const Icon = channelIcon(selectedMessage.channel);
-                        return <Icon className="h-4 w-4 text-[#4edea3]" />;
-                      })()}
-                      {CHANNEL_CONFIG[selectedMessage.channel]?.label ?? selectedMessage.channel}
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#c7c4d7]">
-                      Top Signal
-                    </p>
-                    <div className="mt-2 flex items-start gap-2 text-sm">
-                      <Zap className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" />
-                      <div>
-                        <p className="font-medium">
-                          {selectedMessage.signal?.title ?? "Relationship context available"}
-                        </p>
-                        <p className="text-[#c7c4d7]">
-                          {selectedMessage.signal
-                            ? `${signalTypeLabel(selectedMessage.signal.type)} • ${formatRelativeTime(selectedMessage.signal.detected_at)}`
-                            : "No explicit signal attached"}
-                        </p>
+              {/* Path Connector */}
+              <div className="col-span-1 bg-[#201f22] border border-[#464554] rounded p-4 flex flex-col justify-between relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-2 opacity-10">
+                  <GitFork className="w-16 h-16" />
+                </div>
+                <div>
+                  <span className="text-xs text-[#c7c4d7] uppercase tracking-wider">
+                    Strongest Path
+                  </span>
+                  {selectedMessage.warm_path?.recommended_intro_person && (
+                    <div className="flex items-center gap-2 mt-2">
+                      <div className="w-6 h-6 rounded-full overflow-hidden border border-[#464554] bg-[#8083ff]/20 flex items-center justify-center text-xs font-bold text-[#8083ff]">
+                        {selectedMessage.warm_path.recommended_intro_person[0]}
                       </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="mb-2 flex items-center justify-between">
-                      <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#c7c4d7]">
-                        Warmth Score
-                      </p>
-                      <span className="text-sm font-semibold">
-                        {getWarmthScore(selectedMessage)}/100
+                      <span className="font-medium text-[#e5e1e4]">
+                        {selectedMessage.warm_path.recommended_intro_person}
                       </span>
                     </div>
-                    <div className="h-2 rounded-full bg-muted">
-                      <div
-                        className="h-2 rounded-full bg-[#8083ff]"
-                        style={{ width: `${getWarmthScore(selectedMessage)}%` }}
-                      />
-                    </div>
-                    <p className="mt-2 text-sm text-[#c7c4d7]">
-                      {warmthLabel(getWarmthScore(selectedMessage))}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm font-semibold">Why this prospect?</p>
-                    <p className="mt-2 text-sm leading-relaxed text-[#c7c4d7]">
-                      {whyThisProspect(selectedMessage)}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-semibold">Next Best Step</p>
-                    <div className="mt-2 flex items-start gap-2 text-sm text-[#c7c4d7]">
-                      <GitFork className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#4edea3]" />
-                      <span>{nextBestStep(selectedMessage)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <QualityScorer message={selectedMessage} />
-
-                <div className="rounded-2xl border border-[#464554]/60 bg-background p-4">
-                  <div className="mb-3 flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-[#4edea3]" />
-                    <p className="text-sm font-semibold">Draft Review</p>
-                  </div>
-
-                  {selectedMessage.subject && (
-                    <div className="mb-3 rounded-xl bg-muted/20 px-3 py-2 text-sm">
-                      <span className="font-medium">Subject:</span> {selectedMessage.subject}
-                    </div>
                   )}
+                </div>
+                <div className="mt-4">
+                  <span className="inline-flex items-center gap-1 bg-[#4edea3]/10 text-[#4edea3] border border-[#4edea3]/20 px-2 py-0.5 rounded text-xs">
+                    <Flame className="w-3 h-3" />
+                    {warmthLabel(getWarmthScore(selectedMessage))}
+                  </span>
+                  <p className="text-xs text-[#c7c4d7] mt-1">
+                    {selectedMessage.warm_path?.path_explanation || "Strong path available"}
+                  </p>
+                </div>
+              </div>
+            </div>
 
+            {/* Message Editor Section */}
+            <div className="flex flex-col gap-2">
+              <div className="flex justify-between items-end">
+                <h3 className="text-sm font-semibold text-[#e5e1e4] flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#8083ff]" />
+                  AI Draft Generation
+                </h3>
+                <span className="text-xs text-[#c7c4d7]">Editing as {selectedMessage.contact?.name?.split(" ")[0]}</span>
+              </div>
+              <div className="bg-[#201f22] border border-[#464554] rounded overflow-hidden flex flex-col shadow-sm">
+                {/* Formatting Toolbar */}
+                <div className="h-10 border-b border-[#464554] bg-[#201f22] flex items-center px-2 gap-1">
+                  <button className="w-8 h-8 flex items-center justify-center text-[#c7c4d7] hover:text-[#e5e1e4] hover:bg-[#353437] rounded transition-colors">
+                    <Mail className="w-4 h-4" />
+                  </button>
+                  <button className="w-8 h-8 flex items-center justify-center text-[#c7c4d7] hover:text-[#e5e1e4] hover:bg-[#353437] rounded transition-colors">
+                    <Users className="w-4 h-4" />
+                  </button>
+                  <button className="w-8 h-8 flex items-center justify-center text-[#c7c4d7] hover:text-[#e5e1e4] hover:bg-[#353437] rounded transition-colors">
+                    <ExternalLink className="w-4 h-4" />
+                  </button>
+                  <div className="w-px h-4 bg-[#464554] mx-1" />
+                  <button className="w-8 h-8 flex items-center justify-center text-[#c7c4d7] hover:text-[#e5e1e4] hover:bg-[#353437] rounded transition-colors">
+                    <Zap className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Subject Line */}
+                <div className="border-b border-[#464554] px-4 py-2 bg-[#1c1b1d] flex items-center gap-2">
+                  <span className="text-xs text-[#c7c4d7]">Subject:</span>
+                  <input
+                    className="flex-1 bg-transparent border-none p-0 focus:ring-0 text-sm text-[#e5e1e4] outline-none placeholder-[#c7c4d7]"
+                    type="text"
+                    defaultValue={selectedMessage.subject || ""}
+                    placeholder="Enter subject..."
+                  />
+                </div>
+
+                {/* Editor Body */}
+                <div className="p-4 bg-[#1c1b1d] min-h-[240px]">
                   <Textarea
                     value={draftBody}
                     onChange={(event) => setDraftBody(event.target.value)}
-                    className="min-h-[180px] resize-none border-[#464554]/60 bg-background"
+                    className="w-full h-full bg-transparent border-none p-0 focus:ring-0 text-sm text-[#e5e1e4] resize-none outline-none leading-relaxed placeholder-[#c7c4d7]"
+                    placeholder="Draft message here..."
                   />
-
-                  <div className="mt-4">
-                    <ResearchCard message={selectedMessage} />
-                  </div>
-
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <Button
-                      className="bg-[#8083ff] text-[#4edea3]-foreground hover:bg-[#8083ff]/90"
-                      onClick={() => approveMessage(selectedMessage.id, draftBody)}
-                    >
-                      Approve Draft
-                    </Button>
-                    <Button variant="outline" onClick={() => rejectMessage(selectedMessage.id)}>
-                      Reject
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => regenerateMessage(selectedMessage.id)}
-                      disabled={generatingIds.has(selectedMessage.id)}
-                    >
-                      <RefreshCw
-                        className={cn(
-                          "mr-1 h-4 w-4",
-                          generatingIds.has(selectedMessage.id) && "animate-spin",
-                        )}
-                      />
-                      Regenerate
-                    </Button>
-                  </div>
                 </div>
 
-                <div className="rounded-2xl border border-brand/15 bg-[#8083ff]/6 p-4">
-                  <div className="mb-2 flex items-center gap-2">
-                    <Users className="h-4 w-4 text-[#4edea3]" />
-                    <p className="text-sm font-semibold">AI Note</p>
+                {/* AI Footer */}
+                <div className="px-4 py-2 bg-[#201f22] flex items-center justify-between border-t border-[#464554]">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-[#4edea3] animate-pulse" />
+                    <span className="text-xs text-[#c7c4d7]">
+                      Draft optimized for high response rate
+                    </span>
                   </div>
-                  <p className="text-sm leading-relaxed text-[#c7c4d7]">
-                    {selectedMessage.signal?.description ||
-                      "This draft is ranked highly because the account has timely intent context and a credible path for outreach."}
-                  </p>
+                  <button className="text-xs text-[#8083ff] hover:text-[#b3b4ff] flex items-center gap-1 transition-colors">
+                    <RefreshCw className="w-3 h-3" />
+                    Regenerate Tone
+                  </button>
                 </div>
-              </CardContent>
-            ) : (
-              <CardContent className="p-6">
-                <EmptyState
-                  variant="empty"
-                  title="Select a draft"
-                  description="Choose a prospect from the queue to review context, edit the message, and approve."
-                />
-              </CardContent>
-            )}
-          </Card>
-        </div>
+              </div>
+            </div>
+
+            {/* Research Card */}
+            <ResearchCard message={selectedMessage} />
+
+            {/* Quality Scorer */}
+            <QualityScorer message={selectedMessage} />
+
+            {/* Action Console */}
+            <div className="flex items-center justify-between pt-4 border-t border-[#464554] mt-auto">
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs border-[#464554] text-[#c7c4d7] hover:bg-[#201f22]"
+                  onClick={() => setSelectedId(null)}
+                >
+                  Re-route Path
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs border-[#464554] text-[#c7c4d7] hover:bg-[#201f22]"
+                  onClick={() => {
+                    rejectMessage(selectedMessage.id);
+                    toast.success("Rejected");
+                  }}
+                >
+                  Discard
+                </Button>
+              </div>
+              <Button
+                className="text-xs h-8 px-4 bg-[#4edea3] text-[#002114] font-semibold hover:bg-[#5ffab5] transition-colors shadow-[0_0_15px_rgba(78,222,163,0.2)]"
+                onClick={() => {
+                  approveMessage(selectedMessage.id, draftBody);
+                  toast.success("Approved & sent!");
+                }}
+              >
+                <Check className="w-3 h-3 mr-1.5" />
+                Approve &amp; Send
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center">
+            <EmptyState
+              variant="empty"
+              title="Select a draft"
+              description="Choose a prospect from the queue to review and approve."
+            />
+          </div>
+        )}
       </div>
     </div>
+  );
+}
+
+function HistoryIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
   );
 }
