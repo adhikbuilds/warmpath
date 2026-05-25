@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { CommandBar } from "@/components/command-bar";
@@ -30,7 +29,7 @@ const PAGE_TITLES: Record<string, string> = {
 };
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { logout } = useAuthStore();
+  const { logout, isAuthenticated } = useAuthStore();
   const {
     messages,
     signals,
@@ -40,7 +39,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     setTourOpen,
     sidebarCollapsed,
   } = useSalesStore();
-  const { status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
   const [commandOpen, setCommandOpen] = useState(false);
@@ -51,11 +49,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (hydrated && status === "unauthenticated") {
-      logout();
+    if (hydrated && !isAuthenticated) {
       router.replace("/login");
     }
-  }, [hydrated, logout, router, status]);
+  }, [hydrated, isAuthenticated, router]);
 
   useEffect(() => {
     function handler(e: KeyboardEvent) {
@@ -82,21 +79,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const baseSegment = "/" + (pathname.split("/")[1] ?? "");
   const pageTitle = PAGE_TITLES[baseSegment] ?? "";
 
-  if (!hydrated || status === "loading") {
+  if (!hydrated) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ backgroundColor: "#09090b" }}
-      >
-        <div
-          className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin"
-          style={{ borderColor: "#2563eb", borderTopColor: "transparent" }}
-        />
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#09090b" }}>
+        <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "#2563eb", borderTopColor: "transparent" }} />
       </div>
     );
   }
 
-  if (status === "unauthenticated") return null;
+  if (!isAuthenticated) return null;
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ backgroundColor: "#09090b" }}>
