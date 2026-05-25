@@ -1,0 +1,44 @@
+services:
+  twenty-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: twenty
+      POSTGRES_PASSWORD: twenty
+      POSTGRES_DB: twenty
+    volumes:
+      - twenty-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U twenty"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  twenty-redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  twenty-server:
+    image: twentycrm/twenty:latest
+    ports:
+      - "3001:3000"
+    environment:
+      SERVER_URL: http://localhost:3001
+      FRONT_BASE_URL: http://localhost:3001
+      PG_DATABASE_URL: postgresql://twenty:twenty@twenty-postgres:5432/twenty
+      REDIS_URL: redis://twenty-redis:6379
+      APP_SECRET: warmpath-twenty-secret-change-in-prod
+      SIGN_IN_PREFILLED: "true"
+      ENABLE_DB_MIGRATIONS: "true"
+    depends_on:
+      twenty-postgres:
+        condition: service_healthy
+      twenty-redis:
+        condition: service_healthy
+    restart: on-failure
+
+volumes:
+  twenty-postgres-data:

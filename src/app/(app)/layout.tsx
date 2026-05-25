@@ -31,8 +31,15 @@ const PAGE_TITLES: Record<string, string> = {
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { logout } = useAuthStore();
-  const { messages, signals, campaignAssets, followUpTasks, tourOpen, setTourOpen } =
-    useSalesStore();
+  const {
+    messages,
+    signals,
+    campaignAssets,
+    followUpTasks,
+    tourOpen,
+    setTourOpen,
+    sidebarCollapsed,
+  } = useSalesStore();
   const { status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
@@ -77,8 +84,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (!hydrated || status === "loading") {
     return (
-      <div className="min-h-screen bg-[#131315] flex items-center justify-center">
-        <div className="w-5 h-5 border-2 border-[#8083ff] border-t-transparent rounded-full animate-spin" />
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: "#09090b" }}
+      >
+        <div
+          className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin"
+          style={{ borderColor: "#4f46e5", borderTopColor: "transparent" }}
+        />
       </div>
     );
   }
@@ -86,40 +99,65 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (status === "unauthenticated") return null;
 
   return (
-    <div className="flex h-screen bg-[#131315] overflow-hidden">
+    <div className="flex h-screen overflow-hidden" style={{ backgroundColor: "#09090b" }}>
       <StoreInitializer />
       <AppSidebar />
 
       {/* Main area */}
-      <div className="flex-1 ml-[240px] flex flex-col h-full overflow-hidden">
+      <div
+        className="flex-1 flex flex-col h-full overflow-hidden transition-all duration-200"
+        style={{ marginLeft: sidebarCollapsed ? 56 : 240 }}
+      >
         {/* Top bar */}
-        <header className="h-12 shrink-0 flex items-center justify-between px-6 border-b border-[#464554] bg-[#1c1b1d]">
+        <header
+          className="h-12 shrink-0 flex items-center justify-between px-6"
+          style={{ backgroundColor: "#18181b", borderBottom: "1px solid #27272a" }}
+        >
           <div className="flex items-center gap-2">
             {pageTitle && (
-              <h2 className="text-[14px] font-semibold text-[#e5e1e4] tracking-tight">
-                {pageTitle}
-              </h2>
+              <h2 className="text-[14px] font-semibold text-white tracking-tight">{pageTitle}</h2>
             )}
           </div>
 
           <div className="flex items-center gap-2">
             {pendingCount > 0 && (
               <Link href="/approval-queue">
-                <span className="text-[11px] font-semibold px-2 py-1 rounded-md bg-[#8083ff]/15 text-[#c0c1ff] hover:bg-[#8083ff]/25 transition-colors border border-[#8083ff]/20">
+                <span
+                  className="text-[11px] font-semibold px-2 py-1 rounded-md transition-colors"
+                  style={{
+                    backgroundColor: "rgba(79,70,229,0.15)",
+                    color: "#818cf8",
+                    border: "1px solid rgba(79,70,229,0.2)",
+                  }}
+                >
                   {pendingCount} pending
                 </span>
               </Link>
             )}
             {urgentSignalCount > 0 && (
               <Link href="/signals">
-                <span className="text-[11px] font-semibold px-2 py-1 rounded-md bg-[#ffb4ab]/15 text-[#ffb4ab] hover:bg-[#ffb4ab]/25 transition-colors border border-[#ffb4ab]/20">
+                <span
+                  className="text-[11px] font-semibold px-2 py-1 rounded-md transition-colors"
+                  style={{
+                    backgroundColor: "rgba(16,185,129,0.12)",
+                    color: "#10b981",
+                    border: "1px solid rgba(16,185,129,0.2)",
+                  }}
+                >
                   {urgentSignalCount} urgent
                 </span>
               </Link>
             )}
             {overdueTasks > 0 && (
               <Link href="/tasks">
-                <span className="text-[11px] font-semibold px-2 py-1 rounded-md bg-[#ffb783]/15 text-[#ffb783] hover:bg-[#ffb783]/25 transition-colors border border-[#ffb783]/20">
+                <span
+                  className="text-[11px] font-semibold px-2 py-1 rounded-md transition-colors"
+                  style={{
+                    backgroundColor: "rgba(245,158,11,0.12)",
+                    color: "#f59e0b",
+                    border: "1px solid rgba(245,158,11,0.2)",
+                  }}
+                >
                   {overdueTasks} overdue
                 </span>
               </Link>
@@ -127,7 +165,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               onClick={() => setCommandOpen(true)}
-              className="hidden sm:flex items-center gap-1.5 text-[11px] text-[#908fa0] border border-[#464554] rounded-md px-2.5 py-1 hover:border-[#908fa0] hover:text-[#c7c4d7] transition-all font-mono"
+              className="hidden sm:flex items-center gap-1.5 text-[11px] rounded-md px-2.5 py-1 transition-all font-mono"
+              style={{ color: "#71717a", border: "1px solid #27272a" }}
             >
               ⌘K
             </button>

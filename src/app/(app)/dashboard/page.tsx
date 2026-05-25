@@ -239,9 +239,7 @@ ${userFirstName}`;
               Pre-drafted message
             </p>
             <p className="text-xs font-semibold text-[#e5e1e4]">Subject: {subject}</p>
-            <div className="text-xs text-[#c7c4d7] leading-relaxed whitespace-pre-wrap">
-              {body}
-            </div>
+            <div className="text-xs text-[#c7c4d7] leading-relaxed whitespace-pre-wrap">{body}</div>
           </div>
 
           {/* Note */}
@@ -414,7 +412,10 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-[1280px] mx-auto" style={{ backgroundColor: "#131315", color: "#e5e1e4" }}>
+    <div
+      className="p-6 space-y-6 max-w-[1280px] mx-auto"
+      style={{ backgroundColor: "#131315", color: "#e5e1e4" }}
+    >
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between gap-4">
         <div>
@@ -438,7 +439,11 @@ export default function DashboardPage() {
 
         <div className="flex items-center gap-2 flex-shrink-0">
           {totalPending > 0 && (
-            <Button size="sm" className="bg-[#8083ff] hover:bg-[#8083ff]/90 text-white gap-1.5" asChild>
+            <Button
+              size="sm"
+              className="bg-[#8083ff] hover:bg-[#8083ff]/90 text-white gap-1.5"
+              asChild
+            >
               <Link href="/approval-queue">
                 <Bell className="w-3.5 h-3.5" />
                 Review {totalPending}
@@ -681,16 +686,14 @@ export default function DashboardPage() {
                       </Badge>
                     </div>
                     {contact && (
-                      <p className="text-[11px] text-[#c7c4d7] truncate mb-1">
-                        {contact.name}
-                      </p>
+                      <p className="text-[11px] text-[#c7c4d7] truncate mb-1">{contact.name}</p>
                     )}
                     {via ? (
-                      <p className="text-[11px] text-[#4edea3] font-medium truncate mb-2">via {via}</p>
-                    ) : (
-                      <p className="text-[11px] text-[#c7c4d7] truncate mb-2">
-                        No warm path
+                      <p className="text-[11px] text-[#4edea3] font-medium truncate mb-2">
+                        via {via}
                       </p>
+                    ) : (
+                      <p className="text-[11px] text-[#c7c4d7] truncate mb-2">No warm path</p>
                     )}
                     <Button
                       size="sm"
@@ -766,10 +769,7 @@ export default function DashboardPage() {
                               <span className="font-normal text-[#c7c4d7]"> → {newCo}</span>
                             )}
                             {newTitle && (
-                              <span className="font-normal text-[#c7c4d7]">
-                                {" "}
-                                as {newTitle}
-                              </span>
+                              <span className="font-normal text-[#c7c4d7]"> as {newTitle}</span>
                             )}
                           </p>
                           <span className="text-[10px] text-violet-500">
@@ -857,9 +857,7 @@ export default function DashboardPage() {
                       );
                     })}
                     {totalPending > 2 && (
-                      <p className="text-[11px] text-[#c7c4d7] pl-1">
-                        +{totalPending - 2} more
-                      </p>
+                      <p className="text-[11px] text-[#c7c4d7] pl-1">+{totalPending - 2} more</p>
                     )}
                   </div>
                   <Button size="sm" className="w-full h-8 text-xs" asChild>

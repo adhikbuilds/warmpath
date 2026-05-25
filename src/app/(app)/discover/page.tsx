@@ -348,9 +348,7 @@ function LeadCard({
             </div>
             <div className="min-w-0">
               <p className="font-semibold text-sm leading-tight truncate">{lead.name}</p>
-              {lead.domain && (
-                <p className="text-[10px] text-[#c7c4d7] truncate">{lead.domain}</p>
-              )}
+              {lead.domain && <p className="text-[10px] text-[#c7c4d7] truncate">{lead.domain}</p>}
             </div>
           </div>
           <Badge
@@ -399,9 +397,7 @@ function LeadCard({
         </div>
 
         {lead.description && (
-          <p className="text-xs text-[#c7c4d7] line-clamp-2 leading-relaxed">
-            {lead.description}
-          </p>
+          <p className="text-xs text-[#c7c4d7] line-clamp-2 leading-relaxed">{lead.description}</p>
         )}
 
         {visibleTechs.length > 0 && (
@@ -713,7 +709,10 @@ export default function DiscoverPage() {
   const highIntentVisitors = visitors.filter((v) => v.intent_score >= 80 && !v.converted).length;
 
   return (
-    <div className="p-6 space-y-5 max-w-[1400px] mx-auto" style={{ backgroundColor: "#131315", color: "#e5e1e4" }}>
+    <div
+      className="p-6 space-y-5 max-w-[1400px] mx-auto"
+      style={{ backgroundColor: "#131315", color: "#e5e1e4" }}
+    >
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
@@ -739,7 +738,10 @@ export default function DiscoverPage() {
           >
             AI Enrichment
           </Badge>
-          <Badge variant="outline" className="text-xs bg-[#8083ff]/10 text-[#4edea3] border-brand/20">
+          <Badge
+            variant="outline"
+            className="text-xs bg-[#8083ff]/10 text-[#4edea3] border-brand/20"
+          >
             <Eye className="w-3 h-3 mr-1" />
             Visitor ID
           </Badge>
@@ -825,10 +827,7 @@ export default function DiscoverPage() {
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
                   <Eye className="w-4 h-4 text-[#4edea3]" />
                   Identified Visitors
-                  <Badge
-                    variant="outline"
-                    className="text-[10px] bg-muted text-[#c7c4d7] ml-1"
-                  >
+                  <Badge variant="outline" className="text-[10px] bg-muted text-[#c7c4d7] ml-1">
                     Last 7 days
                   </Badge>
                 </CardTitle>
@@ -877,17 +876,11 @@ export default function DiscoverPage() {
                             <div>
                               <p className="font-medium text-sm">{v.company}</p>
                               <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className="text-[10px] text-[#c7c4d7]">
-                                  {v.domain}
-                                </span>
+                                <span className="text-[10px] text-[#c7c4d7]">{v.domain}</span>
                                 <span className="text-[10px] text-[#c7c4d7]">·</span>
-                                <span className="text-[10px] text-[#c7c4d7]">
-                                  {v.industry}
-                                </span>
+                                <span className="text-[10px] text-[#c7c4d7]">{v.industry}</span>
                                 <span className="text-[10px] text-[#c7c4d7]">·</span>
-                                <span className="text-[10px] text-[#c7c4d7]">
-                                  {v.size} emp
-                                </span>
+                                <span className="text-[10px] text-[#c7c4d7]">{v.size} emp</span>
                               </div>
                             </div>
                           </div>
@@ -949,9 +942,7 @@ export default function DiscoverPage() {
                               </p>
                             </div>
                           ) : (
-                            <span className="text-[10px] text-[#c7c4d7]">
-                              No warm path found
-                            </span>
+                            <span className="text-[10px] text-[#c7c4d7]">No warm path found</span>
                           )}
                         </td>
                         <td className="px-4 py-3.5">

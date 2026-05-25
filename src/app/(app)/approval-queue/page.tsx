@@ -2,8 +2,6 @@
 
 import {
   AlertTriangle,
-  ArrowRight,
-  Building2,
   Check,
   CheckCircle2,
   ExternalLink,
@@ -11,34 +9,22 @@ import {
   Flame,
   GitFork,
   Info,
-  Linkedin,
-  Mail,
+  MoreVertical,
   RefreshCw,
-  Search,
   Sparkles,
   TrendingUp,
-  Users,
   X,
-  Zap,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Textarea } from "@/components/ui/textarea";
-import { CHANNEL_CONFIG } from "@/lib/constants";
-import { cn, formatRelativeTime, getInitials, scoreBgColor, signalTypeLabel } from "@/lib/utils";
+import { cn, getInitials } from "@/lib/utils";
 import { useSalesStore } from "@/stores/salesStore";
 import type { GeneratedMessage } from "@/types";
 
-const CHANNEL_TABS = ["all", "email", "linkedin", "warm_intro"] as const;
-
-// ─── Message Quality Scorer (Story 6.1) ──────────────────────────────────────
+// ─── Message Quality Scorer ───────────────────────────────────────────────────
 
 function scoreMessage(msg: GeneratedMessage) {
-  // Personalization: count specific hooks (company name, contact name, signal references)
   const personalization = Math.min(
     100,
     (msg.personalization_reason ? 40 : 0) +
@@ -46,7 +32,6 @@ function scoreMessage(msg: GeneratedMessage) {
       (msg.supporting_sources?.length ?? 0) * 10,
   );
 
-  // Clarity: based on body length (75-125 words is optimal for email, 50-80 for LinkedIn)
   const wordCount = msg.body?.split(/\s+/).filter(Boolean).length ?? 0;
   const isEmail = msg.channel === "email";
   const optimalMin = isEmail ? 75 : 50;
@@ -58,7 +43,6 @@ function scoreMessage(msg: GeneratedMessage) {
         ? Math.max(40, 90 - (optimalMin - wordCount) * 2)
         : Math.max(40, 90 - (wordCount - optimalMax) * 1.5);
 
-  // CTA Strength: check for question marks, specific asks
   const hasQuestion = msg.body?.includes("?") ?? false;
   const hasCTA =
     /15 min|30 min|this week|thursday|friday|tuesday|wednesday|monday|call|chat|meet/i.test(
@@ -66,11 +50,9 @@ function scoreMessage(msg: GeneratedMessage) {
     );
   const ctaStrength = hasQuestion && hasCTA ? 88 : hasQuestion ? 70 : hasCTA ? 65 : 45;
 
-  // Tone Match: based on seniority in subject line or body
   const toneMatch =
     msg.channel === "warm_intro" ? 92 : /dear|sincerely|formally/i.test(msg.body ?? "") ? 55 : 82;
 
-  // Length score
   const lengthScore =
     wordCount >= optimalMin && wordCount <= optimalMax
       ? 95
@@ -83,15 +65,15 @@ function scoreMessage(msg: GeneratedMessage) {
 }
 
 function qualityColor(score: number): string {
-  if (score >= 80) return "#5db872";
-  if (score >= 60) return "#e8a55a";
+  if (score >= 80) return "#10b981";
+  if (score >= 60) return "#f59e0b";
   return "#ef4444";
 }
 
 function qualityBadgeClass(score: number): string {
-  if (score >= 80) return "bg-emerald-500/10 text-emerald-700 border-emerald-500/20";
-  if (score >= 60) return "bg-amber-500/10 text-amber-700 border-amber-500/20";
-  return "bg-red-500/10 text-red-700 border-red-500/20";
+  if (score >= 80) return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+  if (score >= 60) return "bg-amber-500/10 text-amber-400 border-amber-500/20";
+  return "bg-red-500/10 text-red-400 border-red-500/20";
 }
 
 function QualityScorer({ message }: { message: GeneratedMessage }) {
@@ -117,28 +99,36 @@ function QualityScorer({ message }: { message: GeneratedMessage }) {
   };
 
   return (
-    <div className="rounded-2xl border border-[#464554]/60 bg-background p-4 space-y-3">
+    <div
+      className="rounded-lg border flex flex-col gap-3 p-4"
+      style={{ backgroundColor: "#09090b", borderColor: "#27272a" }}
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <TrendingUp className="w-3.5 h-3.5 text-[#4edea3]" />
-          <span className="text-sm font-semibold">Message Quality</span>
+          <TrendingUp className="w-3.5 h-3.5" style={{ color: "#10b981" }} />
+          <span className="text-sm font-semibold" style={{ color: "#e5e5e5" }}>
+            Message Quality
+          </span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-[#c7c4d7]">{q.wordCount} words</span>
-          <Badge
-            variant="outline"
-            className={`text-xs font-bold px-2 py-0.5 ${qualityBadgeClass(q.overall)}`}
+          <span className="text-xs" style={{ color: "#a1a1aa" }}>
+            {q.wordCount} words
+          </span>
+          <span
+            className={`text-xs font-bold px-2 py-0.5 rounded border ${qualityBadgeClass(q.overall)}`}
           >
             {q.overall}/100
-          </Badge>
+          </span>
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="flex flex-col gap-2">
         {dimensions.map((dim) => (
           <div key={dim.label}>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[11px] text-[#c7c4d7]">{dim.label}</span>
+              <span className="text-[11px]" style={{ color: "#a1a1aa" }}>
+                {dim.label}
+              </span>
               <span
                 className="text-[11px] font-semibold tabular-nums"
                 style={{ color: qualityColor(dim.score) }}
@@ -146,7 +136,10 @@ function QualityScorer({ message }: { message: GeneratedMessage }) {
                 {dim.score}
               </span>
             </div>
-            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+            <div
+              className="h-1.5 rounded-full overflow-hidden"
+              style={{ backgroundColor: "#27272a" }}
+            >
               <div
                 className="h-full rounded-full transition-all duration-700"
                 style={{ width: `${dim.score}%`, backgroundColor: qualityColor(dim.score) }}
@@ -157,11 +150,16 @@ function QualityScorer({ message }: { message: GeneratedMessage }) {
       </div>
 
       {weakest.score < 80 && (
-        <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
+        <div
+          className="rounded-lg border p-3"
+          style={{ borderColor: "rgba(245,158,11,0.2)", backgroundColor: "rgba(245,158,11,0.05)" }}
+        >
           <div className="flex items-start gap-1.5">
-            <AlertTriangle className="w-3 h-3 text-amber-600 flex-shrink-0 mt-0.5" />
-            <p className="text-[11px] text-[#c7c4d7] leading-relaxed">
-              <span className="font-semibold text-[#e5e1e4]">Tip ({weakest.label}): </span>
+            <AlertTriangle className="w-3 h-3 text-amber-500 flex-shrink-0 mt-0.5" />
+            <p className="text-[11px] leading-relaxed" style={{ color: "#a1a1aa" }}>
+              <span className="font-semibold" style={{ color: "#e5e5e5" }}>
+                Tip ({weakest.label}):{" "}
+              </span>
               {tips[weakest.label]}
             </p>
           </div>
@@ -171,7 +169,7 @@ function QualityScorer({ message }: { message: GeneratedMessage }) {
   );
 }
 
-// ─── Research Card (Story 3.1) ────────────────────────────────────────────────
+// ─── Research Card ─────────────────────────────────────────────────────────────
 
 function ResearchCard({ message }: { message: GeneratedMessage }) {
   const claims = (message.factual_claims ?? []).slice(0, 3);
@@ -179,28 +177,43 @@ function ResearchCard({ message }: { message: GeneratedMessage }) {
   const hasContent = !!message.personalization_reason || claims.length > 0;
 
   return (
-    <div className="rounded-2xl border border-[#464554]/60 bg-background p-4 space-y-3">
+    <div
+      className="rounded-lg border flex flex-col gap-3 p-4"
+      style={{ backgroundColor: "#09090b", borderColor: "#27272a" }}
+    >
       <div className="flex items-center gap-1.5">
-        <Sparkles className="w-3.5 h-3.5 text-[#4edea3]" />
-        <span className="text-sm font-semibold">Personalization Hooks</span>
-        <Badge
-          variant="outline"
-          className="text-[10px] ml-auto bg-amber-500/8 text-amber-700 border-amber-500/20"
+        <Sparkles className="w-3.5 h-3.5" style={{ color: "#10b981" }} />
+        <span className="text-sm font-semibold" style={{ color: "#e5e5e5" }}>
+          Personalization Hooks
+        </span>
+        <span
+          className="text-[10px] ml-auto px-2 py-0.5 rounded border"
+          style={{
+            backgroundColor: "rgba(245,158,11,0.08)",
+            color: "#f59e0b",
+            borderColor: "rgba(245,158,11,0.2)",
+          }}
         >
           Verify before approving
-        </Badge>
+        </span>
       </div>
 
       {!hasContent ? (
-        <p className="text-[11px] text-[#c7c4d7] italic">
+        <p className="text-[11px] italic" style={{ color: "#a1a1aa" }}>
           No research hooks — add specifics to increase reply rate.
         </p>
       ) : (
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           {message.personalization_reason && (
-            <div className="flex items-start gap-2 rounded-xl border border-blue-500/20 bg-blue-500/5 p-3">
-              <Info className="w-3.5 h-3.5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <p className="text-[11px] text-blue-800 leading-relaxed">
+            <div
+              className="flex items-start gap-2 rounded-lg border p-3"
+              style={{
+                borderColor: "rgba(59,130,246,0.2)",
+                backgroundColor: "rgba(59,130,246,0.05)",
+              }}
+            >
+              <Info className="w-3.5 h-3.5 text-blue-400 flex-shrink-0 mt-0.5" />
+              <p className="text-[11px] text-blue-300 leading-relaxed">
                 {message.personalization_reason}
               </p>
             </div>
@@ -209,12 +222,15 @@ function ResearchCard({ message }: { message: GeneratedMessage }) {
           {claims.map((claim) => (
             <div
               key={claim}
-              className="flex items-start gap-2 rounded-xl border border-[#464554]/50 bg-muted/20 p-3"
+              className="flex items-start gap-2 rounded-lg border p-3"
+              style={{ borderColor: "#27272a", backgroundColor: "#18181b" }}
             >
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
-                <p className="text-[11px] text-[#e5e1e4] leading-relaxed">{claim}</p>
-                <span className="text-[10px] text-emerald-600 font-medium">Verified</span>
+                <p className="text-[11px] leading-relaxed" style={{ color: "#e5e5e5" }}>
+                  {claim}
+                </p>
+                <span className="text-[10px] text-emerald-500 font-medium">Verified</span>
               </div>
             </div>
           ))}
@@ -224,7 +240,8 @@ function ResearchCard({ message }: { message: GeneratedMessage }) {
               {sources.map((source) => (
                 <span
                   key={source}
-                  className="inline-flex items-center gap-1 rounded-full border border-[#464554]/50 bg-background px-2.5 py-1 text-[10px] text-[#c7c4d7]"
+                  className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px]"
+                  style={{ borderColor: "#27272a", backgroundColor: "#09090b", color: "#a1a1aa" }}
                 >
                   <ExternalLink className="w-2.5 h-2.5" />
                   {source}
@@ -235,294 +252,108 @@ function ResearchCard({ message }: { message: GeneratedMessage }) {
         </div>
       )}
 
-      <p className="text-[10px] text-[#c7c4d7] border-t border-[#464554]/40 pt-2">
+      <p className="text-[10px] border-t pt-2" style={{ borderColor: "#27272a", color: "#71717a" }}>
         Messages with 2+ specific hooks get 2.4× more replies
       </p>
     </div>
   );
 }
 
-function channelIcon(channel: GeneratedMessage["channel"]) {
-  if (channel === "linkedin") return Linkedin;
-  if (channel === "warm_intro") return GitFork;
-  return Mail;
-}
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function getWarmthScore(message: GeneratedMessage) {
   return message.warm_path?.warmth_score ?? message.contact?.warmth_score ?? 0;
 }
 
-function warmthLabel(score: number) {
-  if (score >= 85) return "Very Hot";
-  if (score >= 70) return "Hot";
-  if (score >= 55) return "Warm";
-  return "Cooling";
+function getConnectorName(message: GeneratedMessage): string {
+  return message.warm_path?.recommended_intro_person ?? "Direct Outreach";
 }
 
-function signalSummary(message: GeneratedMessage) {
-  if (message.signal) {
-    return [message.signal.title, message.signal.description]
-      .filter(Boolean)
-      .slice(0, 2) as string[];
-  }
-  if (message.factual_claims.length > 0) return message.factual_claims.slice(0, 2);
-  return ["Relationship path available", "Draft ready for manager review"];
-}
-
-function nextBestStep(message: GeneratedMessage) {
-  if (message.channel === "linkedin") return "Send connection request with personalized note";
-  if (message.channel === "warm_intro") return "Approve intro request and route through connector";
-  return "Approve email and queue follow-up sequence";
-}
-
-function whyThisProspect(message: GeneratedMessage) {
-  return (
-    message.personalization_reason ||
-    message.signal?.description ||
-    message.warm_path?.path_explanation ||
-    "Strong account fit with active signal context and a viable warm path."
-  );
-}
-
-function WarmPathTrail({ message }: { message: GeneratedMessage }) {
-  const pathNodes = message.warm_path?.path_nodes ?? [];
-  const ChannelIcon = channelIcon(message.channel);
-
-  if (pathNodes.length === 0) {
-    return (
-      <div className="text-sm text-[#c7c4d7]">
-        {CHANNEL_CONFIG[message.channel]?.label ?? message.channel} follow-up path
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap items-center gap-1.5">
-        {pathNodes.slice(0, 3).map((node, index) => (
-          <div key={node.id} className="flex items-center gap-1.5">
-            {index > 0 && <span className="text-[#c7c4d7]/40">→</span>}
-            <span className="rounded-full border border-[#464554]/60 bg-background px-2.5 py-1 text-xs font-medium">
-              {node.name.split(" ")[0]}
-            </span>
-          </div>
-        ))}
-        <span className="text-[#c7c4d7]/40">→</span>
-        <span className="inline-flex items-center gap-1 rounded-full border border-brand/20 bg-[#8083ff]/8 px-2.5 py-1 text-xs font-medium text-[#4edea3]">
-          <ChannelIcon className="h-3 w-3" />
-          {CHANNEL_CONFIG[message.channel]?.label ?? message.channel}
-        </span>
-      </div>
-      <p className="text-xs text-[#c7c4d7]">
-        {message.warm_path?.path_explanation ||
-          "Best available path ranked by connection strength and recency."}
-      </p>
-    </div>
-  );
-}
-
-function QueueRow({
-  message,
-  selected,
-  onSelect,
-  onApprove,
-  onReject,
-}: {
-  message: GeneratedMessage;
-  selected: boolean;
-  onSelect: () => void;
-  onApprove: () => void;
-  onReject: () => void;
-}) {
-  const ContactIcon = channelIcon(message.channel);
-  const warmthScore = getWarmthScore(message);
-  const signals = signalSummary(message);
-
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={onSelect}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onSelect();
-        }
-      }}
-      className={cn(
-        "grid w-full gap-5 border-b border-[#464554]/50 px-5 py-5 text-left transition-colors last:border-b-0 hover:bg-muted/20 xl:grid-cols-[1.2fr_1fr_1fr_0.5fr_0.5fr]",
-        selected && "bg-[#8083ff]/5",
-      )}
-    >
-      <div className="flex items-center gap-4">
-        <div className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-muted text-sm font-semibold text-[#e5e1e4]">
-          {getInitials(message.contact?.name ?? "WP")}
-          <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border border-background bg-background shadow-sm">
-            <ContactIcon className="h-3.5 w-3.5 text-[#4edea3]" />
-          </div>
-        </div>
-        <div className="min-w-0">
-          <p className="truncate text-lg font-semibold">
-            {message.contact?.name ?? "Unknown Contact"}
-          </p>
-          <p className="text-sm text-[#c7c4d7]">{message.contact?.title ?? "Prospect"}</p>
-          <Badge
-            variant="outline"
-            className="mt-1 text-[10px] bg-[#8083ff]/5 text-[#4edea3] border-brand/15 font-normal"
-          >
-            1:1 for {message.contact?.name?.split(" ")[0] ?? "this prospect"}
-          </Badge>
-          <div className="mt-1 flex items-center gap-1.5 text-sm text-[#c7c4d7]">
-            <Building2 className="h-3.5 w-3.5" />
-            <span>{message.account?.name ?? "Unassigned account"}</span>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <p className="mb-2 text-sm font-semibold">Buying Signals</p>
-        <ul className="space-y-1.5 text-sm text-[#c7c4d7]">
-          {signals.map((signal) => (
-            <li key={signal} className="flex items-start gap-2">
-              <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#8083ff]" />
-              <span>{signal}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div>
-        <p className="mb-2 text-sm font-semibold">Warm Path</p>
-        <WarmPathTrail message={message} />
-        {message.channel === "warm_intro" && (
-          <div className="mt-2 flex items-center gap-1.5 rounded-lg border border-amber-500/20 bg-amber-500/5 px-2.5 py-2 text-[11px] text-amber-700">
-            <Users className="h-3 w-3 flex-shrink-0" />
-            <span>
-              <span className="font-semibold">
-                {message.warm_path?.recommended_intro_person ?? "Connector"}
-              </span>{" "}
-              must personally approve this intro — never auto-sent
-            </span>
-          </div>
-        )}
-      </div>
-
-      <div>
-        <p className="mb-2 text-sm font-semibold">Warmth Score</p>
-        <div className="text-4xl font-bold leading-none">{warmthScore}</div>
-        <Badge variant="outline" className={cn("mt-3 border", scoreBgColor(warmthScore))}>
-          {warmthLabel(warmthScore)}
-        </Badge>
-      </div>
-
-      <div className="flex items-start justify-end gap-1">
-        <Button
-          onClick={(event) => {
-            event.stopPropagation();
-            onApprove();
-          }}
-          className="bg-[#8083ff] text-[#4edea3]-foreground hover:bg-[#8083ff]/90"
-        >
-          Approve
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-[#c7c4d7] hover:text-red-500 hover:bg-red-500/10 transition-colors"
-          onClick={(event) => {
-            event.stopPropagation();
-            onReject();
-          }}
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
-  );
-}
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ApprovalQueuePage() {
   const { messages, loading, approveMessage, rejectMessage, regenerateMessage, generatingIds } =
     useSalesStore();
 
-  const [activeTab, setActiveTab] = useState<(typeof CHANNEL_TABS)[number]>("all");
-  const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [draftBody, setDraftBody] = useState("");
+  const [editedBody, setEditedBody] = useState("");
+  const [editedSubject, setEditedSubject] = useState("");
   const [showHistory, setShowHistory] = useState(false);
 
   const pendingMessages = useMemo(
     () =>
       messages
-        .filter((message) => message.approval_status === "pending")
+        .filter((m) => m.approval_status === "pending")
         .sort((a, b) => getWarmthScore(b) - getWarmthScore(a)),
     [messages],
   );
 
-  const filteredMessages = useMemo(() => {
-    return pendingMessages.filter((message) => {
-      const matchesTab = activeTab === "all" || message.channel === activeTab;
-      const haystack = [
-        message.contact?.name,
-        message.contact?.title,
-        message.account?.name,
-        message.signal?.title,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-      const matchesQuery = haystack.includes(query.toLowerCase());
-      return matchesTab && matchesQuery;
-    });
-  }, [activeTab, pendingMessages, query]);
-
   const selectedMessage =
-    filteredMessages.find((message) => message.id === selectedId) ?? filteredMessages[0] ?? null;
+    pendingMessages.find((m) => m.id === selectedId) ?? pendingMessages[0] ?? null;
 
+  // Sync edit states when selected message changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally reset only on id change
   useEffect(() => {
     if (!selectedMessage) {
-      setSelectedId(null);
-      setDraftBody("");
+      setEditedBody("");
+      setEditedSubject("");
       return;
     }
+    setEditedBody(selectedMessage.body ?? "");
+    setEditedSubject(selectedMessage.subject ?? "Warm intro request");
+  }, [selectedMessage?.id]);
 
-    setSelectedId(selectedMessage.id);
-    setDraftBody(selectedMessage.body);
-  }, [selectedMessage?.body, selectedMessage?.id]);
-
-  const counts = useMemo(() => {
-    return CHANNEL_TABS.reduce<Record<string, number>>((acc, tab) => {
-      acc[tab] =
-        tab === "all"
-          ? pendingMessages.length
-          : pendingMessages.filter((message) => message.channel === tab).length;
-      return acc;
-    }, {});
+  // Group pending messages by connector
+  const groups = useMemo(() => {
+    const map = new Map<string, GeneratedMessage[]>();
+    for (const msg of pendingMessages) {
+      const connector = getConnectorName(msg);
+      const existing = map.get(connector) ?? [];
+      map.set(connector, [...existing, msg]);
+    }
+    return map;
   }, [pendingMessages]);
 
-  const averageWarmth =
-    pendingMessages.length > 0
-      ? Math.round(
-          pendingMessages.reduce((total, message) => total + getWarmthScore(message), 0) /
-            pendingMessages.length,
-        )
-      : 0;
+  function handleSelect(id: string) {
+    setSelectedId(id);
+  }
 
-  const averageConfidence =
-    pendingMessages.length > 0
-      ? Math.round(
-          (pendingMessages.reduce((total, message) => total + message.confidence_score, 0) /
-            pendingMessages.length) *
-            100,
-        )
-      : 0;
+  function advanceSelection(removedId: string) {
+    const remaining = pendingMessages.filter((m) => m.id !== removedId);
+    if (remaining.length > 0) {
+      const currentIndex = pendingMessages.findIndex((m) => m.id === removedId);
+      const next = remaining[Math.min(currentIndex, remaining.length - 1)];
+      setSelectedId(next.id);
+    } else {
+      setSelectedId(null);
+    }
+  }
 
-  const hasWarmIntro = filteredMessages.some((m) => m.channel === "warm_intro");
+  function handleApprove() {
+    if (!selectedMessage) return;
+    approveMessage(selectedMessage.id, editedBody);
+    toast.success(`Approved & sent via ${getConnectorName(selectedMessage)}`);
+    advanceSelection(selectedMessage.id);
+  }
 
-  async function handleApproveAll() {
-    if (filteredMessages.length === 0) return;
-    await Promise.all(filteredMessages.map((message) => approveMessage(message.id)));
-    toast.success(`Approved ${filteredMessages.length} drafts`);
+  function handleDiscard() {
+    if (!selectedMessage) return;
+    rejectMessage(selectedMessage.id);
+    toast.info("Draft discarded");
+    advanceSelection(selectedMessage.id);
+  }
+
+  function handleRegenerate() {
+    if (!selectedMessage) return;
+    if (regenerateMessage) {
+      regenerateMessage(selectedMessage.id);
+    } else {
+      toast.info("Regenerating tone...");
+    }
+  }
+
+  function handleReroute() {
+    toast.info("Re-routing to next best path...");
   }
 
   if (!loading && pendingMessages.length === 0) {
@@ -537,282 +368,441 @@ export default function ApprovalQueuePage() {
     );
   }
 
+  const connector = selectedMessage ? getConnectorName(selectedMessage) : "";
+  const warmthScore = selectedMessage ? getWarmthScore(selectedMessage) : 0;
+
   return (
-    <div className="flex h-full overflow-hidden bg-[#131315]">
-      {/* Left Pane: Queue List (35%) */}
-      <div className="w-[35%] min-w-[320px] max-w-[400px] border-r border-[#464554] bg-[#131315] flex flex-col z-10 overflow-y-auto">
+    <main className="flex-1 flex h-full relative" style={{ backgroundColor: "#09090b" }}>
+      {/* ── Left Pane: Queue List (35%, max 400px) ── */}
+      <div
+        className="w-[35%] min-w-[320px] max-w-[400px] border-r flex flex-col"
+        style={{ borderColor: "#27272a", backgroundColor: "#09090b" }}
+      >
         {/* Queue Header */}
-        <div className="h-12 border-b border-[#464554] flex items-center justify-between px-4 shrink-0 bg-[#131315]">
-          <h2 className="text-sm font-semibold text-[#e5e1e4]">Pending Intros</h2>
-          <div className="flex gap-2">
-            <button className="p-1 text-[#c7c4d7] hover:text-[#e5e1e4] transition-colors">
+        <div
+          className="h-12 border-b flex items-center justify-between px-4 shrink-0"
+          style={{ borderColor: "#27272a" }}
+        >
+          <h2 className="text-sm font-semibold" style={{ color: "#e5e5e5" }}>
+            Pending Intros
+          </h2>
+          <div className="flex gap-1">
+            <button
+              type="button"
+              className="p-1.5 rounded transition-colors"
+              style={{ color: "#a1a1aa" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#e5e5e5")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#a1a1aa")}
+              aria-label="Filter"
+            >
               <Filter className="w-4 h-4" />
             </button>
-            <button className="p-1 text-[#c7c4d7] hover:text-[#e5e1e4] transition-colors">
-              <Zap className="w-4 h-4" />
+            <button
+              type="button"
+              className="p-1.5 rounded transition-colors"
+              style={{ color: "#a1a1aa" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#e5e5e5")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#a1a1aa")}
+              aria-label="More options"
+            >
+              <MoreVertical className="w-4 h-4" />
             </button>
           </div>
         </div>
 
         {/* Queue Scrollable List */}
         <div className="flex-1 overflow-y-auto">
-          {filteredMessages.length === 0 ? (
+          {pendingMessages.length === 0 ? (
             <div className="px-4 py-16">
               <EmptyState
                 variant="no-results"
-                title="No drafts match"
-                description="Try another channel or search query."
+                title="No pending drafts"
+                description="All caught up."
               />
             </div>
           ) : (
-            filteredMessages.map((message) => {
-              const ContactIcon = channelIcon(message.channel);
-              const warmthScore = getWarmthScore(message);
-              const isSelected = selectedMessage?.id === message.id;
-
-              return (
+            Array.from(groups.entries()).map(([connectorName, groupMessages]) => (
+              <div key={connectorName}>
+                {/* Group Header (sticky) */}
                 <div
-                  key={message.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setSelectedId(message.id)}
-                  className={cn(
-                    "p-4 border-b border-[#464554] cursor-pointer transition-colors hover:bg-[#201f22] flex flex-col gap-2",
-                    isSelected ? "bg-[#201f22] border-l-2 border-l-[#8083ff]" : "border-l-2 border-l-transparent",
-                  )}
+                  className="px-4 py-2 border-b sticky top-0 z-10"
+                  style={{ borderColor: "#27272a", backgroundColor: "#0e0e10" }}
                 >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-medium text-[#e5e1e4]">
-                        {message.contact?.name ?? "Unknown"}
-                      </h3>
-                      <p className="text-xs text-[#c7c4d7]">
-                        {message.contact?.title ?? "Prospect"}
-                      </p>
-                    </div>
-                    <span className="text-xs text-[#c7c4d7]">
-                      {warmthScore > 0 && `${warmthScore} warmth`}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 bg-[#4edea3]/10 text-[#4edea3] border border-[#4edea3]/20 px-2 py-0.5 rounded text-xs">
-                      <Flame className="w-3 h-3" />
-                      {warmthScore} Warmth
-                    </span>
-                    {message.warm_path?.recommended_intro_person && (
-                      <span className="inline-flex items-center bg-[#353437] text-[#c7c4d7] px-2 py-0.5 rounded text-xs">
-                        {message.warm_path.recommended_intro_person}
-                      </span>
-                    )}
-                  </div>
+                  <span className="text-xs uppercase tracking-wider" style={{ color: "#71717a" }}>
+                    Via {connectorName} ({groupMessages.length})
+                  </span>
                 </div>
-              );
-            })
+
+                {/* Group Items */}
+                {groupMessages.map((msg) => {
+                  const isSelected = selectedMessage?.id === msg.id;
+                  const ws = getWarmthScore(msg);
+                  const contextTag = msg.warm_path?.path_explanation
+                    ?.split(" ")
+                    .slice(0, 3)
+                    .join(" ");
+
+                  return (
+                    <button
+                      key={msg.id}
+                      type="button"
+                      onClick={() => handleSelect(msg.id)}
+                      className={cn(
+                        "w-full text-left p-4 border-b cursor-pointer transition-colors border-l-2",
+                        isSelected
+                          ? "border-l-[#4f46e5]"
+                          : "border-l-transparent hover:border-l-[#71717a]",
+                      )}
+                      style={{
+                        borderBottomColor: "#27272a",
+                        backgroundColor: isSelected ? "#18181b" : "transparent",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.backgroundColor = "#18181b";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.backgroundColor = "transparent";
+                        }
+                      }}
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-semibold text-sm" style={{ color: "#e5e5e5" }}>
+                          {msg.contact?.name ?? "Unknown Contact"}
+                        </h3>
+                        <span className="text-xs" style={{ color: "#71717a" }}>
+                          {ws > 0 ? `${ws} warmth` : "—"}
+                        </span>
+                      </div>
+                      <p className="text-xs mb-2" style={{ color: "#a1a1aa" }}>
+                        {msg.contact?.title ?? "Prospect"}
+                        {msg.account?.name ? ` at ${msg.account.name}` : ""}
+                      </p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {ws > 0 && (
+                          <span
+                            className="border px-2 py-0.5 rounded text-xs flex items-center gap-1"
+                            style={{
+                              borderColor: "rgba(16,185,129,0.2)",
+                              color: "#10b981",
+                            }}
+                          >
+                            <Flame className="w-3 h-3" />
+                            {ws} Warmth
+                          </span>
+                        )}
+                        {contextTag && (
+                          <span
+                            className="px-2 py-0.5 rounded text-xs"
+                            style={{ backgroundColor: "#27272a", color: "#a1a1aa" }}
+                          >
+                            {contextTag}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            ))
           )}
         </div>
       </div>
 
-      {/* Right Pane: Review Dashboard (65%) */}
-      <div className="flex-1 flex flex-col bg-[#131315] relative overflow-y-auto">
-        {/* TopAppBar Context */}
-        <div className="h-12 border-b border-[#464554] bg-[#131315] flex items-center justify-between px-6 shrink-0 sticky top-0 z-20">
+      {/* ── Right Pane: Review Dashboard (flex-1) ── */}
+      <div className="flex-1 flex flex-col overflow-y-auto" style={{ backgroundColor: "#09090b" }}>
+        {/* Sticky TopAppBar */}
+        <div
+          className="h-12 border-b flex items-center justify-between px-6 sticky top-0 z-20"
+          style={{ borderColor: "#27272a", backgroundColor: "#09090b" }}
+        >
           <div className="flex items-center gap-4">
             {selectedMessage ? (
               <>
-                <h2 className="text-sm font-semibold text-[#e5e1e4]">
+                <h2 className="text-sm font-semibold" style={{ color: "#e5e5e5" }}>
                   Review Request: {selectedMessage.contact?.name}
                 </h2>
-                <span className="bg-[#353437] text-[#c7c4d7] px-2 py-0.5 rounded text-xs border border-[#464554]">
-                  ID: {selectedMessage.id.slice(0, 8)}
+                <span
+                  className="border px-2 py-0.5 rounded text-xs"
+                  style={{ borderColor: "#27272a", color: "#a1a1aa" }}
+                >
+                  ID: REQ-{selectedMessage.id.slice(0, 6).toUpperCase()}
                 </span>
               </>
             ) : (
-              <h2 className="text-sm font-semibold text-[#c7c4d7]">Select a draft to review</h2>
+              <h2 className="text-sm font-semibold" style={{ color: "#71717a" }}>
+                Select a draft to review
+              </h2>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            {selectedMessage && (
-              <>
-                <button
-                  onClick={() => setShowHistory(!showHistory)}
-                  className="h-8 px-3 flex items-center justify-center border border-[#464554] text-[#e5e1e4] rounded text-xs hover:bg-[#201f22] transition-colors"
-                >
-                  <HistoryIcon className="w-4 h-4 mr-1" />
-                  History
-                </button>
-                <button className="h-8 w-8 flex items-center justify-center border border-[#464554] text-[#e5e1e4] rounded hover:bg-[#201f22] transition-colors">
-                  <Zap className="w-4 h-4" />
-                </button>
-              </>
-            )}
-          </div>
+          {selectedMessage && (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowHistory(!showHistory)}
+                className="h-8 px-3 border rounded text-xs flex items-center gap-1.5 transition-colors"
+                style={{ borderColor: "#27272a", color: "#e5e5e5" }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#18181b")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+              >
+                <HistoryIcon className="w-3.5 h-3.5" />
+                View History
+              </button>
+              <button
+                type="button"
+                className="h-8 w-8 border rounded flex items-center justify-center transition-colors"
+                style={{ borderColor: "#27272a", color: "#e5e5e5" }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#18181b")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                aria-label="More options"
+              >
+                <MoreVertical className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Content Canvas */}
         {selectedMessage ? (
-          <div className="p-6 max-w-[800px] flex flex-col gap-6 flex-1 overflow-y-auto">
-            {/* Path Context Banner (Bento Style) */}
-            <div className="grid grid-cols-3 gap-4">
-              {/* Target Card */}
-              <div className="col-span-2 bg-[#201f22] border border-[#464554] rounded p-4 flex flex-col justify-between">
+          <div className="p-6 max-w-[800px] mx-auto w-full flex flex-col gap-8">
+            {/* ── Path Context Banner (Bento Grid 3 cols) ── */}
+            <div className="grid grid-cols-3 gap-1">
+              {/* Target Card (col-span-2) */}
+              <div
+                className="col-span-2 border rounded-lg p-4 flex flex-col justify-between"
+                style={{ backgroundColor: "#18181b", borderColor: "#27272a" }}
+              >
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs text-[#c7c4d7] uppercase tracking-wider">
-                      Target Node
-                    </span>
-                  </div>
-                  <h3 className="text-lg font-semibold text-[#e5e1e4]">
+                  <span className="text-xs uppercase tracking-wider" style={{ color: "#71717a" }}>
+                    Target Node
+                  </span>
+                  <h3 className="text-lg font-semibold mt-1" style={{ color: "#e5e5e5" }}>
                     {selectedMessage.contact?.name}
                   </h3>
-                  <p className="text-sm text-[#c7c4d7] mt-1">
-                    {selectedMessage.contact?.title} at {selectedMessage.account?.name}
+                  <p className="text-sm mt-1" style={{ color: "#a1a1aa" }}>
+                    {selectedMessage.contact?.title}
+                    {selectedMessage.account?.name ? ` at ${selectedMessage.account.name}` : ""}
                   </p>
                 </div>
-                <div className="mt-4 flex gap-2">
+                <div className="mt-4">
                   <a
-                    href="#"
-                    className="text-[#8083ff] hover:text-[#b3b4ff] text-xs flex items-center gap-1 transition-colors"
+                    href={selectedMessage.contact?.linkedin_url ?? "#"}
+                    className="text-xs flex items-center gap-1 transition-colors"
+                    style={{ color: "#4f46e5" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "#818cf8")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "#4f46e5")}
+                    target="_blank"
+                    rel="noreferrer"
                   >
-                    <ExternalLink className="w-3 h-3" /> LinkedIn
+                    <ExternalLink className="w-3 h-3" />
+                    LinkedIn
                   </a>
                 </div>
               </div>
 
-              {/* Path Connector */}
-              <div className="col-span-1 bg-[#201f22] border border-[#464554] rounded p-4 flex flex-col justify-between relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-2 opacity-10">
-                  <GitFork className="w-16 h-16" />
+              {/* Path Connector Card (col-span-1) */}
+              <div
+                className="col-span-1 border rounded-lg p-4 flex flex-col justify-between relative overflow-hidden"
+                style={{ backgroundColor: "#18181b", borderColor: "#27272a" }}
+              >
+                {/* Decorative background icon */}
+                <div className="absolute top-2 right-2 opacity-5 pointer-events-none" aria-hidden>
+                  <GitFork className="w-16 h-16" style={{ color: "#e5e5e5" }} />
                 </div>
                 <div>
-                  <span className="text-xs text-[#c7c4d7] uppercase tracking-wider">
+                  <span className="text-xs uppercase tracking-wider" style={{ color: "#71717a" }}>
                     Strongest Path
                   </span>
-                  {selectedMessage.warm_path?.recommended_intro_person && (
+                  {connector && (
                     <div className="flex items-center gap-2 mt-2">
-                      <div className="w-6 h-6 rounded-full overflow-hidden border border-[#464554] bg-[#8083ff]/20 flex items-center justify-center text-xs font-bold text-[#8083ff]">
-                        {selectedMessage.warm_path.recommended_intro_person[0]}
+                      <div
+                        className="w-6 h-6 rounded-full border flex items-center justify-center text-[10px] font-bold shrink-0"
+                        style={{
+                          backgroundColor: "rgba(79,70,229,0.2)",
+                          borderColor: "rgba(79,70,229,0.3)",
+                          color: "#818cf8",
+                        }}
+                      >
+                        {getInitials(connector).slice(0, 1)}
                       </div>
-                      <span className="font-medium text-[#e5e1e4]">
-                        {selectedMessage.warm_path.recommended_intro_person}
+                      <span className="font-medium text-sm truncate" style={{ color: "#e5e5e5" }}>
+                        {connector}
                       </span>
                     </div>
                   )}
                 </div>
                 <div className="mt-4">
-                  <span className="inline-flex items-center gap-1 bg-[#4edea3]/10 text-[#4edea3] border border-[#4edea3]/20 px-2 py-0.5 rounded text-xs">
+                  <span
+                    className="text-xs border px-2 py-0.5 rounded flex items-center gap-1 w-fit"
+                    style={{
+                      borderColor: "rgba(16,185,129,0.2)",
+                      color: "#10b981",
+                    }}
+                  >
                     <Flame className="w-3 h-3" />
-                    {warmthLabel(getWarmthScore(selectedMessage))}
+                    {warmthScore} Warmth
                   </span>
-                  <p className="text-xs text-[#c7c4d7] mt-1">
-                    {selectedMessage.warm_path?.path_explanation || "Strong path available"}
+                  <p className="text-xs mt-1" style={{ color: "#a1a1aa" }}>
+                    {selectedMessage.warm_path?.path_explanation ?? "Strong path available"}
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Message Editor Section */}
+            {/* ── Message Editor ── */}
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-end">
-                <h3 className="text-sm font-semibold text-[#e5e1e4] flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#8083ff]" />
+                <h3
+                  className="text-sm font-semibold flex items-center gap-2"
+                  style={{ color: "#e5e5e5" }}
+                >
+                  <Sparkles className="w-4 h-4" style={{ color: "#4f46e5" }} />
                   AI Draft Generation
                 </h3>
-                <span className="text-xs text-[#c7c4d7]">Editing as {selectedMessage.contact?.name?.split(" ")[0]}</span>
+                <span className="text-xs" style={{ color: "#a1a1aa" }}>
+                  Editing as {connector}
+                </span>
               </div>
-              <div className="bg-[#201f22] border border-[#464554] rounded overflow-hidden flex flex-col shadow-sm">
+              <div
+                className="border rounded-lg overflow-hidden flex flex-col"
+                style={{ backgroundColor: "#18181b", borderColor: "#27272a" }}
+              >
                 {/* Formatting Toolbar */}
-                <div className="h-10 border-b border-[#464554] bg-[#201f22] flex items-center px-2 gap-1">
-                  <button className="w-8 h-8 flex items-center justify-center text-[#c7c4d7] hover:text-[#e5e1e4] hover:bg-[#353437] rounded transition-colors">
-                    <Mail className="w-4 h-4" />
-                  </button>
-                  <button className="w-8 h-8 flex items-center justify-center text-[#c7c4d7] hover:text-[#e5e1e4] hover:bg-[#353437] rounded transition-colors">
-                    <Users className="w-4 h-4" />
-                  </button>
-                  <button className="w-8 h-8 flex items-center justify-center text-[#c7c4d7] hover:text-[#e5e1e4] hover:bg-[#353437] rounded transition-colors">
-                    <ExternalLink className="w-4 h-4" />
-                  </button>
-                  <div className="w-px h-4 bg-[#464554] mx-1" />
-                  <button className="w-8 h-8 flex items-center justify-center text-[#c7c4d7] hover:text-[#e5e1e4] hover:bg-[#353437] rounded transition-colors">
-                    <Zap className="w-4 h-4" />
-                  </button>
+                <div
+                  className="h-10 border-b flex items-center px-2 gap-1"
+                  style={{ borderColor: "#27272a", backgroundColor: "#201f22" }}
+                >
+                  <ToolbarButton label="B" title="Bold" />
+                  <ToolbarButton label="I" title="Italic" italic />
+                  <ToolbarButton icon={<ExternalLink className="w-3.5 h-3.5" />} title="Link" />
+                  <div className="w-px h-4 mx-1" style={{ backgroundColor: "#27272a" }} />
+                  <ToolbarButton label="•" title="Bullet list" />
+                  <ToolbarButton label="1." title="Numbered list" />
                 </div>
 
                 {/* Subject Line */}
-                <div className="border-b border-[#464554] px-4 py-2 bg-[#1c1b1d] flex items-center gap-2">
-                  <span className="text-xs text-[#c7c4d7]">Subject:</span>
+                <div
+                  className="border-b px-4 py-2 flex items-center gap-2"
+                  style={{ borderColor: "#27272a", backgroundColor: "#0e0e10" }}
+                >
+                  <span className="text-xs shrink-0" style={{ color: "#71717a" }}>
+                    Subject:
+                  </span>
                   <input
-                    className="flex-1 bg-transparent border-none p-0 focus:ring-0 text-sm text-[#e5e1e4] outline-none placeholder-[#c7c4d7]"
                     type="text"
-                    defaultValue={selectedMessage.subject || ""}
-                    placeholder="Enter subject..."
+                    value={editedSubject}
+                    onChange={(e) => setEditedSubject(e.target.value)}
+                    className="flex-1 bg-transparent border-none p-0 text-sm outline-none"
+                    style={{ color: "#e5e5e5" }}
                   />
                 </div>
 
-                {/* Editor Body */}
-                <div className="p-4 bg-[#1c1b1d] min-h-[240px]">
-                  <Textarea
-                    value={draftBody}
-                    onChange={(event) => setDraftBody(event.target.value)}
-                    className="w-full h-full bg-transparent border-none p-0 focus:ring-0 text-sm text-[#e5e1e4] resize-none outline-none leading-relaxed placeholder-[#c7c4d7]"
+                {/* Body Textarea */}
+                <div className="p-4 min-h-[240px]" style={{ backgroundColor: "#0e0e10" }}>
+                  <textarea
+                    rows={10}
+                    value={editedBody}
+                    onChange={(e) => setEditedBody(e.target.value)}
+                    className="w-full bg-transparent border-none p-0 text-sm outline-none resize-none leading-relaxed"
+                    style={{ color: "#e5e5e5" }}
                     placeholder="Draft message here..."
                   />
                 </div>
 
                 {/* AI Footer */}
-                <div className="px-4 py-2 bg-[#201f22] flex items-center justify-between border-t border-[#464554]">
+                <div
+                  className="px-4 py-2 flex items-center justify-between border-t"
+                  style={{ borderColor: "#27272a", backgroundColor: "#18181b" }}
+                >
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-[#4edea3] animate-pulse" />
-                    <span className="text-xs text-[#c7c4d7]">
+                    <span
+                      className="w-2 h-2 rounded-full animate-pulse"
+                      style={{ backgroundColor: "#10b981" }}
+                    />
+                    <span className="text-xs" style={{ color: "#a1a1aa" }}>
                       Draft optimized for high response rate
                     </span>
                   </div>
-                  <button className="text-xs text-[#8083ff] hover:text-[#b3b4ff] flex items-center gap-1 transition-colors">
-                    <RefreshCw className="w-3 h-3" />
+                  <button
+                    type="button"
+                    onClick={handleRegenerate}
+                    className="text-xs flex items-center gap-1 transition-colors"
+                    style={{ color: "#4f46e5" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "#818cf8")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "#4f46e5")}
+                    disabled={generatingIds?.has(selectedMessage.id)}
+                  >
+                    <RefreshCw
+                      className={cn(
+                        "w-3 h-3",
+                        generatingIds?.has(selectedMessage.id) && "animate-spin",
+                      )}
+                    />
                     Regenerate Tone
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* Research Card */}
+            {/* ── Quality Scorer ── */}
+            <QualityScorer message={{ ...selectedMessage, body: editedBody }} />
+
+            {/* ── Research Card ── */}
             <ResearchCard message={selectedMessage} />
 
-            {/* Quality Scorer */}
-            <QualityScorer message={selectedMessage} />
-
-            {/* Action Console */}
-            <div className="flex items-center justify-between pt-4 border-t border-[#464554] mt-auto">
+            {/* ── Action Console ── */}
+            <div
+              className="flex items-center justify-between pt-4 border-t"
+              style={{ borderColor: "#27272a" }}
+            >
               <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-xs border-[#464554] text-[#c7c4d7] hover:bg-[#201f22]"
-                  onClick={() => setSelectedId(null)}
+                <button
+                  type="button"
+                  onClick={handleReroute}
+                  className="h-8 px-4 border rounded text-xs transition-colors"
+                  style={{ borderColor: "#27272a", color: "#a1a1aa" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#18181b")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                 >
                   Re-route Path
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-xs border-[#464554] text-[#c7c4d7] hover:bg-[#201f22]"
-                  onClick={() => {
-                    rejectMessage(selectedMessage.id);
-                    toast.success("Rejected");
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDiscard}
+                  className="h-8 px-4 border rounded text-xs transition-colors"
+                  style={{ borderColor: "#27272a", color: "#a1a1aa" }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "rgba(239,68,68,0.08)";
+                    e.currentTarget.style.borderColor = "rgba(239,68,68,0.3)";
+                    e.currentTarget.style.color = "#ef4444";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.borderColor = "#27272a";
+                    e.currentTarget.style.color = "#a1a1aa";
                   }}
                 >
+                  <X className="w-3 h-3 inline mr-1" />
                   Discard
-                </Button>
+                </button>
               </div>
-              <Button
-                className="text-xs h-8 px-4 bg-[#4edea3] text-[#002114] font-semibold hover:bg-[#5ffab5] transition-colors shadow-[0_0_15px_rgba(78,222,163,0.2)]"
-                onClick={() => {
-                  approveMessage(selectedMessage.id, draftBody);
-                  toast.success("Approved & sent!");
+              <button
+                type="button"
+                onClick={handleApprove}
+                className="h-8 px-6 rounded font-semibold text-xs flex items-center gap-2 transition-colors"
+                style={{
+                  backgroundColor: "#10b981",
+                  color: "#000",
+                  boxShadow: "0 0 16px rgba(16,185,129,0.25)",
                 }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#34d399")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#10b981")}
               >
-                <Check className="w-3 h-3 mr-1.5" />
-                Approve &amp; Send
-              </Button>
+                <Check className="w-3.5 h-3.5" />
+                Approve &amp; Send via {connector}
+              </button>
             </div>
           </div>
         ) : (
@@ -825,14 +815,59 @@ export default function ApprovalQueuePage() {
           </div>
         )}
       </div>
-    </div>
+    </main>
+  );
+}
+
+// ─── Small helpers ─────────────────────────────────────────────────────────────
+
+function ToolbarButton({
+  label,
+  icon,
+  title,
+  italic,
+}: {
+  label?: string;
+  icon?: React.ReactNode;
+  title: string;
+  italic?: boolean;
+}) {
+  return (
+    <button
+      className="w-7 h-7 flex items-center justify-center rounded text-xs transition-colors"
+      style={{ color: "#a1a1aa" }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.color = "#e5e5e5";
+        e.currentTarget.style.backgroundColor = "#27272a";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.color = "#a1a1aa";
+        e.currentTarget.style.backgroundColor = "transparent";
+      }}
+      title={title}
+      type="button"
+    >
+      {icon ?? <span className={cn("font-medium", italic && "italic")}>{label}</span>}
+    </button>
   );
 }
 
 function HistoryIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <svg
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <title>History</title>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
     </svg>
   );
 }
