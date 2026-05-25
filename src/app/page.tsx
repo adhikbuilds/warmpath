@@ -451,13 +451,15 @@ export default function LandingPage() {
             </thead>
             <tbody>
               {[
-                ["Maps your internal relationships", true, false, false, false],
-                ["Finds warm paths to buyers",       true, false, false, false],
-                ["Human approval on every message",  true, false, false, false],
-                ["Prospect database",                false, true, false, false],
-                ["Email enrichment",                 false, true, true, true],
-                ["Auto-send campaigns",              false, false, false, true],
-                ["Buying signal detection",          false, true, true, false],
+                ["Maps your internal relationships",        true,  false, false, false],
+                ["Warm path BFS pathfinding",               true,  false, false, false],
+                ["Human approval on every send",            true,  false, false, false],
+                ["Buying signal detection",                 true,  true,  true,  false],
+                ["AI-drafted personalised outreach",        true,  false, false, true ],
+                ["Multi-channel (email/LI/WhatsApp/phone)", true,  true,  true,  true ],
+                ["CRM sync",                                true,  true,  true,  true ],
+                ["Prospect database",                       false, true,  false, false],
+                ["Auto-send without approval",              false, false, false, true ],
               ].map(([feat, wp, ap, cl, ar], ri) => (
                 <tr key={ri} style={{ borderBottom: `1px solid ${border}`, backgroundColor: ri % 2 === 0 ? "transparent" : (dark ? "#0d0d0f08" : "#f5f5f708") }}>
                   <td style={{ padding: "14px 24px", color: text }}>{feat as string}</td>
