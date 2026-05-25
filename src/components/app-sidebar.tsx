@@ -21,7 +21,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
 import { cn, getInitials } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
 import { useSalesStore } from "@/stores/salesStore";
@@ -122,8 +121,7 @@ export function AppSidebar() {
 
   const urgentSignalCount = signals.filter((s) => s.urgency_score >= 80).length;
 
-  const handleLogout = async () => {
-    await signOut({ redirect: false });
+  const handleLogout = () => {
     logout();
     router.push("/login");
   };
