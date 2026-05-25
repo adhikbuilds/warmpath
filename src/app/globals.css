@@ -71,107 +71,107 @@
   --radius: 0.375rem;
 
   /* Stitch surface tiers */
-  --surface:                    #131315;
-  --surface-dim:                #131315;
-  --surface-container:          #201f22;
-  --surface-container-low:      #1c1b1d;
-  --surface-container-high:     #2a2a2c;
-  --surface-container-highest:  #353437;
-  --surface-variant:            #353437;
-  --surface-bright:             #39393b;
-  --on-surface:                 #e5e1e4;
-  --on-surface-variant:         #c7c4d7;
-  --outline:                    #908fa0;
-  --outline-variant:            #464554;
+  --surface: #131315;
+  --surface-dim: #131315;
+  --surface-container: #201f22;
+  --surface-container-low: #1c1b1d;
+  --surface-container-high: #2a2a2c;
+  --surface-container-highest: #353437;
+  --surface-variant: #353437;
+  --surface-bright: #39393b;
+  --on-surface: #e5e1e4;
+  --on-surface-variant: #c7c4d7;
+  --outline: #908fa0;
+  --outline-variant: #464554;
 
   /* Stitch primary – Indigo */
-  --primary:                    #c0c1ff;
-  --primary-container:          #8083ff;
-  --on-primary:                 #1000a9;
-  --on-primary-container:       #0d0096;
+  --primary: #c0c1ff;
+  --primary-container: #8083ff;
+  --on-primary: #1000a9;
+  --on-primary-container: #0d0096;
 
   /* Stitch secondary – Emerald */
-  --secondary:                  #4edea3;
-  --secondary-container:        #00a572;
-  --on-secondary:               #003824;
-  --on-secondary-container:     #00311f;
+  --secondary: #4edea3;
+  --secondary-container: #00a572;
+  --on-secondary: #003824;
+  --on-secondary-container: #00311f;
 
   /* Stitch tertiary – Amber */
-  --tertiary:                   #ffb783;
-  --tertiary-container:         #d97721;
-  --on-tertiary:                #4f2500;
+  --tertiary: #ffb783;
+  --tertiary-container: #d97721;
+  --on-tertiary: #4f2500;
 
   /* Destructive */
-  --destructive:                #ffb4ab;
-  --error-container:            #93000a;
+  --destructive: #ffb4ab;
+  --error-container: #93000a;
 
   /* Standard Tailwind semantic vars → Stitch tokens */
-  --background:                 #131315;
-  --foreground:                 #e5e1e4;
-  --card:                       #201f22;
-  --card-foreground:            #e5e1e4;
-  --popover:                    #201f22;
-  --popover-foreground:         #e5e1e4;
-  --muted:                      #2a2a2c;
-  --muted-foreground:           #908fa0;
-  --accent:                     #2a2a2c;
-  --accent-foreground:          #e5e1e4;
-  --border:                     #464554;
-  --input:                      #1c1b1d;
-  --ring:                       #c0c1ff;
+  --background: #131315;
+  --foreground: #e5e1e4;
+  --card: #201f22;
+  --card-foreground: #e5e1e4;
+  --popover: #201f22;
+  --popover-foreground: #e5e1e4;
+  --muted: #2a2a2c;
+  --muted-foreground: #908fa0;
+  --accent: #2a2a2c;
+  --accent-foreground: #e5e1e4;
+  --border: #464554;
+  --input: #1c1b1d;
+  --ring: #c0c1ff;
 
   /* Brand = vibrant indigo (used for highlights) */
-  --brand:                      #8083ff;
-  --brand-foreground:           #ffffff;
+  --brand: #8083ff;
+  --brand-foreground: #ffffff;
 
   /* Charts */
-  --chart-1:                    #c0c1ff;
-  --chart-2:                    #4edea3;
-  --chart-3:                    #ffb783;
-  --chart-4:                    #8083ff;
-  --chart-5:                    #00a572;
+  --chart-1: #c0c1ff;
+  --chart-2: #4edea3;
+  --chart-3: #ffb783;
+  --chart-4: #8083ff;
+  --chart-5: #00a572;
 
   /* Sidebar */
-  --sidebar:                    #1c1b1d;
-  --sidebar-foreground:         #e5e1e4;
-  --sidebar-primary:            #c0c1ff;
+  --sidebar: #1c1b1d;
+  --sidebar-foreground: #e5e1e4;
+  --sidebar-primary: #c0c1ff;
   --sidebar-primary-foreground: #1000a9;
-  --sidebar-accent:             #2a2a2c;
-  --sidebar-accent-foreground:  #e5e1e4;
-  --sidebar-border:             #464554;
-  --sidebar-ring:               #c0c1ff;
+  --sidebar-accent: #2a2a2c;
+  --sidebar-accent-foreground: #e5e1e4;
+  --sidebar-border: #464554;
+  --sidebar-ring: #c0c1ff;
 }
 
 /* Dark variant is identical – always dark */
 .dark {
-  --background:                 #131315;
-  --foreground:                 #e5e1e4;
-  --card:                       #201f22;
-  --card-foreground:            #e5e1e4;
-  --popover:                    #201f22;
-  --popover-foreground:         #e5e1e4;
-  --primary:                    #c0c1ff;
-  --primary-foreground:         #1000a9;
-  --secondary:                  #4edea3;
-  --secondary-foreground:       #003824;
-  --muted:                      #2a2a2c;
-  --muted-foreground:           #908fa0;
-  --accent:                     #2a2a2c;
-  --accent-foreground:          #e5e1e4;
-  --destructive:                #ffb4ab;
-  --border:                     #464554;
-  --input:                      #1c1b1d;
-  --ring:                       #c0c1ff;
-  --brand:                      #8083ff;
-  --brand-foreground:           #ffffff;
-  --sidebar:                    #1c1b1d;
-  --sidebar-foreground:         #e5e1e4;
-  --sidebar-primary:            #c0c1ff;
+  --background: #131315;
+  --foreground: #e5e1e4;
+  --card: #201f22;
+  --card-foreground: #e5e1e4;
+  --popover: #201f22;
+  --popover-foreground: #e5e1e4;
+  --primary: #c0c1ff;
+  --primary-foreground: #1000a9;
+  --secondary: #4edea3;
+  --secondary-foreground: #003824;
+  --muted: #2a2a2c;
+  --muted-foreground: #908fa0;
+  --accent: #2a2a2c;
+  --accent-foreground: #e5e1e4;
+  --destructive: #ffb4ab;
+  --border: #464554;
+  --input: #1c1b1d;
+  --ring: #c0c1ff;
+  --brand: #8083ff;
+  --brand-foreground: #ffffff;
+  --sidebar: #1c1b1d;
+  --sidebar-foreground: #e5e1e4;
+  --sidebar-primary: #c0c1ff;
   --sidebar-primary-foreground: #1000a9;
-  --sidebar-accent:             #2a2a2c;
-  --sidebar-accent-foreground:  #e5e1e4;
-  --sidebar-border:             #464554;
-  --sidebar-ring:               #c0c1ff;
+  --sidebar-accent: #2a2a2c;
+  --sidebar-accent-foreground: #e5e1e4;
+  --sidebar-border: #464554;
+  --sidebar-ring: #c0c1ff;
 }
 
 @layer base {
@@ -180,15 +180,25 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: var(--font-sans), 'Hanken Grotesk', system-ui, sans-serif;
+    font-family: var(--font-sans), "Hanken Grotesk", system-ui, sans-serif;
   }
 }
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #464554; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #908fa0; }
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #464554;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #908fa0;
+}
 
 /* Micro-border utility */
 .micro-border {
@@ -204,26 +214,50 @@
 
 /* Brand / warmth glows */
 .glow-brand {
-  box-shadow: 0 0 20px rgba(128, 131, 255, 0.15), 0 0 0 1px rgba(128, 131, 255, 0.12);
+  box-shadow:
+    0 0 20px rgba(128, 131, 255, 0.15),
+    0 0 0 1px rgba(128, 131, 255, 0.12);
 }
 .glow-emerald {
-  box-shadow: 0 0 12px rgba(78, 222, 163, 0.25), 0 0 0 1px rgba(78, 222, 163, 0.15);
+  box-shadow:
+    0 0 12px rgba(78, 222, 163, 0.25),
+    0 0 0 1px rgba(78, 222, 163, 0.15);
 }
 .warm-glow {
-  box-shadow: 0 0 0 1px rgba(128, 131, 255, 0.25), 0 4px 20px rgba(128, 131, 255, 0.10);
+  box-shadow:
+    0 0 0 1px rgba(128, 131, 255, 0.25),
+    0 4px 20px rgba(128, 131, 255, 0.1);
 }
 
 /* Fade-up entrance */
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
-.animate-fade-up { animation: fade-up 0.4s ease-out both; }
-.delay-1 { animation-delay: 0.05s; }
-.delay-2 { animation-delay: 0.10s; }
-.delay-3 { animation-delay: 0.15s; }
-.delay-4 { animation-delay: 0.20s; }
-.delay-5 { animation-delay: 0.25s; }
+.animate-fade-up {
+  animation: fade-up 0.4s ease-out both;
+}
+.delay-1 {
+  animation-delay: 0.05s;
+}
+.delay-2 {
+  animation-delay: 0.1s;
+}
+.delay-3 {
+  animation-delay: 0.15s;
+}
+.delay-4 {
+  animation-delay: 0.2s;
+}
+.delay-5 {
+  animation-delay: 0.25s;
+}
 
 /* Sparkline bars */
 .sparkline-bar {

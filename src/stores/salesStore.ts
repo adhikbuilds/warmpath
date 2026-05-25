@@ -114,6 +114,8 @@ interface SalesState {
   generatingIds: Set<string>;
   tourOpen: boolean;
   setTourOpen: (open: boolean) => void;
+  sidebarCollapsed: boolean;
+  setSidebarCollapsed: (v: boolean) => void;
 
   // Init
   initialize: () => Promise<void>;
@@ -592,6 +594,8 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
   generatingIds: new Set<string>(),
   tourOpen: false,
   setTourOpen: (open) => set({ tourOpen: open }),
+  sidebarCollapsed: false,
+  setSidebarCollapsed: (v) => set({ sidebarCollapsed: v }),
 
   // ─── Initialize: fetch all data from API ─────────────────────────────────
 

@@ -1,8 +1,8 @@
 "use client";
 
-import { ReactNode } from "react";
+import { BarChart3, HelpCircle, ListTodo, Network, Radar, Settings } from "lucide-react";
 import Link from "next/link";
-import { Settings, HelpCircle, BarChart3, Radar, Network, ListTodo } from "lucide-react";
+import type { ReactNode } from "react";
 
 const NAV_ITEMS = [
   { icon: BarChart3, label: "Dashboard", href: "/dashboard", id: "dashboard" },
@@ -51,9 +51,7 @@ export function AppShell({ children, activeNav }: { children: ReactNode; activeN
                 key={item.id}
                 href={item.href}
                 className={`flex items-center gap-3 px-3 py-2 rounded text-sm font-medium transition-all ${
-                  isActive
-                    ? "text-white"
-                    : "text-[#c7c4d7] hover:bg-[#2a2a2c]"
+                  isActive ? "text-white" : "text-[#c7c4d7] hover:bg-[#2a2a2c]"
                 }`}
                 style={isActive ? { backgroundColor: "#00a572", color: "white" } : {}}
               >
@@ -84,9 +82,7 @@ export function AppShell({ children, activeNav }: { children: ReactNode; activeN
       </nav>
 
       {/* Main Content */}
-      <main className="ml-[240px] flex-1 flex flex-col h-full overflow-auto">
-        {children}
-      </main>
+      <main className="ml-[240px] flex-1 flex flex-col h-full overflow-auto">{children}</main>
     </div>
   );
 }

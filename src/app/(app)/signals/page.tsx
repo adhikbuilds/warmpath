@@ -1,2013 +1,884 @@
 "use client";
 
-import {
-  Archive,
-  Bot,
-  Building2,
-  ChevronDown,
-  ChevronUp,
-  Filter,
-  Flame,
-  GitFork,
-  Link2Off,
-  Linkedin,
-  Loader2,
-  MessageSquare,
-  RefreshCw,
-  Sliders,
-  Sparkles,
-  ThumbsUp,
-  Trophy,
-  UserCircle,
-  Zap,
-} from "lucide-react";
-import Link from "next/link";
+import { ChevronDown, Filter, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { buildRelationshipGraph, computeEdgeWarmth } from "@/lib/graph";
-import { formatRelativeTime, signalTypeColor, signalTypeLabel } from "@/lib/utils";
+import { formatRelativeTime, signalTypeLabel } from "@/lib/utils";
 import { useSalesStore } from "@/stores/salesStore";
-import type { Account, RelationshipEdge, RelationshipType, Signal, WarmPath } from "@/types";
 
-// ─── Signal type icons & one-liners ──────────────────────────────────────────
+// ─── Design tokens ────────────────────────────────────────────────────────────
+const T = {
+  bg: "#09090b",
+  card: "#18181b",
+  border: "#27272a",
+  primary: "#4f46e5",
+  emerald: "#10b981",
+  muted: "#a1a1aa",
+  veryMuted: "#71717a",
+  white: "#e5e5e5",
+  cardHoverBorder: "rgba(79,70,229,0.5)",
+  dot: "radial-gradient(circle at 2px 2px, #3f3f46 1px, transparent 0)",
+} as const;
 
-const SIGNAL_ONELINER: Record<string, string> = {
-  funding: "New capital = new budget. Strike before the spend plan is locked.",
-  leadership_change: "New exec = new vendor reviews. First mover wins.",
-  website_visit: "They found you. Don't let the moment go cold.",
-  pricing_page_visit: "Pricing page visit = active evaluation. Act within 24 hours.",
-  job_posting: "Hiring signals = they're solving the exact problem you solve.",
-  g2_review: "Actively comparing solutions. Warm outreach now before they decide.",
-  intent_topic_surge: "Research spike detected. They're in buying mode.",
-  champion_job_change: "Your champion moved. New role, new opportunity.",
-  competitor_hiring: "Competitor is scaling they're feeling pressure. Your opening.",
-  linkedin_post: "They shared the pain publicly. Respond with a specific solution.",
-  tech_stack_change: "Stack change = integration opportunity. Time to reach out.",
-  contract_renewal: "Renewal cycle starting. Warmth matters most in this window.",
-  product_launch: "They're in growth mode GTM tooling investment follows.",
-  relationship_decay:
-    "Connection going cold. A genuine check-in now costs nothing losing the path costs pipeline.",
-};
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-// ─── LinkedIn Feed ─────────────────────────────────────────────────────────────
-
-type LinkedInIntentTag =
-  | "pain_point"
-  | "product_evaluation"
-  | "competitor_mention"
-  | "expansion_signal"
-  | "positive_sentiment"
-  | "leadership_change";
-
-const INTENT_TAG_STYLES: Record<LinkedInIntentTag, string> = {
-  pain_point: "bg-red-500/10 text-red-600 border-red-500/20",
-  product_evaluation: "bg-blue-500/10 text-blue-600 border-blue-500/20",
-  competitor_mention: "bg-yellow-500/10 text-yellow-700 border-yellow-500/20",
-  expansion_signal: "bg-purple-500/10 text-purple-600 border-purple-500/20",
-  positive_sentiment: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
-  leadership_change: "bg-brand/10 text-brand border-brand/20",
-};
-
-const INTENT_TAG_LABELS: Record<LinkedInIntentTag, string> = {
-  pain_point: "Pain point",
-  product_evaluation: "Evaluating tools",
-  competitor_mention: "Competitor mention",
-  expansion_signal: "Expansion signal",
-  positive_sentiment: "Positive sentiment",
-  leadership_change: "Leadership change",
-};
-
-interface LinkedInPost {
-  id: string;
-  contact_name: string;
-  contact_title: string;
-  company: string;
-  posted_at: string;
-  content: string;
-  likes: number;
-  comments: number;
-  intent_tags: LinkedInIntentTag[];
-  warm_path: string;
-  hook: string;
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .slice(0, 2)
+    .map((n) => n[0]?.toUpperCase() ?? "")
+    .join("");
 }
 
-const LINKEDIN_POSTS: LinkedInPost[] = [
-  {
-    id: "lp-1",
-    contact_name: "Priya Sharma",
-    contact_title: "VP Sales",
-    company: "Acme AI",
-    posted_at: "2 days ago",
-    content:
-      "Tired of AI tools that just blast generic emails to our list. We're getting 2% reply rates on cold outreach. There HAS to be a better way. Anyone found something that actually works?",
-    likes: 47,
-    comments: 23,
-    intent_tags: ["pain_point", "product_evaluation"],
-    warm_path: "Sarah Chen → Priya Sharma (1st degree)",
-    hook: "She mentioned exact pain point WarmPath solves",
-  },
-  {
-    id: "lp-2",
-    contact_name: "Marcus Chen",
-    contact_title: "Head of Revenue",
-    company: "Finpilot",
-    posted_at: "3 days ago",
-    content:
-      "Just wrapped Q1 planning. Sales team is under huge pressure to hit pipeline targets with 20% less headcount. Exploring tools that multiply rep productivity. DMs open.",
-    likes: 31,
-    comments: 12,
-    intent_tags: ["expansion_signal", "pain_point"],
-    warm_path: "Rohan Mehta → Marcus Chen (2nd degree via David Kim)",
-    hook: "Hiring signal matches SDR productivity use case",
-  },
-  {
-    id: "lp-3",
-    contact_name: "Elena Rodriguez",
-    contact_title: "Director of Sales",
-    company: "Stripe Inc.",
-    posted_at: "4 days ago",
-    content:
-      "Hot take: warm intros convert 10x better than cold email. Been testing this systematically for 6 months. The data is clear. Why is the industry still obsessed with volume?",
-    likes: 89,
-    comments: 41,
-    intent_tags: ["positive_sentiment", "product_evaluation"],
-    warm_path: "Adhik Agarwal → Elena Rodriguez (1st degree)",
-    hook: "She's advocating for exactly what WarmPath does",
-  },
-  {
-    id: "lp-4",
-    contact_name: "Rajesh Patel",
-    contact_title: "CRO",
-    company: "Gong.io",
-    posted_at: "5 days ago",
-    content:
-      "We evaluated 6 outbound tools this quarter. The ones winning are not the ones with the biggest contact databases — it's the ones that help reps actually understand who they're reaching out to.",
-    likes: 62,
-    comments: 19,
-    intent_tags: ["competitor_mention", "product_evaluation"],
-    warm_path: "Sarah Chen → Rajesh Patel (2nd degree via Mike Lee)",
-    hook: "Actively evaluating outbound tools — high urgency",
-  },
-  {
-    id: "lp-5",
-    contact_name: "Divya Kapoor",
-    contact_title: "Head of Revenue",
-    company: "Notion Labs",
-    posted_at: "1 week ago",
-    content:
-      "New role, new challenges. Notion's sales team is growing fast. Building out the outbound motion from scratch. Would love to connect with people who've built world-class SDR teams.",
-    likes: 24,
-    comments: 8,
-    intent_tags: ["expansion_signal", "leadership_change"],
-    warm_path: "Rohan Mehta → Divya Kapoor (1st degree)",
-    hook: "New role = greenfield opportunity",
-  },
-];
-
-const AI_COMMENTS: Record<string, Record<LinkedInIntentTag, string>> = {
-  default: {
-    pain_point:
-      "This is such a common pain point. One pattern that's worked: treating the relationship graph as the primary lever, not the blast radius. Curious what your current setup looks like.",
-    product_evaluation:
-      "Great timing — happy to show you something built around relationship graph intelligence for outbound. It's a different lens than most tools in the space. Worth 20 minutes?",
-    competitor_mention:
-      "Heard this exact feedback recently. The contact data problem is pretty solved — the relationship intelligence layer is where most tools still fall short.",
-    expansion_signal:
-      "Interesting signals from your direction. The mechanism is: warm intros compress the trust-building phase dramatically. Would love to compare notes.",
-    positive_sentiment:
-      "Really appreciate you sharing this. We're seeing the same shift industry-wide — would love to compare notes when you have a moment.",
-    leadership_change:
-      "New role = greenfield. A lot of leaders in your position are rethinking the outbound motion from scratch. Would love to share what's been working.",
-  },
-};
-
-function getAIComment(tag: LinkedInIntentTag, firstName: string): string {
-  const base = AI_COMMENTS.default[tag];
-  return base.replace(/^(This|Great|Heard|Interesting|Really|New)/, `${firstName}, $&`);
+// ICP tier label based on opportunity score
+function icpTier(score: number): string {
+  if (score >= 80) return "Tier 1 ICP";
+  if (score >= 60) return "Tier 2 ICP";
+  return "Tier 3 ICP";
 }
 
-function LinkedInFeed() {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [generatingCommentId, setGeneratingCommentId] = useState<string | null>(null);
-  const [generatedComments, setGeneratedComments] = useState<Record<string, string>>({});
-  const [savedHooks, setSavedHooks] = useState<Set<string>>(new Set());
+// Signal type badge color (inline style approach to match token system)
+const SIGNAL_BADGE: Record<string, { bg: string; color: string }> = {
+  funding: { bg: "rgba(16,185,129,0.12)", color: "#10b981" },
+  job_posting: { bg: "rgba(139,92,246,0.12)", color: "#a78bfa" },
+  leadership_change: { bg: "rgba(234,179,8,0.12)", color: "#fbbf24" },
+  intent_topic_surge: { bg: "rgba(245,158,11,0.12)", color: "#f59e0b" },
+  pricing_page_visit: { bg: "rgba(6,182,212,0.12)", color: "#22d3ee" },
+  website_visit: { bg: "rgba(59,130,246,0.12)", color: "#60a5fa" },
+  champion_job_change: { bg: "rgba(20,184,166,0.12)", color: "#2dd4bf" },
+  product_launch: { bg: "rgba(236,72,153,0.12)", color: "#f472b6" },
+  g2_review: { bg: "rgba(239,68,68,0.12)", color: "#f87171" },
+  competitor_hiring: { bg: "rgba(249,115,22,0.12)", color: "#fb923c" },
+  tech_stack_change: { bg: "rgba(168,85,247,0.12)", color: "#c084fc" },
+  crm_stage_change: { bg: "rgba(99,102,241,0.12)", color: "#818cf8" },
+  linkedin_post: { bg: "rgba(14,165,233,0.12)", color: "#38bdf8" },
+};
 
-  async function generateComment(post: LinkedInPost) {
-    setGeneratingCommentId(post.id);
-    await new Promise((r) => setTimeout(r, 1400));
-    const tag = post.intent_tags[0];
-    const firstName = post.contact_name.split(" ")[0];
-    setGeneratedComments((prev) => ({
-      ...prev,
-      [post.id]: tag
-        ? getAIComment(tag, firstName)
-        : `Great insight, ${firstName}. Would love to connect.`,
-    }));
-    setGeneratingCommentId(null);
-    toast.success("AI comment generated — not salesy, just genuine");
-  }
+function signalBadgeStyle(type: string): { bg: string; color: string } {
+  return SIGNAL_BADGE[type] ?? { bg: "rgba(161,161,170,0.12)", color: "#a1a1aa" };
+}
 
-  function saveAsHook(post: LinkedInPost) {
-    setSavedHooks((prev) => new Set([...prev, post.id]));
-    toast.success(`Hook saved to ${post.contact_name}'s research card`, {
-      description: "Will be included in next outreach generation.",
-    });
-  }
+// ─── Filter chip component ────────────────────────────────────────────────────
 
+interface ChipProps {
+  label: string;
+  active?: boolean;
+  removable?: boolean;
+  onRemove?: () => void;
+  onClick?: () => void;
+  hasDropdown?: boolean;
+}
+
+function FilterChip({ label, active, removable, onRemove, onClick, hasDropdown }: ChipProps) {
   return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-4">
-      <div className="flex items-center gap-2 mb-1">
-        <Linkedin className="w-3.5 h-3.5 text-blue-500" />
-        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          {LINKEDIN_POSTS.length} posts from target contacts
-        </span>
-      </div>
-      {LINKEDIN_POSTS.map((post) => {
-        const isExpanded = expandedId === post.id;
-        const isGenerating = generatingCommentId === post.id;
-        const hasComment = !!generatedComments[post.id];
-        const isSaved = savedHooks.has(post.id);
-        const avatarInitial = post.contact_name[0]?.toUpperCase() ?? "?";
-
-        return (
-          <Card key={post.id} className="border-border/60 transition-all hover:border-border">
-            <CardContent className="p-4 space-y-3">
-              {/* Header */}
-              <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-xs font-bold flex-shrink-0">
-                  {avatarInitial}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <p className="text-xs font-semibold">{post.contact_name}</p>
-                        <span className="text-[9px] border border-border/50 rounded px-1 text-muted-foreground">
-                          1st
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-muted-foreground">
-                        {post.contact_title} · {post.company}
-                      </p>
-                    </div>
-                    <span className="text-[10px] text-muted-foreground flex-shrink-0">
-                      {post.posted_at}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Post content with expand/collapse */}
-              <div>
-                <p
-                  className={`text-[11px] leading-relaxed text-foreground/80 bg-muted/30 rounded-lg p-2.5 ${isExpanded ? "" : "line-clamp-3"}`}
-                >
-                  {post.content}
-                </p>
-                {post.content.length > 120 && (
-                  <button
-                    type="button"
-                    onClick={() => setExpandedId(isExpanded ? null : post.id)}
-                    className="text-[10px] text-brand hover:underline mt-1 ml-1"
-                  >
-                    {isExpanded ? "Show less" : "Show more"}
-                  </button>
-                )}
-              </div>
-
-              {/* Intent tags */}
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {post.intent_tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className={`text-[10px] px-1.5 py-0.5 rounded border font-medium ${INTENT_TAG_STYLES[tag]}`}
-                  >
-                    {INTENT_TAG_LABELS[tag]}
-                  </span>
-                ))}
-              </div>
-
-              {/* Engagement count */}
-              <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <ThumbsUp className="w-3 h-3" />
-                  {post.likes}
-                </span>
-                <span className="flex items-center gap-1">
-                  <MessageSquare className="w-3 h-3" />
-                  {post.comments}
-                </span>
-              </div>
-
-              {/* Warm path */}
-              <div className="flex items-center gap-1.5 text-[10px] text-emerald-600">
-                <Zap className="w-3 h-3 flex-shrink-0" />
-                <span className="font-medium">{post.warm_path}</span>
-              </div>
-
-              {/* Hook insight */}
-              <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200/60 dark:bg-amber-500/10 dark:border-amber-500/20 px-3 py-2">
-                <Bot className="w-3 h-3 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-                <p className="text-[10px] text-amber-800 dark:text-amber-300 leading-snug font-medium">
-                  {post.hook}
-                </p>
-              </div>
-
-              {/* Generated comment */}
-              {hasComment && (
-                <div className="bg-muted/50 rounded-lg p-3 border border-border/40 space-y-2">
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide font-medium">
-                    Draft comment
-                  </p>
-                  <p className="text-xs leading-relaxed">{generatedComments[post.id]}</p>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      size="sm"
-                      className="h-6 text-[10px]"
-                      onClick={() => {
-                        navigator.clipboard.writeText(generatedComments[post.id] ?? "");
-                        toast.success("Copied to clipboard");
-                      }}
-                    >
-                      Copy
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-6 text-[10px]"
-                      onClick={() => generateComment(post)}
-                    >
-                      Regenerate
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Actions */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-7 text-[11px] gap-1"
-                  disabled={isGenerating}
-                  onClick={() => generateComment(post)}
-                >
-                  {isGenerating ? (
-                    <>
-                      <Loader2 className="w-3 h-3 animate-spin" />
-                      Writing…
-                    </>
-                  ) : (
-                    <>
-                      <Bot className="w-3 h-3" />
-                      {hasComment ? "Regenerate comment" : "Generate comment"}
-                    </>
-                  )}
-                </Button>
-                <Button
-                  size="sm"
-                  variant={isSaved ? "default" : "ghost"}
-                  className={`h-7 text-[11px] gap-1 ${isSaved ? "" : "text-brand hover:bg-brand/10"}`}
-                  onClick={() => saveAsHook(post)}
-                  disabled={isSaved}
-                >
-                  <Zap className="w-3 h-3" />
-                  {isSaved ? "Hook saved" : "Use as outreach hook"}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
-  );
-}
-
-// ─── Warm path reveal ─────────────────────────────────────────────────────────
-
-const REL_LABELS: Record<RelationshipType, string> = {
-  intro_history: "Prior intro",
-  coworker_connection: "Ex-colleagues",
-  calendar_meeting: "Met in person",
-  email_history: "Email history",
-  warm_path: "Warm connection",
-  crm_owner: "CRM owner",
-  linkedin_connection: "LinkedIn",
-};
-
-interface RevealNode {
-  id: string;
-  name: string;
-}
-
-interface RevealPath {
-  nodes: RevealNode[];
-  warmth: number;
-}
-
-function WarmPathReveal({
-  path,
-  edges,
-  loading,
-}: {
-  path: RevealPath | null;
-  edges: RelationshipEdge[];
-  loading: boolean;
-}) {
-  const [step, setStep] = useState(0);
-
-  useEffect(() => {
-    setStep(0);
-    if (!path || loading) return;
-    const t = setTimeout(() => setStep(1), 60);
-    return () => clearTimeout(t);
-  }, [path, loading]);
-
-  useEffect(() => {
-    if (!path || step === 0 || step >= path.nodes.length) return;
-    const t = setTimeout(() => setStep((s) => s + 1), 230);
-    return () => clearTimeout(t);
-  }, [step, path]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center gap-2 py-3">
-        <Loader2 className="w-3.5 h-3.5 text-muted-foreground animate-spin" />
-        <span className="text-xs text-muted-foreground">Computing warm path…</span>
-      </div>
-    );
-  }
-
-  if (!path) {
-    return (
-      <div className="py-2 space-y-1">
-        <p className="text-xs text-muted-foreground">No warm path in your network.</p>
-        <p className="text-[11px] text-muted-foreground/60">
-          Cold outreach only connect with someone at this company first.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-0">
-      {path.nodes.map((node, i) => {
-        const next = i < path.nodes.length - 1 ? path.nodes[i + 1] : null;
-        const edge = next
-          ? edges.find(
-              (e) =>
-                (e.from_id === node.id && e.to_id === next.id) ||
-                (e.from_id === next.id && e.to_id === node.id),
-            )
-          : null;
-
-        const nodeVisible = step > i;
-        const edgeVisible = step > i + 1;
-
-        const nodeColor =
-          i === 0
-            ? "bg-brand/15 text-brand ring-2 ring-brand/25"
-            : i === path.nodes.length - 1
-              ? "bg-violet-500/15 text-violet-600 ring-2 ring-violet-500/25"
-              : "bg-blue-500/15 text-blue-600 ring-2 ring-blue-500/25";
-
-        return (
-          <div key={node.id}>
-            <div
-              className="flex items-center gap-2.5"
-              style={{
-                opacity: nodeVisible ? 1 : 0,
-                transform: nodeVisible ? "translateX(0)" : "translateX(-10px)",
-                transition: "opacity 0.25s ease, transform 0.25s ease",
-              }}
-            >
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${nodeColor}`}
-              >
-                {node.name[0]}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold leading-tight truncate">{node.name}</p>
-                <p className="text-[10px] text-muted-foreground">
-                  {i === 0 ? "You" : i === path.nodes.length - 1 ? "Target" : "Connector"}
-                </p>
-              </div>
-              {i === 0 && nodeVisible && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-brand/10 text-brand border border-brand/20 font-medium flex-shrink-0">
-                  {path.warmth} warmth
-                </span>
-              )}
-            </div>
-
-            {next && (
-              <div className="ml-4 py-1 flex items-start gap-2.5">
-                <div
-                  className="w-0.5 rounded-full flex-shrink-0 ml-3"
-                  style={{
-                    height: edge ? "26px" : "18px",
-                    background: nodeVisible
-                      ? "linear-gradient(to bottom, rgba(100,116,139,0.35), rgba(100,116,139,0.08))"
-                      : "transparent",
-                    transition: "background 0.3s ease",
-                  }}
-                />
-                {edge && (
-                  <div
-                    className="mt-0.5"
-                    style={{ opacity: edgeVisible ? 1 : 0, transition: "opacity 0.3s ease 0.1s" }}
-                  >
-                    <span className="text-[10px] text-muted-foreground px-1.5 py-0.5 rounded bg-muted border border-border/40">
-                      {REL_LABELS[edge.relationship_type] ?? "Connected"}
-                    </span>
-                    {edge.evidence && (
-                      <p className="text-[10px] text-muted-foreground/55 mt-0.5 max-w-[175px]">
-                        {edge.evidence}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function IntelPanel({ signalId }: { signalId: string | null }) {
-  const router = useRouter();
-  const {
-    signals,
-    accounts,
-    contacts,
-    warmPaths,
-    teamMembers,
-    relationshipEdges,
-    addMessageToQueue,
-  } = useSalesStore();
-  const [loading, setLoading] = useState(false);
-  const [revealPath, setRevealPath] = useState<RevealPath | null>(null);
-  const [targetContact, setTargetContact] = useState<{ name: string; title: string } | null>(null);
-
-  const { graph, sourceIds } = useMemo(() => {
-    const teamNodes = teamMembers.map((tm) => ({
-      id: tm.id,
-      name: tm.name,
-      type: "team_member" as const,
-    }));
-    const g = buildRelationshipGraph(relationshipEdges, teamNodes);
-    return { graph: g, sourceIds: teamMembers.map((t) => t.id) };
-  }, [relationshipEdges, teamMembers]);
-
-  useEffect(() => {
-    if (!signalId) {
-      setRevealPath(null);
-      setTargetContact(null);
-      return;
-    }
-    setLoading(true);
-    setRevealPath(null);
-    setTargetContact(null);
-
-    const t = setTimeout(() => {
-      const signal = signals.find((s) => s.id === signalId);
-      if (!signal) {
-        setLoading(false);
-        return;
-      }
-      const account = accounts.find((a) => a.id === signal.account_id);
-      if (!account) {
-        setLoading(false);
-        return;
-      }
-      const topContact = contacts
-        .filter((c) => c.account_id === account.id)
-        .sort((a, b) => b.warmth_score - a.warmth_score)[0];
-      if (!topContact) {
-        setLoading(false);
-        return;
-      }
-      setTargetContact({ name: topContact.name, title: topContact.title });
-      let best: RevealPath | null = null;
-      for (const sid of sourceIds) {
-        const paths = graph.findPaths(sid, topContact.id, 3, 1);
-        if (paths.length > 0 && (!best || paths[0].warmth > best.warmth)) best = paths[0];
-      }
-      setRevealPath(best);
-      setLoading(false);
-    }, 460);
-
-    return () => clearTimeout(t);
-  }, [signalId]);
-
-  const signal = signals.find((s) => s.id === signalId) ?? null;
-  const account = signal ? accounts.find((a) => a.id === signal.account_id) : null;
-
-  if (!signal) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center text-center gap-3 p-5">
-        <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-          <GitFork className="w-5 h-5 text-muted-foreground" />
-        </div>
-        <div>
-          <p className="text-xs font-medium text-muted-foreground">Select a signal</p>
-          <p className="text-[11px] text-muted-foreground/55 mt-0.5">
-            Click any signal to reveal its warm path
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex-1 flex flex-col overflow-y-auto">
-      {/* Signal header */}
-      <div className="p-3.5 border-b border-border/40 space-y-2">
-        <div className="flex items-start gap-2">
-          <div className="w-7 h-7 rounded-lg bg-brand/10 flex items-center justify-center text-xs font-bold text-brand flex-shrink-0 mt-0.5">
-            {account?.name?.[0] ?? "?"}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="font-semibold text-xs">{account?.name}</span>
-              <Badge variant="outline" className={`text-[10px] ${signalTypeColor(signal.type)}`}>
-                {signalTypeLabel(signal.type)}
-              </Badge>
-            </div>
-            <p className="text-xs font-medium mt-0.5 leading-tight">{signal.title}</p>
-          </div>
-        </div>
-        <div className="flex items-start gap-1.5">
-          <Zap className="w-3 h-3 text-brand flex-shrink-0 mt-0.5" />
-          <span className="text-[11px] text-muted-foreground leading-snug">
-            {signal.recommended_action}
-          </span>
-        </div>
-      </div>
-
-      {/* Warm path reveal */}
-      <div className="p-3.5 border-b border-border/40 space-y-2.5">
-        <div className="flex items-center gap-1.5">
-          <GitFork className="w-3 h-3 text-brand" />
-          <span className="text-[11px] font-semibold">Warm Path</span>
-          {targetContact && !loading && (
-            <span className="text-[11px] text-muted-foreground truncate">
-              → {targetContact.name}
-            </span>
-          )}
-        </div>
-        <WarmPathReveal path={revealPath} edges={relationshipEdges} loading={loading} />
-      </div>
-
-      {/* Target */}
-      {targetContact && !loading && (
-        <div className="p-3.5 border-b border-border/40 space-y-2">
-          <div className="flex items-center gap-1.5">
-            <UserCircle className="w-3 h-3 text-violet-500" />
-            <span className="text-[11px] font-semibold">Target Contact</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-violet-500/15 flex items-center justify-center text-xs font-bold text-violet-600 flex-shrink-0">
-              {targetContact.name[0]}
-            </div>
-            <div>
-              <p className="text-xs font-semibold">{targetContact.name}</p>
-              <p className="text-[11px] text-muted-foreground">{targetContact.title}</p>
-            </div>
-          </div>
-        </div>
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 4,
+        paddingLeft: removable ? 10 : 12,
+        paddingRight: removable ? 6 : 12,
+        height: 32,
+        borderRadius: 9999,
+        border: active ? `1px solid rgba(79,70,229,0.6)` : `1px solid ${T.border}`,
+        backgroundColor: active ? "rgba(79,70,229,0.12)" : "transparent",
+        color: active ? "#818cf8" : T.muted,
+        fontSize: 13,
+        fontWeight: 500,
+        cursor: "pointer",
+        whiteSpace: "nowrap",
+        transition: "border-color 0.15s, background-color 0.15s",
+        flexShrink: 0,
+      }}
+    >
+      {label}
+      {hasDropdown && !removable && (
+        <ChevronDown style={{ width: 13, height: 13, opacity: 0.7, marginLeft: 2 }} />
       )}
+      {removable && (
+        // biome-ignore lint/a11y/noStaticElementInteractions: remove chip button inside button
+        // biome-ignore lint/a11y/useKeyWithClickEvents: remove chip button inside button
+        <span
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove?.();
+          }}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 18,
+            height: 18,
+            borderRadius: 9999,
+            background: "rgba(79,70,229,0.25)",
+            marginLeft: 4,
+            cursor: "pointer",
+          }}
+        >
+          <X style={{ width: 10, height: 10, color: "#818cf8" }} />
+        </span>
+      )}
+    </button>
+  );
+}
 
-      {/* Actions */}
-      <div className="p-3.5 space-y-2 mt-auto">
-        {!loading && (
-          <>
-            {revealPath ? (
-              <Button
-                className="w-full gap-2"
-                size="sm"
-                onClick={() => {
-                  if (!signal || !account) return;
-                  const topContact = contacts.find((c) => c.account_id === account.id);
-                  const warmPath = warmPaths.find((wp) => wp.account_id === account.id);
-                  addMessageToQueue({
-                    account_id: account.id,
-                    contact_id: topContact?.id ?? "",
-                    warm_path_id: warmPath?.id,
-                    signal_id: signal.id,
-                    channel: "warm_intro",
-                    subject: `Intro request — ${account.name}`,
-                    body: `Hi,\n\nI wanted to reach out about ${account.name} following their ${signal.title}.\n\n${signal.description}\n\nWould you be open to a quick intro?`,
-                    intro_request: `Would you mind connecting me with someone at ${account.name}? The timing looks great based on their recent activity.`,
-                    status: "draft",
-                    approval_status: "pending",
-                    generated_by_ai: true,
-                    confidence_score: 0.88,
-                    personalization_reason: signal.description ?? signal.title,
-                    factual_claims: [signal.title],
-                    supporting_sources: ["WarmPath signal monitor"],
-                    risk_flags: [],
-                  });
-                  toast.success(`Intro request drafted for ${account.name}`);
-                  router.push("/approval-queue");
+// ─── Signal card ──────────────────────────────────────────────────────────────
+
+interface SignalCardProps {
+  signalId: string;
+  companyName: string;
+  companyInitial: string;
+  signalTitle: string;
+  signalType: string;
+  industry: string;
+  opportunityScore: number;
+  detectedAt: string;
+  warmthScore: number;
+  connectorName: string;
+  connectorInitials: string;
+  connectorSubtitle: string;
+  targetName: string;
+  targetTitle: string;
+  isDismissed: boolean;
+  onDismiss: (id: string) => void;
+  onDraftIntro: (companyName: string) => void;
+}
+
+function SignalCard({
+  signalId,
+  companyName,
+  companyInitial,
+  signalTitle,
+  signalType,
+  industry,
+  opportunityScore,
+  detectedAt,
+  warmthScore,
+  connectorName,
+  connectorInitials,
+  connectorSubtitle,
+  targetName,
+  targetTitle,
+  isDismissed,
+  onDismiss,
+  onDraftIntro,
+}: SignalCardProps) {
+  const [hovered, setHovered] = useState(false);
+
+  if (isDismissed) return null;
+
+  const badge = signalBadgeStyle(signalType);
+  const warmColor = warmthScore >= 80 ? T.emerald : warmthScore >= 50 ? "#f59e0b" : T.muted;
+
+  return (
+    <article
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        backgroundColor: T.card,
+        border: `1px solid ${hovered ? T.cardHoverBorder : T.border}`,
+        borderRadius: 12,
+        display: "flex",
+        flexDirection: "column",
+        transition: "border-color 0.18s",
+        overflow: "hidden",
+      }}
+    >
+      {/* Card header */}
+      <div
+        style={{
+          padding: "16px",
+          borderBottom: `1px solid ${T.border}`,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          gap: 12,
+        }}
+      >
+        <div style={{ display: "flex", gap: 12, alignItems: "center", minWidth: 0 }}>
+          {/* Company logo */}
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 8,
+              backgroundColor: "#ffffff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <span style={{ fontWeight: 700, fontSize: 16, color: "#000000" }}>
+              {companyInitial}
+            </span>
+          </div>
+
+          {/* Title + meta */}
+          <div style={{ minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <h3
+                style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: T.white,
+                  lineHeight: 1.3,
+                  margin: 0,
                 }}
               >
-                <Bot className="w-3.5 h-3.5" />
-                Draft intro request
-              </Button>
-            ) : null}
-            <Button
-              variant={revealPath ? "outline" : "default"}
-              className="w-full gap-2"
-              size="sm"
-              onClick={() => {
-                if (!signal || !account) return;
-                const topContact = contacts.find((c) => c.account_id === account.id);
-                const warmPath = revealPath
-                  ? warmPaths.find((wp) => wp.account_id === account.id)
-                  : undefined;
-                addMessageToQueue({
-                  account_id: account.id,
-                  contact_id: topContact?.id ?? "",
-                  warm_path_id: warmPath?.id,
-                  signal_id: signal.id,
-                  channel: revealPath ? "email" : "email",
-                  subject: `${signal.title} — ${account.name}`,
-                  body: `Hi ${topContact?.name?.split(" ")[0] ?? "there"},\n\nI noticed ${signal.title.toLowerCase()} at ${account.name} and wanted to reach out.\n\n${signal.description}\n\nWould love to connect and share how we've helped similar companies.\n\nBest,\nAdhik`,
-                  status: "draft",
-                  approval_status: "pending",
-                  generated_by_ai: true,
-                  confidence_score: revealPath ? 0.85 : 0.72,
-                  personalization_reason: signal.description ?? signal.title,
-                  factual_claims: [signal.title],
-                  supporting_sources: ["WarmPath signal monitor"],
-                  risk_flags: [],
-                });
-                toast.success(`Outreach drafted for ${account.name} — review in Approval Queue`);
-                router.push("/approval-queue");
+                {signalTitle}
+              </h3>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                marginTop: 4,
+                flexWrap: "wrap",
               }}
             >
-              <MessageSquare className="w-3.5 h-3.5" />
-              {revealPath ? "Draft warm email" : "Draft cold outreach"}
-            </Button>
-          </>
-        )}
+              <span style={{ fontSize: 12, color: T.muted }}>{industry}</span>
+              <span style={{ color: T.veryMuted, fontSize: 12 }}>·</span>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 500,
+                  padding: "1px 7px",
+                  borderRadius: 9999,
+                  backgroundColor: badge.bg,
+                  color: badge.color,
+                  border: `1px solid ${badge.color}22`,
+                }}
+              >
+                {signalTypeLabel(signalType)}
+              </span>
+              <span style={{ color: T.veryMuted, fontSize: 12 }}>·</span>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 500,
+                  padding: "1px 7px",
+                  borderRadius: 9999,
+                  backgroundColor: "rgba(79,70,229,0.1)",
+                  color: "#818cf8",
+                  border: "1px solid rgba(79,70,229,0.2)",
+                }}
+              >
+                {icpTier(opportunityScore)}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Timestamp */}
+        <span
+          style={{
+            fontSize: 12,
+            color: T.veryMuted,
+            flexShrink: 0,
+            marginTop: 2,
+          }}
+        >
+          {formatRelativeTime(detectedAt)}
+        </span>
       </div>
-    </div>
-  );
-}
 
-// ─── Composite priority score ─────────────────────────────────────────────────
-// act_now_score = urgency × (account.opportunity_score/100) × warmth_multiplier
-// warmth_multiplier = warmPath.warmth_score/100 if path exists, else 0.3
+      {/* Path visualization */}
+      <div
+        style={{
+          padding: "16px",
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          position: "relative",
+          overflow: "hidden",
+          minHeight: 160,
+          backgroundColor: "rgba(9,9,11,0.4)",
+        }}
+      >
+        {/* Dot grid background */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            opacity: 0.25,
+            backgroundImage: T.dot,
+            backgroundSize: "24px 24px",
+          }}
+        />
 
-function computeActNow(
-  urgency: number,
-  opportunityScore: number,
-  warmthScore: number,
-  hasWarmPath: boolean,
-): number {
-  const warmMultiplier = hasWarmPath ? warmthScore / 100 : 0.3;
-  return Math.round(urgency * (opportunityScore / 100) * warmMultiplier);
-}
+        {/* Path nodes */}
+        <div
+          style={{
+            position: "relative",
+            zIndex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            width: "100%",
+            padding: "0 8px",
+          }}
+        >
+          {/* You node */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            <div
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: "50%",
+                border: `1px solid ${T.border}`,
+                backgroundColor: "rgba(79,70,229,0.1)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 16,
+              }}
+            >
+              👤
+            </div>
+            <span style={{ fontSize: 11, color: T.muted, fontWeight: 500 }}>You (AE)</span>
+          </div>
 
-// ─── Warmth badge ─────────────────────────────────────────────────────────────
-
-function WarmthBadge({ hasWarmPath, warmthScore }: { hasWarmPath: boolean; warmthScore: number }) {
-  if (hasWarmPath && warmthScore >= 60)
-    return (
-      <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border border-brand/30 bg-brand/10 text-brand">
-        <GitFork className="w-2.5 h-2.5" />
-        Warm path · {warmthScore}
-      </span>
-    );
-  if (hasWarmPath)
-    return (
-      <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border border-blue-500/20 bg-blue-500/10 text-blue-500">
-        <GitFork className="w-2.5 h-2.5" />
-        Cold path · {warmthScore}
-      </span>
-    );
-  return (
-    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border border-border bg-muted text-muted-foreground">
-      No path
-    </span>
-  );
-}
-
-// ─── Champion parse helpers ───────────────────────────────────────────────────
-
-function parseChampTitle(title: string) {
-  const m = title.match(/^(.+) moved from (.+) to (.+)$/);
-  return m ? { name: m[1], oldCo: m[2], newCo: m[3] } : null;
-}
-
-function parseChampDesc(desc: string) {
-  const m = desc.match(/joined (.+) as (.+?)\.?$/);
-  return m ? { newCo: m[1], newTitle: m[2] } : null;
-}
-
-// ─── Champion Outreach Sheet ──────────────────────────────────────────────────
-
-interface ChampionOutreachSheetProps {
-  signal: Signal | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  userName: string;
-}
-
-function ChampionOutreachSheet({
-  signal,
-  open,
-  onOpenChange,
-  userName,
-}: ChampionOutreachSheetProps) {
-  if (!signal) return null;
-
-  const titleParsed = parseChampTitle(signal.title);
-  const descParsed = parseChampDesc(signal.description);
-
-  const contactName = titleParsed?.name ?? "Champion";
-  const firstName = contactName.split(" ")[0];
-  const oldCo = titleParsed?.oldCo ?? "their previous company";
-  const newCo = titleParsed?.newCo ?? descParsed?.newCo ?? "their new company";
-  const newTitle = descParsed?.newTitle ?? "their new role";
-  const userFirstName = userName.split(" ")[0];
-
-  const subject = `Congrats on the move to ${newCo}!`;
-  const body = `Hey ${firstName},
-
-Saw that you just joined ${newCo} as ${newTitle} congrats on the new role!
-
-We'd crossed paths when you were at ${oldCo}, and I've always had a lot of respect for the work you were doing there.
-
-Thought I'd reach out because a lot of ${newTitle} leaders we talk to are thinking about how to build warm pipeline without burning their new team's reputation on cold outreach. Given your background, I thought you might have a take on it.
-
-No agenda at all if you're open to reconnecting once you've settled in, would love a quick catch-up.
-
-Best,
-${userFirstName}`;
-
-  const fullMessage = `Subject: ${subject}\n\n${body}`;
-
-  return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
-        <SheetHeader className="pb-2">
-          <SheetTitle className="flex items-center gap-2">
-            <Trophy className="w-4 h-4 text-violet-500" />
-            Reach out to {contactName}
-          </SheetTitle>
-          <p className="text-xs text-muted-foreground">
-            {oldCo} → {newCo} · {newTitle}
-          </p>
-        </SheetHeader>
-
-        <div className="px-6 space-y-4 pb-6">
-          {/* Draft message */}
-          <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-2">
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-              Pre-drafted message
-            </p>
-            <p className="text-xs font-semibold text-foreground">Subject: {subject}</p>
-            <div className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
-              {body}
+          {/* Line with warmth badge */}
+          <div
+            style={{
+              flex: 1,
+              position: "relative",
+              height: 1,
+              backgroundColor: T.border,
+              margin: "0 8px",
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                left: "50%",
+                transform: "translateX(-50%) translateY(-50%)",
+                backgroundColor: T.card,
+                padding: "2px 10px",
+                border: `1px solid ${T.border}`,
+                borderRadius: 9999,
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
+                whiteSpace: "nowrap",
+              }}
+            >
+              <span
+                style={{
+                  width: 7,
+                  height: 7,
+                  borderRadius: "50%",
+                  backgroundColor: warmColor,
+                  flexShrink: 0,
+                }}
+              />
+              <span style={{ fontSize: 11, color: warmColor, fontWeight: 600 }}>
+                {warmthScore} Warmth
+              </span>
             </div>
           </div>
 
-          {/* Note */}
-          <p className="text-[11px] text-muted-foreground italic border-l-2 border-violet-500/40 pl-3">
-            This message references your existing relationship, not WarmPath. Keep it authentic.
-          </p>
-
-          {/* Actions */}
-          <div className="flex gap-2 flex-col">
-            <button
-              type="button"
-              className="w-full h-9 rounded-md bg-brand text-brand-foreground text-sm font-medium flex items-center justify-center gap-2 hover:bg-brand/90 transition-colors"
-              onClick={() => {
-                navigator.clipboard.writeText(fullMessage).then(() => {
-                  toast.success("Copied!");
-                });
+          {/* Connector node */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            <div
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: "50%",
+                border: `1px solid rgba(79,70,229,0.4)`,
+                backgroundColor: "rgba(79,70,229,0.15)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 12,
+                fontWeight: 700,
+                color: "#818cf8",
               }}
             >
-              Copy message
-            </button>
-            <button
-              type="button"
-              className="w-full h-9 rounded-md border border-border text-sm font-medium flex items-center justify-center gap-2 hover:bg-muted/60 transition-colors"
-              onClick={() => {
-                const encoded = encodeURIComponent(contactName);
-                window.open(
-                  `https://www.linkedin.com/search/results/people/?keywords=${encoded}`,
-                  "_blank",
-                  "noopener",
-                );
-              }}
-            >
-              <Linkedin className="w-3.5 h-3.5" />
-              Open LinkedIn
-            </button>
-            <button
-              type="button"
-              className="w-full h-9 rounded-md border border-violet-500/30 text-violet-600 dark:text-violet-400 text-sm font-medium flex items-center justify-center gap-2 hover:bg-violet-500/10 transition-colors"
-              onClick={() => toast.success(`Account created for ${newCo} check Accounts`)}
-            >
-              Auto-create account for {newCo}
-            </button>
-          </div>
-        </div>
-      </SheetContent>
-    </Sheet>
-  );
-}
-
-// ─── Decay Re-engage Sheet ────────────────────────────────────────────────────
-
-interface DecayReEngageSheetProps {
-  edge: RelationshipEdge | null;
-  userName: string;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
-function DecayReEngageSheet({ edge, userName, open, onOpenChange }: DecayReEngageSheetProps) {
-  if (!edge) return null;
-
-  const isFromTeam = edge.from_type === "team_member" || edge.from_type === "user";
-  const contactName = isFromTeam ? edge.to_name : edge.from_name;
-  const firstName = contactName.split(" ")[0];
-  const days = Math.round((Date.now() - new Date(edge.last_interaction_at).getTime()) / 86_400_000);
-
-  const subject = "Checking in how's everything going?";
-  const body = `Hey ${firstName},
-
-Hope you're doing well! It's been a while since we last connected and I've been meaning to reach out.
-
-${edge.evidence ? `Came across your recent work on ${edge.evidence.slice(0, 60)}…` : `Saw you've been busy really impressive what you've been building.`}
-
-Would love to catch up no agenda, just reconnecting. Are you open for a quick 15-min call sometime?
-
-Best,
-${userName}`;
-
-  const fullMessage = `Subject: ${subject}\n\n${body}`;
-
-  return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
-        <SheetHeader className="pb-2">
-          <SheetTitle className="flex items-center gap-2">
-            <Link2Off className="w-4 h-4 text-brand" />
-            Re-engage {contactName}
-          </SheetTitle>
-          <p className="text-xs text-muted-foreground">
-            Last interaction {days}d ago · warmth score {computeEdgeWarmth(edge)}
-          </p>
-        </SheetHeader>
-
-        <div className="px-6 space-y-4 pb-6">
-          <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-2">
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-              Pre-drafted check-in
-            </p>
-            <p className="text-xs font-semibold text-foreground">Subject: {subject}</p>
-            <div className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
-              {body}
+              {connectorInitials}
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 11, color: T.white, fontWeight: 500 }}>{connectorName}</div>
+              {connectorSubtitle && (
+                <div style={{ fontSize: 10, color: T.muted, marginTop: 1 }}>
+                  {connectorSubtitle}
+                </div>
+              )}
             </div>
           </div>
 
-          <p className="text-[11px] text-muted-foreground italic border-l-2 border-brand/40 pl-3">
-            This message doesn't mention WarmPath or sales. Keep it authentic.
-          </p>
+          {/* Second line */}
+          <div
+            style={{
+              flex: 1,
+              height: 1,
+              backgroundColor: T.border,
+              margin: "0 8px",
+            }}
+          />
 
-          <div className="flex gap-2 flex-col">
-            <Button
-              className="w-full gap-2"
-              onClick={() => {
-                navigator.clipboard.writeText(fullMessage).then(() => {
-                  toast.success("Copied to clipboard");
-                });
+          {/* Target node */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            <div
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: "50%",
+                border: `2px dashed ${T.primary}`,
+                backgroundColor: "rgba(79,70,229,0.08)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 16,
               }}
             >
-              Copy message
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full gap-2"
-              onClick={() => {
-                const encoded = encodeURIComponent(contactName);
-                window.open(
-                  `https://www.linkedin.com/search/results/people/?keywords=${encoded}`,
-                  "_blank",
-                  "noopener",
-                );
-              }}
-            >
-              <Linkedin className="w-3.5 h-3.5" />
-              Open LinkedIn
-            </Button>
+              🎯
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 11, color: T.white, fontWeight: 500 }}>
+                {targetName || "Target"}
+              </div>
+              <div style={{ fontSize: 10, color: T.muted, marginTop: 1 }}>{targetTitle}</div>
+            </div>
           </div>
         </div>
-      </SheetContent>
-    </Sheet>
+      </div>
+
+      {/* Card footer */}
+      <div
+        style={{
+          padding: "12px 16px",
+          borderTop: `1px solid ${T.border}`,
+          backgroundColor: "rgba(9,9,11,0.6)",
+          display: "flex",
+          justifyContent: "flex-end",
+          gap: 10,
+          borderBottomLeftRadius: 12,
+          borderBottomRightRadius: 12,
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => onDismiss(signalId)}
+          style={{
+            padding: "6px 14px",
+            borderRadius: 7,
+            border: `1px solid ${T.border}`,
+            backgroundColor: "transparent",
+            color: T.muted,
+            fontSize: 13,
+            fontWeight: 500,
+            cursor: "pointer",
+            transition: "border-color 0.15s, color 0.15s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = "#3f3f46";
+            e.currentTarget.style.color = T.white;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = T.border;
+            e.currentTarget.style.color = T.muted;
+          }}
+        >
+          Dismiss
+        </button>
+        <button
+          type="button"
+          onClick={() => onDraftIntro(companyName)}
+          style={{
+            padding: "6px 14px",
+            borderRadius: 7,
+            border: `1px solid ${T.primary}`,
+            backgroundColor: T.primary,
+            color: "#ffffff",
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: "pointer",
+            transition: "background-color 0.15s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = "#4338ca";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = T.primary;
+          }}
+        >
+          Draft Intro Request
+        </button>
+      </div>
+    </article>
   );
-}
-
-// ─── Action line ─────────────────────────────────────────────────────────────
-
-function getActionLine(
-  signal: Signal,
-  account: Account | undefined,
-  warmPath: WarmPath | undefined,
-): string {
-  const via = warmPath?.recommended_intro_person;
-  const name = account?.name ?? "this account";
-  switch (signal.type) {
-    case "funding":
-      return via
-        ? `Ask ${via} to intro you to ${name} before their headcount doubles`
-        : `Reach out to ${name} fresh funding means new budget`;
-    case "job_posting":
-      return via
-        ? `${name} is hiring ${via} may know the hiring manager`
-        : `${name} is scaling fast ideal timing to reach out`;
-    case "leadership_change":
-      return `New leadership at ${name} a warm intro now resets any past friction`;
-    case "intent_topic_surge":
-      return `${name} is actively researching your category strike now`;
-    case "champion_job_change":
-      return `Your champion moved to ${name} they're already an advocate`;
-    default:
-      return via
-        ? `Warm path available via ${via} reach out now`
-        : `New signal at ${name} warrants outreach`;
-  }
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function SignalsPage() {
   const router = useRouter();
-  const { signals, accounts, warmPaths, contacts, relationshipEdges, addMessageToQueue } =
-    useSalesStore();
+  const { signals, accounts, contacts, warmPaths } = useSalesStore();
 
-  const [view, setView] = useState<"signals" | "linkedin">("signals");
-  const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [urgencyMin, setUrgencyMin] = useState(0);
-  const [warmOnly, setWarmOnly] = useState(false);
-  const [showArchived, setShowArchived] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [selectedSignalId, setSelectedSignalId] = useState<string | null>(null);
-  const refreshTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const [decaySheetEdge, setDecaySheetEdge] = useState<RelationshipEdge | null>(null);
-  const [decaySheetOpen, setDecaySheetOpen] = useState(false);
-  const [champSheetSignal, setChampSheetSignal] = useState<(typeof enriched)[0] | null>(null);
-  const [champSheetOpen, setChampSheetOpen] = useState(false);
-  const [informedOpen, setInformedOpen] = useState(false);
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+  const [fundingChipActive, setFundingChipActive] = useState(false);
 
-  // 5-minute auto-refresh
-  useEffect(() => {
-    refreshTimerRef.current = setInterval(
-      () => {
-        // In real app: invalidate TanStack Query cache
-        // For now, just a silent no-op tick
-      },
-      5 * 60 * 1000,
-    );
-    return () => {
-      if (refreshTimerRef.current) clearInterval(refreshTimerRef.current);
-    };
-  }, []);
+  // Check if any funding signals exist to conditionally show chip
+  const hasFundingSignals = useMemo(() => signals.some((s) => s.type === "funding"), [signals]);
 
-  const ARCHIVE_DAYS = 30;
+  // Enrich signals with account / path / contact data
+  const enrichedSignals = useMemo(() => {
+    return signals
+      .filter((s) => !dismissedIds.has(s.id))
+      .map((signal) => {
+        const account = accounts.find((a) => a.id === signal.account_id);
+        const warmPath = warmPaths.find((wp) => wp.account_id === signal.account_id);
 
-  // ── Synthesize relationship_decay signals from edges ──────────────────────
-  const decaySignals = useMemo(() => {
-    const now = Date.now();
-    return relationshipEdges
-      .filter((e) => {
-        const days = (now - new Date(e.last_interaction_at).getTime()) / 86_400_000;
-        return days > 45;
-      })
-      .map((e) => {
-        const days = Math.round((now - new Date(e.last_interaction_at).getTime()) / 86_400_000);
+        // Target: contact at this account with highest warmth_score
+        const accountContacts = contacts
+          .filter((c) => c.account_id === signal.account_id)
+          .sort((a, b) => b.warmth_score - a.warmth_score);
+        const targetContact = accountContacts[0];
+
+        // Connector: from warm path recommended_intro_person or path_nodes middle node
+        let connectorName = "";
+        let connectorSubtitle = "";
+        if (warmPath) {
+          connectorName = warmPath.recommended_intro_person || "";
+          // Try to derive subtitle from path_nodes (middle nodes)
+          const midNodes = warmPath.path_nodes.filter((n) => n.type !== "contact");
+          if (midNodes.length > 0 && midNodes[0]) {
+            connectorSubtitle = midNodes[0].name !== connectorName ? midNodes[0].name : "";
+          }
+        }
+
+        const warmthScore = warmPath?.warmth_score ?? signal.urgency_score;
+
         return {
-          id: `decay-${e.id}`,
-          type: "relationship_decay" as const,
-          account_id: "",
-          title: `Connection cooling: ${e.from_name} → ${e.to_name}`,
-          description: `Last interaction was ${days} days ago. This connection bridges warm paths to target accounts. Re-engage before the relationship goes cold.`,
-          urgency_score: Math.min(95, 50 + Math.round(days / 3)),
-          detected_at: e.last_interaction_at,
-          recommended_action: `Send a genuine check-in to ${e.from_name.split(" ")[0]} not sales, just reconnecting.`,
-          source: "relationship_graph",
-          confidence_score: 90,
-          edge: e,
-        } as unknown as Signal & { edge: RelationshipEdge };
+          signal,
+          account,
+          warmPath,
+          targetContact,
+          connectorName,
+          connectorSubtitle,
+          warmthScore,
+        };
       });
-  }, [relationshipEdges]);
+  }, [signals, accounts, contacts, warmPaths, dismissedIds]);
 
-  // Merge decay signals in when filter is "all" or "relationship_decay"
-  const allSignals = useMemo(() => {
-    if (typeFilter === "all" || typeFilter === "relationship_decay") {
-      return [...signals, ...(decaySignals as Signal[])];
-    }
-    return signals;
-  }, [signals, decaySignals, typeFilter]);
+  // Apply funding filter chip
+  const visibleSignals = useMemo(() => {
+    if (!fundingChipActive) return enrichedSignals;
+    return enrichedSignals.filter((e) => e.signal.type === "funding");
+  }, [enrichedSignals, fundingChipActive]);
 
-  const enriched = useMemo(() => {
-    const now = Date.now();
-    return allSignals.map((signal) => {
-      const account = accounts.find((a) => a.id === signal.account_id);
-      const warmPath = warmPaths.find((wp) => wp.account_id === signal.account_id);
-      const contact = contacts.find((c) => c.account_id === signal.account_id);
-      const agedays = (now - new Date(signal.detected_at).getTime()) / (1000 * 60 * 60 * 24);
-      const hasWarmPath = !!warmPath;
-      const warmthScore = warmPath?.warmth_score ?? 0;
-      const actNow = computeActNow(
-        signal.urgency_score,
-        account?.opportunity_score ?? 50,
-        warmthScore,
-        hasWarmPath,
-      );
-      return {
-        signal,
-        account,
-        contact,
-        warmPath,
-        hasWarmPath,
-        warmthScore,
-        actNow,
-        isArchived: agedays > ARCHIVE_DAYS,
-      };
-    });
-  }, [allSignals, accounts, warmPaths, contacts]);
-
-  const filtered = useMemo(() => {
-    return enriched
-      .filter((e) => {
-        const matchSearch =
-          !search ||
-          e.signal.title.toLowerCase().includes(search.toLowerCase()) ||
-          e.account?.name.toLowerCase().includes(search.toLowerCase() ?? "");
-        const matchType = typeFilter === "all" || e.signal.type === typeFilter;
-        const matchUrgency = e.signal.urgency_score >= urgencyMin;
-        const matchWarm = !warmOnly || e.hasWarmPath;
-        const matchArchive = showArchived ? e.isArchived : !e.isArchived;
-        return matchSearch && matchType && matchUrgency && matchWarm && matchArchive;
-      })
-      .sort((a, b) => b.actNow - a.actNow);
-  }, [enriched, search, typeFilter, urgencyMin, warmOnly, showArchived]);
-
-  const actNowSignals = filtered.filter((s) => s.signal.urgency_score >= 80);
-  const watchSignals = filtered.filter(
-    (s) => s.signal.urgency_score >= 50 && s.signal.urgency_score < 80,
-  );
-  const informedSignals = filtered.filter((s) => s.signal.urgency_score < 50);
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    setIsRefreshing(false);
-    toast.success("Signal feed refreshed monitoring 50+ sources");
-  };
-
-  // Stats
-  const live = enriched.filter((e) => !e.isArchived);
-  const highUrgency = live.filter((e) => e.signal.urgency_score >= 85).length;
-  const withWarmPath = live.filter((e) => e.hasWarmPath).length;
-  const archivedCount = enriched.filter((e) => e.isArchived).length;
-
-  const champSignals = live.filter((e) => e.signal.type === "champion_job_change");
-
-  // ── Inline card renderer (needs component closures) ──────────────────────
-  function renderSignalCard({
-    signal,
-    account,
-    contact,
-    warmPath,
-    hasWarmPath,
-    warmthScore,
-    actNow,
-    isArchived,
-  }: (typeof filtered)[0]) {
-    // Special rendering for relationship_decay signals
-    if ((signal.type as string) === "relationship_decay") {
-      const decaySignal = decaySignals.find((d) => d.id === signal.id);
-      const edge = decaySignal?.edge ?? null;
-      return (
-        <Card
-          key={signal.id}
-          className={`border-l-2 border-l-brand transition-all ${isArchived ? "opacity-60" : ""} border-brand/20 bg-brand/[0.02]`}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center flex-shrink-0">
-                <Link2Off className="w-5 h-5 text-brand" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge
-                      variant="outline"
-                      className={`text-[10px] ${signalTypeColor(signal.type)}`}
-                    >
-                      {signalTypeLabel(signal.type)}
-                    </Badge>
-                    <span className="text-[10px] font-bold text-brand uppercase tracking-wide">
-                      Re-engage now
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground flex-shrink-0">
-                    {formatRelativeTime(signal.detected_at)}
-                  </span>
-                </div>
-                <p className="text-sm font-semibold mb-1 text-brand">{signal.title}</p>
-                <p className="text-xs text-muted-foreground leading-relaxed mb-2">
-                  {signal.description}
-                </p>
-                <div className="flex items-start gap-1.5 mb-3">
-                  <Sparkles className="w-3 h-3 text-brand flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-muted-foreground italic">
-                    {signal.recommended_action}
-                  </p>
-                </div>
-                {/* biome-ignore lint/a11y/noStaticElementInteractions: stop propagation wrapper */}
-                {/* biome-ignore lint/a11y/useKeyWithClickEvents: stop propagation wrapper */}
-                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                  <Button
-                    size="sm"
-                    className="h-7 text-xs gap-1 border-brand/30 bg-brand hover:bg-brand/90 text-white"
-                    onClick={() => {
-                      if (edge) {
-                        setDecaySheetEdge(edge);
-                        setDecaySheetOpen(true);
-                      } else {
-                        toast.success("Opening check-in draft…");
-                      }
-                    }}
-                  >
-                    <Link2Off className="w-3 h-3" />
-                    Re-engage
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      );
-    }
-
-    // Special rendering for champion_job_change signals
-    if (signal.type === "champion_job_change") {
-      const titleParsed = parseChampTitle(signal.title);
-      const descParsed = parseChampDesc(signal.description);
-      const contactName = titleParsed?.name ?? contact?.name ?? "Champion";
-      const newCo = titleParsed?.newCo ?? descParsed?.newCo ?? account?.name ?? "their new company";
-      const newTitle = descParsed?.newTitle ?? "";
-      const thisEntry = enriched.find((e) => e.signal.id === signal.id) ?? null;
-      return (
-        <Card
-          key={signal.id}
-          className={`border-l-2 border-l-violet-500 transition-all ${isArchived ? "opacity-60" : ""} border-violet-500/20 bg-violet-500/[0.02]`}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center flex-shrink-0">
-                <Trophy className="w-5 h-5 text-violet-500" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge
-                      variant="outline"
-                      className="text-[10px] bg-violet-500/10 text-violet-600 border-violet-500/20"
-                    >
-                      Champion move
-                    </Badge>
-                    <span className="text-[10px] font-bold text-violet-600 uppercase tracking-wide">
-                      Reach out now
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground flex-shrink-0">
-                    {formatRelativeTime(signal.detected_at)}
-                  </span>
-                </div>
-                <p className="text-sm font-semibold mb-1 text-violet-700 dark:text-violet-300">
-                  {contactName} moved to {newCo}
-                  {newTitle && <span className="font-normal"> as {newTitle}</span>}
-                </p>
-                <p className="text-xs text-muted-foreground leading-relaxed mb-2">
-                  {signal.description}
-                </p>
-                <div className="flex items-start gap-1.5 mb-3">
-                  <Sparkles className="w-3 h-3 text-violet-500 flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-muted-foreground italic">
-                    Your existing relationship gives you a warm-path advantage at their new company.
-                    Strike while the move is fresh.
-                  </p>
-                </div>
-                {/* biome-ignore lint/a11y/noStaticElementInteractions: stop propagation wrapper */}
-                {/* biome-ignore lint/a11y/useKeyWithClickEvents: stop propagation wrapper */}
-                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                  <Button
-                    size="sm"
-                    className="h-7 text-xs gap-1 bg-violet-600 hover:bg-violet-700 text-white"
-                    onClick={() => {
-                      setChampSheetSignal(thisEntry);
-                      setChampSheetOpen(true);
-                    }}
-                  >
-                    <Trophy className="w-3 h-3" />
-                    Reach out
-                  </Button>
-                  <Button size="sm" variant="outline" className="h-7 text-xs" asChild>
-                    <Link href={`/accounts/${signal.account_id}`}>View account</Link>
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      );
-    }
-
-    // Standard signal card
-    const urgency: "high" | "medium" | "low" =
-      signal.urgency_score >= 85 ? "high" : signal.urgency_score >= 70 ? "medium" : "low";
-    const urgencyBorder =
-      urgency === "high"
-        ? "border-l-red-500"
-        : urgency === "medium"
-          ? "border-l-brand"
-          : "border-l-border/40";
-    const oneLiner = SIGNAL_ONELINER[signal.type] ?? "This signal indicates buying intent.";
-    const actionLine = getActionLine(signal, account, warmPath);
-    const isSelected = signal.id === selectedSignalId;
-
-    return (
-      <Card
-        key={signal.id}
-        onClick={() => setSelectedSignalId(isSelected ? null : signal.id)}
-        className={`border-l-2 ${urgencyBorder} cursor-pointer transition-all ${isArchived ? "opacity-60" : ""} ${isSelected ? "border-brand/40 bg-brand/5 shadow-sm" : "border-border/60 hover:border-border"}`}
-      >
-        <CardContent className="p-4">
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center flex-shrink-0 text-sm font-bold text-brand">
-              {account?.name?.[0] ?? "?"}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2 mb-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Link
-                    href={`/accounts/${signal.account_id}`}
-                    className="font-semibold text-sm hover:underline"
-                  >
-                    {account?.name ?? "Unknown account"}
-                  </Link>
-                  <Badge
-                    variant="outline"
-                    className={`text-[10px] ${signalTypeColor(signal.type)}`}
-                  >
-                    {signalTypeLabel(signal.type)}
-                  </Badge>
-                  {urgency === "high" && (
-                    <span className="text-[10px] font-bold text-red-500 uppercase tracking-wide">
-                      Act now
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  <div className="text-center">
-                    <div
-                      className={`text-sm font-bold tabular-nums ${
-                        actNow >= 60
-                          ? "text-red-500"
-                          : actNow >= 35
-                            ? "text-brand"
-                            : "text-muted-foreground"
-                      }`}
-                    >
-                      {actNow}
-                    </div>
-                    <div className="text-[9px] text-muted-foreground">act-now</div>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground">
-                    {formatRelativeTime(signal.detected_at)}
-                  </span>
-                </div>
-              </div>
-              <p className="text-sm font-medium mb-1">{signal.title}</p>
-              <div className="flex items-start gap-1.5 mb-2">
-                <Sparkles className="w-3 h-3 text-blue-500 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-muted-foreground italic">{oneLiner}</p>
-              </div>
-              <div className="flex items-center gap-2 flex-wrap mb-2">
-                <WarmthBadge hasWarmPath={hasWarmPath} warmthScore={warmthScore} />
-                {contact && (
-                  <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                    <Building2 className="w-3 h-3" />
-                    {contact.name} · {contact.title}
-                  </span>
-                )}
-                {warmPath && (
-                  <span className="text-[10px] text-muted-foreground">
-                    via {warmPath.recommended_intro_person}
-                  </span>
-                )}
-              </div>
-              <p className="text-xs font-semibold text-foreground mt-1 mb-2">→ {actionLine}</p>
-              {/* biome-ignore lint/a11y/noStaticElementInteractions: stop propagation wrapper */}
-              {/* biome-ignore lint/a11y/useKeyWithClickEvents: stop propagation wrapper */}
-              <div
-                className="flex items-center gap-2 flex-wrap"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Button
-                  size="sm"
-                  className="h-7 text-xs gap-1"
-                  onClick={() => {
-                    if (!account) return;
-                    addMessageToQueue({
-                      account_id: signal.account_id,
-                      contact_id: contact?.id ?? "",
-                      warm_path_id: warmPath?.id,
-                      signal_id: signal.id,
-                      channel: hasWarmPath ? "warm_intro" : "email",
-                      subject: `${signal.title} — ${account.name}`,
-                      body: `Hi ${contact?.name?.split(" ")[0] ?? "there"},\n\nI noticed ${signal.title.toLowerCase()} at ${account.name} and wanted to reach out.\n\n${signal.description}\n\nWould love to connect and share how we've helped similar companies.\n\nBest,\nAdhik`,
-                      status: "draft",
-                      approval_status: "pending",
-                      generated_by_ai: true,
-                      confidence_score: hasWarmPath ? 0.88 : 0.74,
-                      personalization_reason: signal.description ?? signal.title,
-                      factual_claims: [signal.title],
-                      supporting_sources: ["WarmPath signal monitor"],
-                      risk_flags: [],
-                    });
-                    toast.success(`Outreach drafted for ${account.name}`, {
-                      description: "Review and approve it in the Approval Queue.",
-                    });
-                    router.push("/approval-queue");
-                  }}
-                >
-                  <Sparkles className="w-3 h-3" />
-                  Generate outreach
-                </Button>
-                <Button size="sm" variant="outline" className="h-7 text-xs" asChild>
-                  <Link href={`/accounts/${signal.account_id}`}>View account</Link>
-                </Button>
-                <Button
-                  size="sm"
-                  variant={isSelected ? "default" : "ghost"}
-                  className={`h-7 text-xs gap-1 ml-auto ${
-                    isSelected ? "" : "text-brand hover:bg-brand/10"
-                  }`}
-                  onClick={() => setSelectedSignalId(isSelected ? null : signal.id)}
-                >
-                  <GitFork className="w-3 h-3" />
-                  {isSelected ? "Intel open" : "Reveal path →"}
-                </Button>
-              </div>
-              <div className="flex items-center gap-2 mt-2">
-                <Button
-                  size="sm"
-                  className="h-6 text-[10px]"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!account) return;
-                    addMessageToQueue({
-                      account_id: signal.account_id,
-                      contact_id: contact?.id ?? "",
-                      warm_path_id: warmPath?.id,
-                      signal_id: signal.id,
-                      channel: hasWarmPath ? "warm_intro" : "email",
-                      subject: `Re: ${signal.title} at ${account.name}`,
-                      body: `Hi ${contact?.name?.split(" ")[0] ?? "there"},\n\nSaw that ${account.name} ${signal.title.toLowerCase()} — great timing to connect.\n\n${signal.description}\n\nWould you be open to a brief call?\n\nBest,\nAdhik`,
-                      status: "draft",
-                      approval_status: "pending",
-                      generated_by_ai: true,
-                      confidence_score: 0.8,
-                      personalization_reason: signal.description ?? signal.title,
-                      factual_claims: [signal.title],
-                      supporting_sources: ["WarmPath signal monitor"],
-                      risk_flags: [],
-                    });
-                    toast.success(`Message drafted for ${account.name}`);
-                    router.push("/approval-queue");
-                  }}
-                >
-                  Draft message
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-6 text-[10px]"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toast.success("Added to campaign");
-                  }}
-                >
-                  Add to campaign
-                </Button>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
+  function handleDismiss(id: string) {
+    setDismissedIds((prev) => new Set([...prev, id]));
+    toast.success("Signal dismissed");
   }
 
+  function handleDraftIntro(companyName: string) {
+    toast.success(`Drafting intro for ${companyName}`);
+    router.push("/approval-queue");
+  }
+
+  const liveCount = visibleSignals.length;
+
   return (
-    <div className="flex flex-col overflow-hidden" style={{ height: "calc(100vh - 48px)" }}>
-      {/* Top section: header, alerts, stats, filters */}
-      <div className="px-6 pt-4 pb-3 flex-shrink-0 border-b border-border/40 space-y-3">
-        {/* Header */}
-        <div className="flex items-start justify-between">
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        overflow: "hidden",
+        backgroundColor: T.bg,
+      }}
+    >
+      {/* ── Sticky toolbar ── */}
+      <div
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 30,
+          backgroundColor: "rgba(9,9,11,0.95)",
+          backdropFilter: "blur(8px)",
+          borderBottom: `1px solid ${T.border}`,
+          padding: "16px 24px",
+          flexShrink: 0,
+          display: "flex",
+          flexDirection: "column",
+          gap: 12,
+        }}
+      >
+        {/* Header row */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: 16,
+          }}
+        >
           <div>
-            <h1 className="text-lg font-bold flex items-center gap-2">
-              {view === "linkedin" ? (
-                <Linkedin className="w-4 h-4 text-blue-500" />
-              ) : (
-                <Zap className="w-4 h-4 text-brand" />
-              )}
-              {view === "linkedin" ? "LinkedIn Feed" : "Signal Feed"}
+            <h1
+              style={{
+                fontSize: 20,
+                fontWeight: 700,
+                color: T.white,
+                margin: 0,
+                lineHeight: 1.3,
+              }}
+            >
+              Live Buying Signals
             </h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {view === "linkedin"
-                ? "AI-tagged posts from target contacts. Generate comments or save as outreach hooks."
-                : "Ranked by act-now score = urgency × opportunity × warmth. Refreshes every 5 min."}
+            <p
+              style={{
+                fontSize: 13,
+                color: T.muted,
+                margin: "4px 0 0 0",
+                lineHeight: 1.5,
+              }}
+            >
+              Monitoring {(accounts.length * 12 + 240).toLocaleString()} target accounts across your
+              network.
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            {/* View toggle */}
-            <div className="flex items-center rounded-lg border border-border/60 overflow-hidden">
-              <button
-                type="button"
-                onClick={() => setView("signals")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors ${
-                  view === "signals"
-                    ? "bg-foreground text-background"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                }`}
-              >
-                <Zap className="w-3 h-3" />
-                Signals
-              </button>
-              <button
-                type="button"
-                onClick={() => setView("linkedin")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs border-l border-border/60 transition-colors ${
-                  view === "linkedin"
-                    ? "bg-foreground text-background"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                }`}
-              >
-                <Linkedin className="w-3 h-3" />
-                LinkedIn
-              </button>
-            </div>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              className="gap-1.5 h-8"
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              flexShrink: 0,
+            }}
+          >
+            <span
+              style={{
+                fontSize: 12,
+                color: T.muted,
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
+              }}
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
-              {isRefreshing ? "Scanning…" : "Refresh"}
-            </Button>
-            <Button size="sm" asChild>
-              <Link href="/campaigns/new">
-                <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-                New campaign
-              </Link>
-            </Button>
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  backgroundColor: T.emerald,
+                  display: "inline-block",
+                  boxShadow: `0 0 6px ${T.emerald}`,
+                  animation: "pulse 2s infinite",
+                }}
+              />
+              {liveCount} live · Sorted by Relevance
+            </span>
+            <button
+              type="button"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 34,
+                height: 34,
+                borderRadius: 8,
+                border: `1px solid ${T.border}`,
+                backgroundColor: "transparent",
+                color: T.muted,
+                cursor: "pointer",
+              }}
+              title="Filter"
+            >
+              <Filter style={{ width: 15, height: 15 }} />
+            </button>
           </div>
         </div>
 
-        {/* Champion job change alert — Story 1.4 */}
-        {champSignals.length > 0 && (
-          <div className="rounded-xl border border-violet-500/20 bg-violet-500/5 p-4 animate-fade-up">
-            <div className="flex items-start gap-3">
-              <Trophy className="w-4 h-4 text-violet-500 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-violet-600 dark:text-violet-400">
-                  {champSignals.length} champion job change{champSignals.length > 1 ? "s" : ""}{" "}
-                  detected
-                </p>
-                <div className="mt-2 space-y-2">
-                  {champSignals.slice(0, 2).map(({ signal, account: _account, contact }) => (
-                    <div key={signal.id} className="flex items-center gap-3">
-                      <div className="flex-1 text-xs text-muted-foreground">
-                        <span className="font-medium text-foreground">
-                          {contact?.name ?? "Champion"}
-                        </span>{" "}
-                        moved to a new role your relationship gives you a warm-path advantage at
-                        their new company.
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-6 text-[10px] border-violet-500/30 text-violet-600 dark:text-violet-400 hover:bg-violet-500/10 flex-shrink-0"
-                        onClick={() => {
-                          setChampSheetSignal(
-                            champSignals.find((e) => e.signal.id === signal.id) ?? null,
-                          );
-                          setChampSheetOpen(true);
-                        }}
-                      >
-                        Reach out
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Filter chips row */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            overflowX: "auto",
+            paddingBottom: 2,
+          }}
+        >
+          <FilterChip label="Signal Type" hasDropdown onClick={() => {}} />
+          <FilterChip label="ICP Tier" hasDropdown onClick={() => {}} />
+          <FilterChip label="Warmth Score" hasDropdown onClick={() => {}} />
 
-        {/* Decay alert banner — Story 1.3 (All Signals view only) */}
-        {view === "signals" && decaySignals.length > 0 && (
-          <div className="rounded-xl border border-amber-400/30 bg-amber-50 dark:bg-amber-500/8 p-4">
-            <div className="flex items-start gap-3">
-              <Flame className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
-                    {decaySignals.length} relationship{decaySignals.length > 1 ? "s" : ""} going
-                    cold
-                  </p>
-                  <Link
-                    href="/relationship-graph?view=coverage"
-                    className="text-[11px] font-semibold text-amber-700 dark:text-amber-400 hover:underline flex-shrink-0"
-                  >
-                    View all →
-                  </Link>
-                </div>
-                <p className="text-[11px] text-amber-700/80 dark:text-amber-400/70 mb-3">
-                  Last interaction &gt;45 days ago with key bridge contacts
-                </p>
-                <div className="space-y-2">
-                  {[
-                    {
-                      id: "dc-1",
-                      name: "Sarah Chen",
-                      bridges: "Finpilot, Gong.io",
-                      days: 47,
-                    },
-                    {
-                      id: "dc-2",
-                      name: "Mark Chen",
-                      bridges: "Stripe",
-                      days: 52,
-                    },
-                    {
-                      id: "dc-3",
-                      name: "David Kim",
-                      bridges: "Acme AI, Notion",
-                      days: 61,
-                    },
-                  ].map((item) => (
-                    <div key={item.id} className="flex items-center gap-3">
-                      <div className="flex-1 text-xs text-amber-800 dark:text-amber-300 truncate">
-                        <span className="font-semibold">{item.name}</span>
-                        <span className="text-amber-700/70 dark:text-amber-400/60">
-                          {" "}
-                          → bridge to {item.bridges} · {item.days} days ago
-                        </span>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-6 text-[10px] flex-shrink-0 border-amber-400/40 text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-500/15"
-                        onClick={() => {
-                          const edge = decaySignals
-                            .map((d) => (d as unknown as { edge?: RelationshipEdge }).edge ?? null)
-                            .find((e) => e && e.from_name === item.name);
-                          if (edge) {
-                            setDecaySheetEdge(edge);
-                            setDecaySheetOpen(true);
-                          } else {
-                            toast.success(`Re-engagement draft created for ${item.name}`);
-                          }
-                        }}
-                      >
-                        Re-engage
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+          {/* Divider */}
+          <div
+            style={{
+              width: 1,
+              height: 20,
+              backgroundColor: T.border,
+              flexShrink: 0,
+              margin: "0 2px",
+            }}
+          />
 
-        {/* Stats */}
-        <div className="grid grid-cols-4 gap-2">
-          {[
-            { label: "Live signals", value: live.length, color: "text-foreground" },
-            { label: "High urgency", value: highUrgency, color: "text-red-500" },
-            { label: "Warm path coverage", value: withWarmPath, color: "text-brand" },
-            { label: "Archived (30d+)", value: archivedCount, color: "text-muted-foreground" },
-          ].map((s) => (
-            <Card key={s.label} className="border-border/60">
-              <CardContent className="p-3 text-center">
-                <div className={`text-xl font-bold tabular-nums ${s.color}`}>{s.value}</div>
-                <div className="text-[10px] text-muted-foreground mt-0.5">{s.label}</div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Filters */}
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="relative flex-1 max-w-xs">
-            <Input
-              placeholder="Search signals or accounts…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-8 h-8 text-sm"
+          {/* Active "Funding Events" chip — only when funding signals exist */}
+          {hasFundingSignals && (
+            <FilterChip
+              label="Funding Events"
+              active={fundingChipActive}
+              removable={fundingChipActive}
+              onClick={() => setFundingChipActive((v) => !v)}
+              onRemove={() => setFundingChipActive(false)}
             />
-            <Filter className="absolute left-2.5 top-2 w-3.5 h-3.5 text-muted-foreground" />
-          </div>
-
-          {/* Signal type buttons */}
-          <div className="flex items-center gap-1 flex-wrap">
-            {[
-              "all",
-              "funding",
-              "job_posting",
-              "champion_job_change",
-              "pricing_page_visit",
-              "leadership_change",
-            ].map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setTypeFilter(t)}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-full border text-[10px] font-medium transition-colors ${
-                  typeFilter === t
-                    ? "bg-foreground text-background border-foreground"
-                    : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
-                }`}
-              >
-                {t === "all" ? "All" : signalTypeLabel(t)}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-2 ml-auto">
-            {/* Urgency slider */}
-            <div className="flex items-center gap-2">
-              <Sliders className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="text-[11px] text-muted-foreground whitespace-nowrap">
-                Min urgency: {urgencyMin > 0 ? urgencyMin : "All"}
-              </span>
-              <input
-                type="range"
-                min={0}
-                max={80}
-                step={10}
-                value={urgencyMin}
-                onChange={(e) => setUrgencyMin(Number(e.target.value))}
-                className="w-20 h-1 accent-brand"
-              />
-            </div>
-
-            {/* Warm-path-only toggle */}
-            <button
-              type="button"
-              onClick={() => setWarmOnly((v) => !v)}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-medium transition-colors ${
-                warmOnly
-                  ? "border-brand/40 bg-brand/10 text-brand"
-                  : "border-border/60 text-muted-foreground hover:border-border"
-              }`}
-            >
-              <GitFork className="w-3 h-3" />
-              Warm path only
-            </button>
-
-            {/* Archived toggle */}
-            <button
-              type="button"
-              onClick={() => setShowArchived((v) => !v)}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-medium transition-colors ${
-                showArchived
-                  ? "border-border bg-muted text-foreground"
-                  : "border-border/60 text-muted-foreground hover:border-border"
-              }`}
-            >
-              <Archive className="w-3 h-3" />
-              {showArchived ? "Showing archived" : "Show archived"}
-            </button>
-          </div>
+          )}
         </div>
-
-        <p className="text-[11px] text-muted-foreground">
-          {filtered.length} signal{filtered.length !== 1 ? "s" : ""} · sorted by act-now score
-        </p>
       </div>
-      {/* end top section */}
 
-      {/* LinkedIn feed view */}
-      {view === "linkedin" && <LinkedInFeed />}
+      {/* ── Feed canvas ── */}
+      <div
+        style={{
+          flex: 1,
+          overflowY: "auto",
+          padding: 24,
+        }}
+      >
+        {visibleSignals.length === 0 ? (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: 300,
+              gap: 12,
+              color: T.muted,
+            }}
+          >
+            <div
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 12,
+                backgroundColor: "rgba(255,255,255,0.04)",
+                border: `1px solid ${T.border}`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 22,
+              }}
+            >
+              📡
+            </div>
+            <p style={{ fontSize: 14, fontWeight: 600, color: T.white, margin: 0 }}>
+              No signals right now
+            </p>
+            <p style={{ fontSize: 13, color: T.muted, margin: 0, textAlign: "center" }}>
+              {fundingChipActive
+                ? "No funding signals in your pipeline. Remove the filter to see all signals."
+                : "All signals have been dismissed. Connect integrations to unlock real-time data."}
+            </p>
+          </div>
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 520px), 1fr))",
+              gap: 24,
+              maxWidth: 1600,
+              margin: "0 auto",
+            }}
+          >
+            {visibleSignals.map(
+              ({
+                signal,
+                account,
+                warmPath,
+                targetContact,
+                connectorName,
+                connectorSubtitle,
+                warmthScore,
+              }) => {
+                const companyName = account?.name ?? "Unknown";
+                const companyInitial = companyName[0]?.toUpperCase() ?? "?";
+                const industry = account?.industry ?? "Enterprise";
+                const opportunityScore = account?.opportunity_score ?? 50;
 
-      {/* Split pane signals view */}
-      {view === "signals" && (
-        <div className="flex flex-1 min-h-0">
-          {/* Signal list */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-2.5 min-w-0">
-            {filtered.length === 0 ? (
-              <EmptyState
-                variant="empty"
-                title={showArchived ? "No archived signals" : "No signals match your filters"}
-                description={
-                  showArchived
-                    ? "Signals older than 30 days will appear here."
-                    : "Try widening your filters or connect integrations to unlock real-time signals."
-                }
-              />
-            ) : (
-              <div className="space-y-5">
-                {/* ── Champion Tracker pinned card — Story 1.4 ── */}
-                <Card className="border-l-2 border-l-violet-500 border-violet-500/20 bg-violet-500/[0.02]">
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center flex-shrink-0">
-                        <Trophy className="w-5 h-5 text-violet-500" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2 mb-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <Badge
-                              variant="outline"
-                              className="text-[10px] bg-violet-500/10 text-violet-600 border-violet-500/20"
-                            >
-                              Champion Job Change
-                            </Badge>
-                            <span className="text-[10px] font-bold text-violet-600 uppercase tracking-wide">
-                              Urgency 98
-                            </span>
-                          </div>
-                          <span className="text-[10px] text-muted-foreground flex-shrink-0">
-                            Just now
-                          </span>
-                        </div>
-                        <p className="text-sm font-semibold mb-1 text-violet-700 dark:text-violet-300">
-                          Priya Patel joined Stripe as VP Product{" "}
-                          <span className="font-normal text-muted-foreground">
-                            — you introduced her to Finpilot 6 months ago
-                          </span>
-                        </p>
-                        <p className="text-xs text-muted-foreground leading-relaxed mb-2">
-                          High opportunity — Stripe is a target account. Your prior introduction to
-                          Finpilot makes this warm from day one.
-                        </p>
-                        <div className="flex items-start gap-1.5 mb-3">
-                          <Zap className="w-3 h-3 text-violet-500 flex-shrink-0 mt-0.5" />
-                          <p className="text-xs text-muted-foreground italic">
-                            Direct connection via prior introduction. Strike while the move is fresh
-                            — window is 2–3 weeks.
-                          </p>
-                        </div>
-                        {/* biome-ignore lint/a11y/noStaticElementInteractions: stop propagation wrapper */}
-                        {/* biome-ignore lint/a11y/useKeyWithClickEvents: stop propagation wrapper */}
-                        <div
-                          className="flex items-center gap-2"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Button
-                            size="sm"
-                            className="h-7 text-xs gap-1 bg-violet-600 hover:bg-violet-700 text-white"
-                            onClick={() => {
-                              toast.success("Champion outreach drafted for Priya Patel", {
-                                description: "Review and approve it in the Approval Queue.",
-                              });
-                            }}
-                          >
-                            <Trophy className="w-3 h-3" />
-                            Draft outreach
-                          </Button>
-                          <Button size="sm" variant="outline" className="h-7 text-xs">
-                            View Stripe account
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                // Connector display
+                const displayConnectorName =
+                  connectorName || (warmPath?.path_nodes?.[1]?.name ?? "Network");
+                const displayConnectorInitials = getInitials(displayConnectorName);
+                // Subtitle: try to infer from path or recommended channel
+                const displayConnectorSubtitle =
+                  connectorSubtitle ||
+                  (warmPath?.recommended_channel === "linkedin"
+                    ? "via LinkedIn"
+                    : warmPath?.recommended_channel === "email"
+                      ? "via Email"
+                      : "");
 
-                {/* ── Act now section ── */}
-                {actNowSignals.length > 0 && (
-                  <section className="space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-red-600">Act now</span>
-                        <Badge variant="outline" className="text-[10px]">
-                          {actNowSignals.length}
-                        </Badge>
-                      </div>
-                    </div>
-                    {actNowSignals.map(renderSignalCard)}
-                  </section>
-                )}
+                // Target contact details
+                const targetName = targetContact?.name ?? account?.name ?? "Target";
+                const targetTitle = targetContact?.title ?? "Decision Maker";
 
-                {/* ── Watch section ── */}
-                {watchSignals.length > 0 && (
-                  <section className="space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span>👀</span>
-                        <span className="text-sm font-semibold text-brand">Watch</span>
-                        <Badge variant="outline" className="text-[10px]">
-                          {watchSignals.length}
-                        </Badge>
-                      </div>
-                    </div>
-                    {watchSignals.map(renderSignalCard)}
-                  </section>
-                )}
-
-                {/* ── Keep informed section (collapsible) ── */}
-                {informedSignals.length > 0 && (
-                  <section className="space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span>📁</span>
-                        <span className="text-sm font-semibold text-muted-foreground">
-                          Keep informed
-                        </span>
-                        <Badge variant="outline" className="text-[10px]">
-                          {informedSignals.length}
-                        </Badge>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setInformedOpen((v) => !v)}
-                        className="text-muted-foreground hover:text-foreground"
-                      >
-                        {informedOpen ? (
-                          <ChevronUp className="w-4 h-4" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4" />
-                        )}
-                      </button>
-                    </div>
-                    {informedOpen && informedSignals.map(renderSignalCard)}
-                  </section>
-                )}
-
-                {/* ── Fallback for decay-only or zero-group signals ── */}
-                {actNowSignals.length === 0 &&
-                  watchSignals.length === 0 &&
-                  informedSignals.length === 0 &&
-                  filtered.map(renderSignalCard)}
-              </div>
+                return (
+                  <SignalCard
+                    key={signal.id}
+                    signalId={signal.id}
+                    companyName={companyName}
+                    companyInitial={companyInitial}
+                    signalTitle={signal.title}
+                    signalType={signal.type}
+                    industry={industry}
+                    opportunityScore={opportunityScore}
+                    detectedAt={signal.detected_at}
+                    warmthScore={warmthScore}
+                    connectorName={displayConnectorName}
+                    connectorInitials={displayConnectorInitials}
+                    connectorSubtitle={displayConnectorSubtitle}
+                    targetName={targetName}
+                    targetTitle={targetTitle}
+                    isDismissed={dismissedIds.has(signal.id)}
+                    onDismiss={handleDismiss}
+                    onDraftIntro={handleDraftIntro}
+                  />
+                );
+              },
             )}
           </div>
-          {/* end signal list */}
+        )}
+      </div>
 
-          {/* Intel panel */}
-          <div className="w-[340px] flex-shrink-0 border-l border-border/50 flex flex-col bg-card/20">
-            <div className="px-4 py-2.5 border-b border-border/40 flex-shrink-0">
-              <h2 className="text-xs font-semibold flex items-center gap-1.5">
-                <GitFork className="w-3.5 h-3.5 text-brand" />
-                Live Intel
-              </h2>
-            </div>
-            <IntelPanel signalId={selectedSignalId} />
-          </div>
-        </div>
-      )}
-      {/* end signals split pane */}
-
-      {/* Decay re-engage sheet */}
-      <DecayReEngageSheet
-        edge={decaySheetEdge}
-        userName="You"
-        open={decaySheetOpen}
-        onOpenChange={setDecaySheetOpen}
-      />
-
-      {/* Champion outreach sheet */}
-      <ChampionOutreachSheet
-        signal={champSheetSignal?.signal ?? null}
-        open={champSheetOpen}
-        onOpenChange={setChampSheetOpen}
-        userName="Demo User"
-      />
+      {/* Pulse keyframe via style tag */}
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.4; }
+        }
+      `}</style>
     </div>
   );
 }

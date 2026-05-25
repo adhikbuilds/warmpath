@@ -2,13 +2,17 @@
 
 import {
   AlertTriangle,
+  Bell,
+  Clock,
   Download,
+  Filter,
   GitFork,
   Info,
   LayoutGrid,
   Maximize2,
   Minimize2,
   Network,
+  Plus,
   Search,
   SlidersHorizontal,
   TrendingUp,
@@ -30,7 +34,6 @@ import { useSalesStore } from "@/stores/salesStore";
 /** Generate a synthetic 90-day weekly trend ending at `currentPct`. */
 function buildCoverageTrend(currentPct: number): { week: string; pct: number }[] {
   const weeks = 13;
-  // Start roughly 15pp below current, with small random variation each step
   const startPct = Math.max(5, currentPct - 15);
   const step = (currentPct - startPct) / (weeks - 1);
   const now = new Date();
@@ -38,7 +41,6 @@ function buildCoverageTrend(currentPct: number): { week: string; pct: number }[]
     const d = new Date(now);
     d.setDate(d.getDate() - (weeks - 1 - i) * 7);
     const label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-    // Add ±2pp noise except for last point which must land on currentPct
     const noise = i < weeks - 1 ? Math.round((Math.random() - 0.5) * 4) : 0;
     const pct = i === weeks - 1 ? currentPct : Math.round(startPct + step * i + noise);
     return { week: label, pct: Math.max(0, Math.min(100, pct)) };
@@ -68,7 +70,49 @@ const NODE_COLORS: Record<string, string> = {
   account: "#34d399",
 };
 
+type TabId = "relationships" | "pipeline" | "activity";
 type ViewMode = "graph" | "coverage";
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatRelativeTime(dateStr: string | undefined): string {
+  if (!dateStr) return "—";
+  const ms = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(ms / 60000);
+  if (mins < 60) return mins <= 1 ? "just now" : `${mins} min ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs === 1 ? "1 hour ago" : `${hrs} hours ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return days === 1 ? "1 day ago" : `${days} days ago`;
+  const months = Math.floor(days / 30);
+  return months === 1 ? "1 month ago" : `${months} months ago`;
+}
+
+function warmthColor(score: number): string {
+  if (score >= 70) return "#10b981";
+  if (score >= 40) return "#f59e0b";
+  return "#ef4444";
+}
+
+function initials(name: string): string {
+  const parts = name.trim().split(" ");
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+}
+
+// Deterministic pastel bg from name
+function avatarBg(name: string): string {
+  const palette = [
+    "rgba(79,70,229,0.25)",
+    "rgba(16,185,129,0.2)",
+    "rgba(245,158,11,0.2)",
+    "rgba(139,92,246,0.2)",
+    "rgba(59,130,246,0.2)",
+  ];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) & 0xffffffff;
+  return palette[Math.abs(hash) % palette.length];
+}
 
 // ─── Coverage Map ─────────────────────────────────────────────────────────────
 
@@ -138,7 +182,6 @@ function CoverageMap() {
         pathLabel = bestPath.path_nodes.map((n) => n.name.split(" ")[0]).join(" → ");
         introPerson = bestPath.recommended_intro_person;
 
-        // Check if the underlying edges are stale
         const relevantEdges = relationshipEdges.filter((e) =>
           bestPath.path_nodes.some((n) => n.id === e.from_id || n.id === e.to_id),
         );
@@ -178,11 +221,9 @@ function CoverageMap() {
   const coldCount = rows.filter((r) => r.gapType === "cold_path").length;
   const noPathCount = rows.filter((r) => r.gapType === "no_path").length;
 
-  // Spec: 3 hero chips — strong (warmth >70), moderate (40-70), no path
   const strongCount = rows.filter((r) => r.bestWarmth > 70).length;
   const moderateCount = rows.filter((r) => r.bestWarmth >= 40 && r.bestWarmth <= 70).length;
 
-  // Coverage = accounts with any warm path / total accounts
   const coveredAccountIds = new Set(warmPaths.map((wp) => wp.account_id));
   const coveragePct =
     accounts.length > 0 ? Math.round((coveredAccountIds.size / accounts.length) * 100) : 0;
@@ -220,14 +261,12 @@ function CoverageMap() {
 
   const circumference = 2 * Math.PI * 36;
   const dashOffset = circumference * (1 - coveragePct / 100);
-
   const trendColor = coveragePct >= 70 ? "#10b981" : coveragePct >= 40 ? "#f59e0b" : "#ef4444";
 
   return (
     <div className="p-6 space-y-6 max-w-[1200px] mx-auto">
       {/* Hero metrics */}
       <div className="grid grid-cols-5 gap-4 items-stretch">
-        {/* Coverage ring — SVG-drawn circle (matches CSS ring look) */}
         <div className="col-span-2 bg-card border border-border/60 rounded-xl p-5 flex items-center gap-6">
           <div className="flex-shrink-0 flex flex-col items-center">
             <svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true">
@@ -280,7 +319,6 @@ function CoverageMap() {
             <p className="text-xs text-muted-foreground mt-0.5 mb-3">
               Network coverage across all ICP accounts
             </p>
-            {/* 3 hero chips per spec */}
             <div className="flex flex-wrap gap-2">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
@@ -298,7 +336,6 @@ function CoverageMap() {
           </div>
         </div>
 
-        {/* 3 gap type stats */}
         {[
           { label: "Warm", value: warmCount, color: "text-emerald-500", dot: "bg-emerald-500" },
           { label: "Stale", value: staleCount, color: "text-brand", dot: "bg-brand" },
@@ -410,7 +447,6 @@ function CoverageMap() {
                     key={row.accountId}
                     className="border-b border-border/20 hover:bg-muted/30 transition-colors"
                   >
-                    {/* Account: logo initial + name + industry tag */}
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-2.5">
                         <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center text-[11px] font-bold text-foreground flex-shrink-0">
@@ -424,7 +460,6 @@ function CoverageMap() {
                         </div>
                       </div>
                     </td>
-                    {/* Warmth: colored score badge + thin bar */}
                     <td className="px-4 py-3">
                       {row.bestWarmth > 0 ? (
                         <div className="flex items-center gap-2">
@@ -433,24 +468,14 @@ function CoverageMap() {
                               className="h-full rounded-full"
                               style={{
                                 width: `${row.bestWarmth}%`,
-                                backgroundColor:
-                                  row.bestWarmth >= 70
-                                    ? "#10b981"
-                                    : row.bestWarmth >= 40
-                                      ? "#f59e0b"
-                                      : "#ef4444",
+                                backgroundColor: warmthColor(row.bestWarmth),
                               }}
                             />
                           </div>
                           <span
                             className="tabular-nums font-semibold text-[11px] px-1.5 py-px rounded"
                             style={{
-                              color:
-                                row.bestWarmth >= 70
-                                  ? "#10b981"
-                                  : row.bestWarmth >= 40
-                                    ? "#f59e0b"
-                                    : "#ef4444",
+                              color: warmthColor(row.bestWarmth),
                               background:
                                 row.bestWarmth >= 70
                                   ? "rgba(16,185,129,0.1)"
@@ -466,7 +491,6 @@ function CoverageMap() {
                         <span className="text-muted-foreground">—</span>
                       )}
                     </td>
-                    {/* Intro via: recommended_intro_person */}
                     <td className="px-4 py-3 text-muted-foreground">
                       {row.introPerson !== "-" ? (
                         <span className="font-medium text-foreground">{row.introPerson}</span>
@@ -474,14 +498,12 @@ function CoverageMap() {
                         <span>—</span>
                       )}
                     </td>
-                    {/* Gap type badge */}
                     <td className="px-4 py-3">
                       <Badge variant="outline" className={`text-[10px] ${cfg.color}`}>
                         <span className={`w-1.5 h-1.5 rounded-full mr-1 ${cfg.dot}`} />
                         {cfg.label}
                       </Badge>
                     </td>
-                    {/* Action */}
                     <td className="px-4 py-3">
                       {row.gapType === "warm" ? (
                         <Button
@@ -525,7 +547,7 @@ function CoverageMap() {
           {
             type: "cold_path" as GapType,
             title: "Cold path",
-            desc: "A path exists but warmth score is below 45 the relationship is too weak for a credible intro.",
+            desc: "A path exists but warmth score is below 45 — the relationship is too weak for a credible intro.",
           },
           {
             type: "stale_path" as GapType,
@@ -549,6 +571,343 @@ function CoverageMap() {
   );
 }
 
+// ─── Relationships Spreadsheet ────────────────────────────────────────────────
+
+function RelationshipsSpreadsheet() {
+  const { contacts, accounts, warmPaths, relationshipEdges } = useSalesStore();
+  const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  // Build per-contact last-synced from relationshipEdges
+  const lastSyncedMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const edge of relationshipEdges) {
+      for (const cid of [edge.from_id, edge.to_id]) {
+        const existing = map.get(cid);
+        if (!existing || edge.last_interaction_at > existing) {
+          map.set(cid, edge.last_interaction_at);
+        }
+      }
+    }
+    return map;
+  }, [relationshipEdges]);
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return contacts;
+    const q = search.toLowerCase();
+    return contacts.filter((c) => {
+      const account = accounts.find((a) => a.id === c.account_id);
+      return c.name.toLowerCase().includes(q) || account?.name.toLowerCase().includes(q);
+    });
+  }, [contacts, accounts, search]);
+
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    if (selected.size === filtered.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(filtered.map((c) => c.id)));
+    }
+  }
+
+  return (
+    <div
+      className="flex flex-col overflow-hidden"
+      style={{ height: `calc(100vh - ${HEADER_H * 2 + 1}px)` }}
+    >
+      {/* View controls bar */}
+      <div
+        className="flex justify-between items-center px-6 py-2.5 border-b flex-shrink-0"
+        style={{ borderColor: "#27272a", background: "#09090b" }}
+      >
+        <div className="flex items-center gap-3">
+          <div
+            className="flex items-center gap-2 border rounded px-2.5 h-8"
+            style={{ borderColor: "#27272a", background: "#18181b" }}
+          >
+            <Search className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#71717a" }} />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Filter relationships..."
+              className="bg-transparent outline-none text-xs w-48"
+              style={{ color: "#e5e5e5" }}
+            />
+          </div>
+          <button
+            type="button"
+            className="flex items-center gap-1.5 h-8 px-3 rounded border text-xs font-medium transition-colors hover:bg-white/5"
+            style={{ borderColor: "#27272a", color: "#a1a1aa" }}
+          >
+            <Filter className="w-3 h-3" />
+            Filter
+          </button>
+          <button
+            type="button"
+            className="flex items-center gap-1.5 h-8 px-3 rounded border text-xs font-medium transition-colors hover:bg-white/5"
+            style={{ borderColor: "#27272a", color: "#a1a1aa" }}
+          >
+            <SlidersHorizontal className="w-3 h-3" />
+            Sort
+          </button>
+        </div>
+        <span className="text-xs" style={{ color: "#71717a" }}>
+          {filtered.length} Contact{filtered.length !== 1 ? "s" : ""}
+        </span>
+      </div>
+
+      {/* Scrollable table */}
+      <div className="flex-1 overflow-auto" style={{ background: "#09090b" }}>
+        <table className="w-full border-collapse" style={{ minWidth: 1000, whiteSpace: "nowrap" }}>
+          <thead
+            className="sticky top-0 z-10"
+            style={{ background: "#18181b", borderBottom: "1px solid #27272a" }}
+          >
+            <tr>
+              {/* checkbox col */}
+              <th className="w-10 px-4 py-2.5">
+                <input
+                  type="checkbox"
+                  checked={filtered.length > 0 && selected.size === filtered.length}
+                  onChange={toggleAll}
+                  className="w-3.5 h-3.5 accent-indigo-500 cursor-pointer"
+                />
+              </th>
+              {[
+                { label: "Contact", sortable: true },
+                { label: "Target Company", sortable: false },
+                { label: "Internal Connector", sortable: false },
+                { label: "Shared Context", sortable: false },
+                { label: "Warmth", sortable: true },
+                { label: "Last Synced", sortable: true },
+              ].map((col) => (
+                <th
+                  key={col.label}
+                  className="text-left px-4 py-2.5 text-xs font-medium select-none"
+                  style={{ color: "#a1a1aa" }}
+                >
+                  {col.label}
+                  {col.sortable && (
+                    <span className="ml-1 opacity-40" style={{ fontSize: 10 }}>
+                      ↕
+                    </span>
+                  )}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((contact) => {
+              const account = accounts.find((a) => a.id === contact.account_id);
+              const warmPath = warmPaths.find((wp) => wp.contact_id === contact.id);
+              const connector = warmPath?.recommended_intro_person ?? "—";
+              const context = warmPath?.path_explanation ?? "No context";
+              const score = contact.warmth_score ?? 0;
+              const color = warmthColor(score);
+              const lastInteraction = lastSyncedMap.get(contact.id);
+              const isSelected = selected.has(contact.id);
+              const ini = initials(contact.name);
+              const bg = avatarBg(contact.name);
+              const accountFirst = account?.name.charAt(0).toUpperCase() ?? "?";
+
+              return (
+                <tr
+                  key={contact.id}
+                  className="group transition-colors"
+                  style={{
+                    borderBottom: "1px solid #27272a",
+                    background: isSelected ? "rgba(79,70,229,0.06)" : undefined,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected) (e.currentTarget as HTMLElement).style.background = "#18181b";
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected) (e.currentTarget as HTMLElement).style.background = "";
+                  }}
+                >
+                  {/* Checkbox */}
+                  <td className="w-10 px-4 py-3">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleSelect(contact.id)}
+                      className="w-3.5 h-3.5 accent-indigo-500 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+                      style={{ opacity: isSelected ? 1 : undefined }}
+                    />
+                  </td>
+
+                  {/* Contact */}
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0"
+                        style={{ background: bg, color: "#e5e5e5" }}
+                      >
+                        {ini}
+                      </div>
+                      <div className="flex flex-col">
+                        <span
+                          className="text-sm font-medium leading-tight"
+                          style={{ color: "#e5e5e5" }}
+                        >
+                          {contact.name}
+                        </span>
+                        <span className="text-xs leading-tight mt-0.5" style={{ color: "#71717a" }}>
+                          {contact.title ?? "—"}
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* Target Company */}
+                  <td className="px-4 py-3">
+                    {account ? (
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-5 h-5 rounded flex items-center justify-center text-[9px] font-bold flex-shrink-0"
+                          style={{ background: "#4f46e5", color: "#fff" }}
+                        >
+                          {accountFirst}
+                        </div>
+                        <span className="text-sm" style={{ color: "#e5e5e5" }}>
+                          {account.name}
+                        </span>
+                      </div>
+                    ) : (
+                      <span style={{ color: "#71717a" }}>—</span>
+                    )}
+                  </td>
+
+                  {/* Internal Connector */}
+                  <td className="px-4 py-3">
+                    {connector !== "—" ? (
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-semibold flex-shrink-0"
+                          style={{ background: "rgba(16,185,129,0.2)", color: "#10b981" }}
+                        >
+                          {initials(connector)}
+                        </div>
+                        <span className="text-sm" style={{ color: "#e5e5e5" }}>
+                          {connector}
+                        </span>
+                      </div>
+                    ) : (
+                      <span style={{ color: "#71717a" }}>—</span>
+                    )}
+                  </td>
+
+                  {/* Shared Context */}
+                  <td className="px-4 py-3" style={{ maxWidth: 240 }}>
+                    {context !== "No context" ? (
+                      <div
+                        className="inline-block rounded px-2 py-1 text-xs truncate max-w-[220px]"
+                        style={{
+                          background: "#18181b",
+                          border: "1px solid #27272a",
+                          color: "#a1a1aa",
+                        }}
+                        title={context}
+                      >
+                        {context}
+                      </div>
+                    ) : (
+                      <span className="text-xs" style={{ color: "#71717a" }}>
+                        No context
+                      </span>
+                    )}
+                  </td>
+
+                  {/* Warmth */}
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2.5" style={{ minWidth: 100 }}>
+                      <span className="text-sm font-semibold tabular-nums" style={{ color }}>
+                        {score}
+                      </span>
+                      <div
+                        className="flex-1 rounded-full overflow-hidden"
+                        style={{ height: 5, background: "#27272a", maxWidth: 64 }}
+                      >
+                        <div
+                          style={{
+                            width: `${score}%`,
+                            height: "100%",
+                            borderRadius: 9999,
+                            background: color,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* Last Synced */}
+                  <td className="px-4 py-3">
+                    <span className="text-xs" style={{ color: "#71717a" }}>
+                      {formatRelativeTime(lastInteraction)}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={7} className="text-center py-16 text-sm" style={{ color: "#71717a" }}>
+                  No contacts match your filter.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Status bar */}
+      <div
+        className="h-8 flex items-center px-4 justify-between text-xs flex-shrink-0"
+        style={{ borderTop: "1px solid #27272a", color: "#71717a" }}
+      >
+        <div className="flex items-center gap-4">
+          <span className="flex items-center gap-1.5">
+            <span
+              className="w-1.5 h-1.5 rounded-full"
+              style={{ background: "#10b981", boxShadow: "0 0 6px #10b981" }}
+            />
+            Sync Active
+          </span>
+          <span>Last updated: just now</span>
+        </div>
+        <div>Selected: {selected.size}</div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Activity Empty State ─────────────────────────────────────────────────────
+
+function ActivityTab() {
+  return (
+    <div
+      className="flex-1 flex items-center justify-center"
+      style={{ height: `calc(100vh - ${HEADER_H * 2 + 1}px)`, background: "#09090b" }}
+    >
+      <EmptyState
+        variant="empty"
+        size="lg"
+        title="No activity yet"
+        description="Relationship activity and interaction history will appear here once synced."
+      />
+    </div>
+  );
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function RelationshipGraphPage() {
@@ -556,6 +915,10 @@ export default function RelationshipGraphPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
+  // Top-level tab
+  const [activeTab, setActiveTab] = useState<TabId>("relationships");
+
+  // Pipeline sub-view (graph vs coverage)
   const view = (searchParams.get("view") as ViewMode) ?? "graph";
   const setView = (v: ViewMode) => router.replace(`/relationship-graph?view=${v}`);
 
@@ -623,7 +986,6 @@ export default function RelationshipGraphPage() {
 
   const sourceTeamIds = useMemo(() => teamMembers.map((t) => t.id), [teamMembers]);
 
-  // Accounts that have a warm path used for coverage mode dimming
   const accountsWithWarmPath = useMemo(
     () => new Set(warmPaths.map((wp) => wp.account_id)),
     [warmPaths],
@@ -667,7 +1029,6 @@ export default function RelationshipGraphPage() {
     [sourceTeamIds, graph, applyPaths],
   );
 
-  // Filter edges by warmth threshold
   const filteredEdges = useMemo(
     () =>
       warmthThreshold > 0
@@ -740,8 +1101,6 @@ export default function RelationshipGraphPage() {
       const r = Math.sqrt(n.val) * 3.2;
       const isHighlighted = highlightedIds.has(n.id);
       const isYou = n.id === "user-1";
-
-      // Coverage mode: dim accounts with no warm path
       const isDimmed = coverageMode && n.type === "account" && !n.hasWarmPath && !isHighlighted;
       const alpha = isDimmed ? 0.2 : 1;
 
@@ -801,7 +1160,6 @@ export default function RelationshipGraphPage() {
       ctx.fillStyle = isHighlighted || isYou ? "#ffffff" : "rgba(255,255,255,0.65)";
       ctx.fillText(label, x, y + r + 4);
       ctx.shadowBlur = 0;
-
       ctx.restore();
     },
     [highlightedIds, coverageMode],
@@ -816,7 +1174,6 @@ export default function RelationshipGraphPage() {
         typeof l.target === "object" ? (l.target as { id: string }).id : String(l.target);
       const isWarm = highlightedIds.has(srcId) && highlightedIds.has(tgtId);
       const w = l.warmth ?? 50;
-      // Warmth-scored: red (<40) → yellow (40–70) → green (70+)
       const base = w >= 70 ? "#10b981" : w >= 40 ? "#f59e0b" : "#ef4444";
       return isWarm ? `${base}ee` : `${base}35`;
     },
@@ -846,448 +1203,566 @@ export default function RelationshipGraphPage() {
       .slice(0, 5);
   }, [relationshipEdges]);
 
+  const TAB_STYLES = (id: TabId): React.CSSProperties =>
+    activeTab === id
+      ? {
+          color: "#4f46e5",
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          fontSize: 14,
+          cursor: "pointer",
+          background: "none",
+          border: "none",
+          borderBottom: "2px solid #4f46e5",
+          paddingBottom: 0,
+          fontWeight: 500,
+        }
+      : {
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          fontSize: 14,
+          cursor: "pointer",
+          background: "none",
+          border: "none",
+          borderBottom: "2px solid transparent",
+          color: "#a1a1aa",
+          fontWeight: 400,
+          paddingBottom: 0,
+        };
+
   return (
     <div
       className="flex flex-col overflow-hidden"
-      style={{ height: `calc(100vh - ${HEADER_H}px)` }}
+      style={{ height: `calc(100vh - ${HEADER_H}px)`, background: "#09090b" }}
     >
-      {/* Top bar */}
-      <div className="flex items-center justify-between px-5 py-3 border-b border-border/50 flex-shrink-0 bg-background/95 backdrop-blur-sm">
-        <div className="flex items-center gap-3">
-          <Network className="w-4 h-4 text-brand" />
-          <div>
-            <h1 className="text-sm font-bold leading-none">Relationship Graph</h1>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              BFS pathfinding · warmth-scored edges · real network intelligence
-            </p>
-          </div>
-          <Badge variant="outline" className="text-[10px] bg-brand/10 text-brand border-brand/20">
-            Live
-          </Badge>
-        </div>
-
-        {/* View tabs */}
-        <div className="flex items-center gap-1 bg-muted/40 rounded-lg p-1 border border-border/40">
-          <button
-            type="button"
-            onClick={() => setView("graph")}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-              view === "graph"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Network className="w-3 h-3" />
-            Graph
-          </button>
-          <button
-            type="button"
-            onClick={() => setView("coverage")}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-              view === "coverage"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <LayoutGrid className="w-3 h-3" />
-            Coverage map
-          </button>
-        </div>
-
-        {view === "graph" && (
-          <div className="flex items-center gap-8 pr-2">
+      {/* Top App Bar with tab navigation */}
+      <header
+        className="flex justify-between items-center px-6 flex-shrink-0"
+        style={{
+          height: HEADER_H,
+          borderBottom: "1px solid #27272a",
+          background: "#09090b",
+        }}
+      >
+        <nav className="flex h-full items-center gap-6">
+          {(
+            [
+              { id: "relationships" as TabId, label: "Relationships" },
+              { id: "pipeline" as TabId, label: "Pipeline" },
+              { id: "activity" as TabId, label: "Activity" },
+            ] as const
+          ).map((tab) => (
             <button
+              key={tab.id}
               type="button"
-              onClick={toggleFullscreen}
-              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-              title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+              onClick={() => setActiveTab(tab.id)}
+              style={TAB_STYLES(tab.id) as React.CSSProperties}
             >
-              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+              {tab.label}
             </button>
-            {[
-              { label: "Nodes", value: nodes.length },
-              { label: "Edges", value: links.length },
-              { label: "Paths", value: computedPaths.length },
-            ].map((s) => (
-              <div key={s.label} className="text-center">
-                <div className="text-base font-bold tabular-nums leading-none">{s.value}</div>
-                <div className="text-[10px] text-muted-foreground mt-0.5">{s.label}</div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+          ))}
+        </nav>
 
-      {/* Content */}
-      {view === "coverage" ? (
-        <div className="flex-1 overflow-y-auto">
-          <CoverageMap />
-        </div>
-      ) : (
-        <div ref={graphWrapRef} className="flex flex-1 min-h-0 overflow-hidden">
-          {/* Graph canvas */}
-          <div
-            ref={containerRef}
-            className="flex-1 min-w-0 relative"
-            style={{ background: CANVAS_BG }}
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            className="h-8 px-3 rounded border flex items-center gap-1.5 text-xs transition-colors hover:bg-white/5"
+            style={{ borderColor: "#27272a", color: "#a1a1aa" }}
           >
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                backgroundImage: "radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px)",
-                backgroundSize: "30px 30px",
-              }}
-            />
+            <Bell className="w-3.5 h-3.5" />
+            Notifications
+          </button>
+          <button
+            type="button"
+            className="h-8 px-3 rounded border flex items-center gap-1.5 text-xs transition-colors hover:bg-white/5"
+            style={{ borderColor: "#27272a", color: "#a1a1aa" }}
+          >
+            <Clock className="w-3.5 h-3.5" />
+            History
+          </button>
+          <div className="w-px h-5" style={{ background: "#27272a" }} />
+          <button
+            type="button"
+            className="h-8 px-3 rounded border flex items-center gap-1.5 text-xs transition-colors hover:bg-white/5"
+            style={{ borderColor: "#27272a", color: "#a1a1aa" }}
+            onClick={() => toast.success("Exported to clipboard")}
+          >
+            <Download className="w-3.5 h-3.5" />
+            Export
+          </button>
+          <button
+            type="button"
+            className="h-8 px-3 rounded flex items-center gap-1.5 text-xs font-medium transition-opacity hover:opacity-90"
+            style={{ background: "#4f46e5", color: "#fff" }}
+            onClick={() => toast.info("Add contact coming soon")}
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Add Entry
+          </button>
+        </div>
+      </header>
 
-            <ForceGraph2D
-              graphData={{ nodes, links }}
-              width={dimensions.width}
-              height={dimensions.height}
-              nodeLabel={(node) => {
-                const n = node as (typeof nodes)[0];
-                const typeLabel =
-                  n.type === "user"
-                    ? "You"
-                    : n.type === "team"
-                      ? "Team member"
-                      : n.type === "contact"
-                        ? "Contact"
-                        : "Account";
-                return `<div style="font-size:12px;padding:4px 8px;background:#1e1e2e;border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:white"><strong>${n.name}</strong><br/><span style="opacity:0.6;font-size:10px">${typeLabel}</span></div>`;
-              }}
-              nodeVal="val"
-              nodeColor="color"
-              linkColor={linkColor}
-              linkWidth={linkWidth}
-              onNodeClick={handleNodeClick}
-              nodeCanvasObject={nodeCanvasObject}
-              backgroundColor={CANVAS_BG}
-              cooldownTicks={180}
-              d3AlphaDecay={0.015}
-              d3VelocityDecay={0.3}
-              linkDirectionalParticles={2}
-              linkDirectionalParticleWidth={(link: unknown) => {
-                const l = link as { source: unknown; target: unknown };
-                const srcId = typeof l.source === "object" ? (l.source as { id: string }).id : "";
-                const tgtId = typeof l.target === "object" ? (l.target as { id: string }).id : "";
-                return highlightedIds.has(srcId) && highlightedIds.has(tgtId) ? 3 : 0;
-              }}
-              linkDirectionalParticleColor={(link: unknown) => {
-                const l = link as { relType?: string };
-                return REL_COLORS[l.relType ?? ""] ?? "#f59e0b";
-              }}
-            />
+      {/* Tab content */}
+      {activeTab === "relationships" && <RelationshipsSpreadsheet />}
 
-            {isComputing && (
-              <div className="absolute inset-0 flex items-center justify-center bg-[#06060e]/60 backdrop-blur-sm z-10">
-                <div className="flex items-center gap-3 bg-card/90 border border-border/60 rounded-2xl px-6 py-4 shadow-2xl">
-                  <div className="flex gap-1">
-                    {[0, 1, 2].map((i) => (
-                      <div
-                        key={i}
-                        className="w-2 h-2 rounded-full bg-brand loading-dot"
-                        style={{ animationDelay: `${i * 0.2}s` }}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-sm font-semibold">Computing warmest path…</span>
-                </div>
-              </div>
-            )}
+      {activeTab === "activity" && <ActivityTab />}
 
-            {/* Legend */}
-            <div className="absolute bottom-5 left-5 flex flex-col gap-2 bg-black/60 backdrop-blur-md border border-white/10 rounded-xl p-3.5">
-              {[
-                { color: NODE_COLORS.user, label: "You", sub: "Source" },
-                { color: NODE_COLORS.team, label: "Team", sub: "Advisors / co-founders" },
-                { color: NODE_COLORS.contact, label: "Contacts", sub: "Prospects" },
-                { color: NODE_COLORS.account, label: "Accounts", sub: "Companies" },
-              ].map((item) => (
-                <div key={item.label} className="flex items-center gap-2.5">
-                  <div
-                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: item.color, boxShadow: `0 0 6px ${item.color}80` }}
-                  />
-                  <div>
-                    <span className="text-[11px] text-white/80 font-medium">{item.label}</span>
-                    <span className="text-[10px] text-white/40 ml-1.5">{item.sub}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="absolute top-4 left-4 text-[10px] text-white/35 bg-black/50 backdrop-blur-sm border border-white/8 rounded-lg px-2.5 py-2">
-              Click a purple contact node · or use the finder →
-            </div>
-          </div>
-
-          {/* Right panel */}
-          <div className="w-[300px] flex-shrink-0 border-l border-border/50 flex flex-col overflow-hidden bg-background">
-            {/* Filters */}
-            <div className="p-4 border-b border-border/40 space-y-3">
-              <div className="flex items-center gap-1.5 mb-1">
-                <SlidersHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
-                <span className="text-xs font-semibold">Filters</span>
-              </div>
-
-              {/* Warmth threshold slider */}
+      {activeTab === "pipeline" && (
+        <div className="flex flex-col flex-1 overflow-hidden">
+          {/* Pipeline sub-header */}
+          <div className="flex items-center justify-between px-5 py-3 border-b border-border/50 flex-shrink-0 bg-background/95 backdrop-blur-sm">
+            <div className="flex items-center gap-3">
+              <Network className="w-4 h-4 text-brand" />
               <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[11px] text-muted-foreground">Min edge warmth</span>
-                  <span className="text-[11px] font-semibold tabular-nums">
-                    {warmthThreshold > 0 ? `≥${warmthThreshold}` : "All"}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={90}
-                  step={10}
-                  value={warmthThreshold}
-                  onChange={(e) => setWarmthThreshold(Number(e.target.value))}
-                  className="w-full h-1.5 accent-brand cursor-pointer"
-                />
-                <div className="flex justify-between text-[9px] text-muted-foreground/60 mt-0.5">
-                  <span>All</span>
-                  <span>Strong only</span>
-                </div>
+                <h1 className="text-sm font-bold leading-none">Relationship Graph</h1>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  BFS pathfinding · warmth-scored edges · real network intelligence
+                </p>
               </div>
+              <Badge
+                variant="outline"
+                className="text-[10px] bg-brand/10 text-brand border-brand/20"
+              >
+                Live
+              </Badge>
+            </div>
 
-              {/* Coverage mode toggle */}
+            {/* View tabs */}
+            <div className="flex items-center gap-1 bg-muted/40 rounded-lg p-1 border border-border/40">
               <button
                 type="button"
-                onClick={() => setCoverageMode((v) => !v)}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg border text-xs transition-colors ${
-                  coverageMode
-                    ? "border-brand/30 bg-brand/10 text-brand"
-                    : "border-border/40 text-muted-foreground hover:text-foreground"
+                onClick={() => setView("graph")}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                  view === "graph"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <span className="flex items-center gap-1.5">
-                  <LayoutGrid className="w-3 h-3" />
-                  Coverage mode
-                </span>
-                <div
-                  className={`w-7 h-4 rounded-full transition-colors relative ${
-                    coverageMode ? "bg-brand" : "bg-muted"
-                  }`}
-                >
-                  <div
-                    className={`absolute top-0.5 w-3 h-3 rounded-full bg-[#e5e1e4] shadow transition-transform ${
-                      coverageMode ? "translate-x-3.5" : "translate-x-0.5"
-                    }`}
-                  />
-                </div>
+                <Network className="w-3 h-3" />
+                Graph
+              </button>
+              <button
+                type="button"
+                onClick={() => setView("coverage")}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                  view === "coverage"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <LayoutGrid className="w-3 h-3" />
+                Coverage map
               </button>
             </div>
 
-            {/* Path finder form */}
-            <div className="p-4 border-b border-border/40">
-              <div className="flex items-center gap-1.5 mb-3">
-                <Zap className="w-3.5 h-3.5 text-brand" />
-                <span className="text-xs font-semibold">Find warm path</span>
-              </div>
-              <div className="space-y-2">
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground" />
-                  <Input
-                    placeholder="From (e.g. Adhik)"
-                    value={fromSearch}
-                    onChange={(e) => setFromSearch(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleFindPaths()}
-                    className="pl-8 h-8 text-xs"
-                  />
-                </div>
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground" />
-                  <Input
-                    placeholder="To (e.g. Priya)"
-                    value={toSearch}
-                    onChange={(e) => setToSearch(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleFindPaths()}
-                    className="pl-8 h-8 text-xs"
-                  />
-                </div>
-                <Button
-                  size="sm"
-                  className="w-full h-8 text-xs"
-                  onClick={handleFindPaths}
-                  disabled={!fromSearch || !toSearch || isComputing}
+            {view === "graph" && (
+              <div className="flex items-center gap-8 pr-2">
+                <button
+                  type="button"
+                  onClick={toggleFullscreen}
+                  className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                  title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
                 >
-                  {isComputing ? "Computing…" : "Find warmest path"}
-                </Button>
-              </div>
-            </div>
-
-            {/* Decay alert */}
-            {decayingEdges.length > 0 && (
-              <div className="mx-4 mt-4 flex-shrink-0">
-                <div className="rounded-xl border border-brand/20 bg-brand/5 p-3">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <AlertTriangle className="w-3 h-3 text-brand flex-shrink-0" />
-                    <span className="text-[11px] font-semibold text-brand">
-                      {decayingEdges.length} cooling connection{decayingEdges.length > 1 ? "s" : ""}
-                    </span>
+                  {isFullscreen ? (
+                    <Minimize2 className="w-4 h-4" />
+                  ) : (
+                    <Maximize2 className="w-4 h-4" />
+                  )}
+                </button>
+                {[
+                  { label: "Nodes", value: nodes.length },
+                  { label: "Edges", value: links.length },
+                  { label: "Paths", value: computedPaths.length },
+                ].map((s) => (
+                  <div key={s.label} className="text-center">
+                    <div className="text-base font-bold tabular-nums leading-none">{s.value}</div>
+                    <div className="text-[10px] text-muted-foreground mt-0.5">{s.label}</div>
                   </div>
-                  <div className="space-y-1">
-                    {decayingEdges.slice(0, 3).map((e) => (
-                      <p key={e.id} className="text-[10px] text-muted-foreground">
-                        {e.from_name.split(" ")[0]} → {e.to_name.split(" ")[0]}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Results */}
-            <div className="flex-1 overflow-y-auto p-4">
-              {!pathsSearched ? (
-                <EmptyState
-                  variant="empty"
-                  size="sm"
-                  title="No search yet"
-                  description="Click a contact node or use the finder above."
-                />
-              ) : computedPaths.length === 0 ? (
-                <EmptyState
-                  variant="no-path"
-                  size="sm"
-                  title="No warm path found"
-                  description="No shared connection within 3 hops. Expand your network or try cold outreach."
-                />
-              ) : (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <GitFork className="w-3.5 h-3.5 text-brand" />
-                    <span className="text-xs font-semibold">
-                      {computedPaths.length} path{computedPaths.length > 1 ? "s" : ""} found
-                    </span>
-                    {selectedNode && (
-                      <span className="text-[11px] text-muted-foreground">
-                        → {selectedNode.name.split(" ")[0]}
-                      </span>
-                    )}
-                  </div>
-
-                  {computedPaths.map((path, idx) => (
-                    <div
-                      key={path.nodes.map((n) => n.id).join("-")}
-                      className={`rounded-xl border p-3 ${
-                        idx === 0 ? "border-brand/30 bg-brand/5" : "border-border/40 bg-muted/5"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                          {idx === 0 ? "Best path" : `Path ${idx + 1}`}
-                        </span>
-                        <Badge
-                          variant="outline"
-                          className={`text-[10px] tabular-nums ${
-                            idx === 0
-                              ? "bg-brand/10 text-brand border-brand/20"
-                              : "text-muted-foreground"
-                          }`}
-                        >
-                          {path.warmth} warmth
-                        </Badge>
-                      </div>
-
-                      <div className="flex items-center gap-1 flex-wrap mb-2.5">
-                        {path.nodes.map((node, ni) => (
-                          <span key={node.id} className="flex items-center gap-1">
-                            {ni > 0 && (
-                              <span className="text-muted-foreground/40 text-[10px]">→</span>
-                            )}
-                            <span
-                              className={`text-[11px] font-medium px-1.5 py-0.5 rounded-md ${
-                                ni === 0
-                                  ? "bg-brand/15 text-brand"
-                                  : ni === path.nodes.length - 1
-                                    ? "bg-violet-500/15 text-violet-400"
-                                    : "bg-blue-500/15 text-blue-400"
-                              }`}
-                            >
-                              {node.name.split(" ")[0]}
-                            </span>
-                          </span>
-                        ))}
-                      </div>
-
-                      <div className="space-y-1.5">
-                        {path.edges.map((e) => (
-                          <div
-                            key={`${e.edge.from_id}-${e.edge.to_id}`}
-                            className="flex items-center gap-2"
-                          >
-                            <div
-                              className="w-2 h-0.5 rounded-full flex-shrink-0"
-                              style={{
-                                backgroundColor: REL_COLORS[e.edge.relationship_type] ?? "#475569",
-                              }}
-                            />
-                            <span className="text-[10px] text-muted-foreground flex-1 truncate capitalize">
-                              {e.edge.relationship_type.replace(/_/g, " ")}
-                            </span>
-                            <div className="w-10 h-1 bg-muted rounded-full overflow-hidden flex-shrink-0">
-                              <div
-                                className="h-full rounded-full"
-                                style={{
-                                  width: `${e.warmth}%`,
-                                  backgroundColor: e.warmth >= 70 ? "#f59e0b" : "#3b82f6",
-                                }}
-                              />
-                            </div>
-                            <span className="text-[10px] tabular-nums text-muted-foreground w-5 text-right">
-                              {e.warmth}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-
-                      {path.weakestLink.warmth < 55 && (
-                        <div className="mt-2 flex items-center gap-1.5 text-[10px] text-brand/80 bg-brand/8 border border-brand/15 rounded-lg px-2 py-1.5">
-                          Weak link: {path.weakestLink.from.name.split(" ")[0]} →{" "}
-                          {path.weakestLink.to.name.split(" ")[0]}
-                        </div>
-                      )}
-
-                      {idx === 0 && (
-                        <Button
-                          size="sm"
-                          className="w-full h-7 text-xs mt-2.5"
-                          onClick={() => {
-                            const targetContact = selectedNode;
-                            if (targetContact) {
-                              router.push(`/approval-queue?contact=${targetContact.id}`);
-                            }
-                          }}
-                        >
-                          Draft intro
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Selected node footer */}
-            {selectedNode && (
-              <div className="p-4 border-t border-border/40 bg-muted/20 flex-shrink-0">
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  <Info className="w-3 h-3 text-muted-foreground" />
-                  <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">
-                    Selected
-                  </span>
-                </div>
-                <p className="font-semibold text-sm">{selectedNode.name}</p>
-                <p className="text-[11px] text-muted-foreground capitalize mt-0.5">
-                  {selectedNode.type?.replace(/_/g, " ")}
-                </p>
+                ))}
               </div>
             )}
           </div>
+
+          {/* Pipeline content */}
+          {view === "coverage" ? (
+            <div className="flex-1 overflow-y-auto">
+              <CoverageMap />
+            </div>
+          ) : (
+            <div ref={graphWrapRef} className="flex flex-1 min-h-0 overflow-hidden">
+              {/* Graph canvas */}
+              <div
+                ref={containerRef}
+                className="flex-1 min-w-0 relative"
+                style={{ background: CANVAS_BG }}
+              >
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    backgroundImage:
+                      "radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px)",
+                    backgroundSize: "30px 30px",
+                  }}
+                />
+
+                <ForceGraph2D
+                  graphData={{ nodes, links }}
+                  width={dimensions.width}
+                  height={dimensions.height}
+                  nodeLabel={(node) => {
+                    const n = node as (typeof nodes)[0];
+                    const typeLabel =
+                      n.type === "user"
+                        ? "You"
+                        : n.type === "team"
+                          ? "Team member"
+                          : n.type === "contact"
+                            ? "Contact"
+                            : "Account";
+                    return `<div style="font-size:12px;padding:4px 8px;background:#1e1e2e;border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:white"><strong>${n.name}</strong><br/><span style="opacity:0.6;font-size:10px">${typeLabel}</span></div>`;
+                  }}
+                  nodeVal="val"
+                  nodeColor="color"
+                  linkColor={linkColor}
+                  linkWidth={linkWidth}
+                  onNodeClick={handleNodeClick}
+                  nodeCanvasObject={nodeCanvasObject}
+                  backgroundColor={CANVAS_BG}
+                  cooldownTicks={180}
+                  d3AlphaDecay={0.015}
+                  d3VelocityDecay={0.3}
+                  linkDirectionalParticles={2}
+                  linkDirectionalParticleWidth={(link: unknown) => {
+                    const l = link as { source: unknown; target: unknown };
+                    const srcId =
+                      typeof l.source === "object" ? (l.source as { id: string }).id : "";
+                    const tgtId =
+                      typeof l.target === "object" ? (l.target as { id: string }).id : "";
+                    return highlightedIds.has(srcId) && highlightedIds.has(tgtId) ? 3 : 0;
+                  }}
+                  linkDirectionalParticleColor={(link: unknown) => {
+                    const l = link as { relType?: string };
+                    return REL_COLORS[l.relType ?? ""] ?? "#f59e0b";
+                  }}
+                />
+
+                {isComputing && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-[#06060e]/60 backdrop-blur-sm z-10">
+                    <div className="flex items-center gap-3 bg-card/90 border border-border/60 rounded-2xl px-6 py-4 shadow-2xl">
+                      <div className="flex gap-1">
+                        {[0, 1, 2].map((i) => (
+                          <div
+                            key={i}
+                            className="w-2 h-2 rounded-full bg-brand loading-dot"
+                            style={{ animationDelay: `${i * 0.2}s` }}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-sm font-semibold">Computing warmest path…</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Legend */}
+                <div className="absolute bottom-5 left-5 flex flex-col gap-2 bg-black/60 backdrop-blur-md border border-white/10 rounded-xl p-3.5">
+                  {[
+                    { color: NODE_COLORS.user, label: "You", sub: "Source" },
+                    { color: NODE_COLORS.team, label: "Team", sub: "Advisors / co-founders" },
+                    { color: NODE_COLORS.contact, label: "Contacts", sub: "Prospects" },
+                    { color: NODE_COLORS.account, label: "Accounts", sub: "Companies" },
+                  ].map((item) => (
+                    <div key={item.label} className="flex items-center gap-2.5">
+                      <div
+                        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                        style={{
+                          backgroundColor: item.color,
+                          boxShadow: `0 0 6px ${item.color}80`,
+                        }}
+                      />
+                      <div>
+                        <span className="text-[11px] text-white/80 font-medium">{item.label}</span>
+                        <span className="text-[10px] text-white/40 ml-1.5">{item.sub}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="absolute top-4 left-4 text-[10px] text-white/35 bg-black/50 backdrop-blur-sm border border-white/8 rounded-lg px-2.5 py-2">
+                  Click a purple contact node · or use the finder →
+                </div>
+              </div>
+
+              {/* Right panel */}
+              <div className="w-[300px] flex-shrink-0 border-l border-border/50 flex flex-col overflow-hidden bg-background">
+                {/* Filters */}
+                <div className="p-4 border-b border-border/40 space-y-3">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <SlidersHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span className="text-xs font-semibold">Filters</span>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[11px] text-muted-foreground">Min edge warmth</span>
+                      <span className="text-[11px] font-semibold tabular-nums">
+                        {warmthThreshold > 0 ? `≥${warmthThreshold}` : "All"}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={90}
+                      step={10}
+                      value={warmthThreshold}
+                      onChange={(e) => setWarmthThreshold(Number(e.target.value))}
+                      className="w-full h-1.5 accent-brand cursor-pointer"
+                    />
+                    <div className="flex justify-between text-[9px] text-muted-foreground/60 mt-0.5">
+                      <span>All</span>
+                      <span>Strong only</span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setCoverageMode((v) => !v)}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg border text-xs transition-colors ${
+                      coverageMode
+                        ? "border-brand/30 bg-brand/10 text-brand"
+                        : "border-border/40 text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <LayoutGrid className="w-3 h-3" />
+                      Coverage mode
+                    </span>
+                    <div
+                      className={`w-7 h-4 rounded-full transition-colors relative ${
+                        coverageMode ? "bg-brand" : "bg-muted"
+                      }`}
+                    >
+                      <div
+                        className={`absolute top-0.5 w-3 h-3 rounded-full bg-[#e5e1e4] shadow transition-transform ${
+                          coverageMode ? "translate-x-3.5" : "translate-x-0.5"
+                        }`}
+                      />
+                    </div>
+                  </button>
+                </div>
+
+                {/* Path finder form */}
+                <div className="p-4 border-b border-border/40">
+                  <div className="flex items-center gap-1.5 mb-3">
+                    <Zap className="w-3.5 h-3.5 text-brand" />
+                    <span className="text-xs font-semibold">Find warm path</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground" />
+                      <Input
+                        placeholder="From (e.g. Adhik)"
+                        value={fromSearch}
+                        onChange={(e) => setFromSearch(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleFindPaths()}
+                        className="pl-8 h-8 text-xs"
+                      />
+                    </div>
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground" />
+                      <Input
+                        placeholder="To (e.g. Priya)"
+                        value={toSearch}
+                        onChange={(e) => setToSearch(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleFindPaths()}
+                        className="pl-8 h-8 text-xs"
+                      />
+                    </div>
+                    <Button
+                      size="sm"
+                      className="w-full h-8 text-xs"
+                      onClick={handleFindPaths}
+                      disabled={!fromSearch || !toSearch || isComputing}
+                    >
+                      {isComputing ? "Computing…" : "Find warmest path"}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Decay alert */}
+                {decayingEdges.length > 0 && (
+                  <div className="mx-4 mt-4 flex-shrink-0">
+                    <div className="rounded-xl border border-brand/20 bg-brand/5 p-3">
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <AlertTriangle className="w-3 h-3 text-brand flex-shrink-0" />
+                        <span className="text-[11px] font-semibold text-brand">
+                          {decayingEdges.length} cooling connection
+                          {decayingEdges.length > 1 ? "s" : ""}
+                        </span>
+                      </div>
+                      <div className="space-y-1">
+                        {decayingEdges.slice(0, 3).map((e) => (
+                          <p key={e.id} className="text-[10px] text-muted-foreground">
+                            {e.from_name.split(" ")[0]} → {e.to_name.split(" ")[0]}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Results */}
+                <div className="flex-1 overflow-y-auto p-4">
+                  {!pathsSearched ? (
+                    <EmptyState
+                      variant="empty"
+                      size="sm"
+                      title="No search yet"
+                      description="Click a contact node or use the finder above."
+                    />
+                  ) : computedPaths.length === 0 ? (
+                    <EmptyState
+                      variant="no-path"
+                      size="sm"
+                      title="No warm path found"
+                      description="No shared connection within 3 hops. Expand your network or try cold outreach."
+                    />
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <GitFork className="w-3.5 h-3.5 text-brand" />
+                        <span className="text-xs font-semibold">
+                          {computedPaths.length} path{computedPaths.length > 1 ? "s" : ""} found
+                        </span>
+                        {selectedNode && (
+                          <span className="text-[11px] text-muted-foreground">
+                            → {selectedNode.name.split(" ")[0]}
+                          </span>
+                        )}
+                      </div>
+
+                      {computedPaths.map((path, idx) => (
+                        <div
+                          key={path.nodes.map((n) => n.id).join("-")}
+                          className={`rounded-xl border p-3 ${
+                            idx === 0 ? "border-brand/30 bg-brand/5" : "border-border/40 bg-muted/5"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                              {idx === 0 ? "Best path" : `Path ${idx + 1}`}
+                            </span>
+                            <Badge
+                              variant="outline"
+                              className={`text-[10px] tabular-nums ${
+                                idx === 0
+                                  ? "bg-brand/10 text-brand border-brand/20"
+                                  : "text-muted-foreground"
+                              }`}
+                            >
+                              {path.warmth} warmth
+                            </Badge>
+                          </div>
+
+                          <div className="flex items-center gap-1 flex-wrap mb-2.5">
+                            {path.nodes.map((node, ni) => (
+                              <span key={node.id} className="flex items-center gap-1">
+                                {ni > 0 && (
+                                  <span className="text-muted-foreground/40 text-[10px]">→</span>
+                                )}
+                                <span
+                                  className={`text-[11px] font-medium px-1.5 py-0.5 rounded-md ${
+                                    ni === 0
+                                      ? "bg-brand/15 text-brand"
+                                      : ni === path.nodes.length - 1
+                                        ? "bg-violet-500/15 text-violet-400"
+                                        : "bg-blue-500/15 text-blue-400"
+                                  }`}
+                                >
+                                  {node.name.split(" ")[0]}
+                                </span>
+                              </span>
+                            ))}
+                          </div>
+
+                          <div className="space-y-1.5">
+                            {path.edges.map((e) => (
+                              <div
+                                key={`${e.edge.from_id}-${e.edge.to_id}`}
+                                className="flex items-center gap-2"
+                              >
+                                <div
+                                  className="w-2 h-0.5 rounded-full flex-shrink-0"
+                                  style={{
+                                    backgroundColor:
+                                      REL_COLORS[e.edge.relationship_type] ?? "#475569",
+                                  }}
+                                />
+                                <span className="text-[10px] text-muted-foreground flex-1 truncate capitalize">
+                                  {e.edge.relationship_type.replace(/_/g, " ")}
+                                </span>
+                                <div className="w-10 h-1 bg-muted rounded-full overflow-hidden flex-shrink-0">
+                                  <div
+                                    className="h-full rounded-full"
+                                    style={{
+                                      width: `${e.warmth}%`,
+                                      backgroundColor: e.warmth >= 70 ? "#f59e0b" : "#3b82f6",
+                                    }}
+                                  />
+                                </div>
+                                <span className="text-[10px] tabular-nums text-muted-foreground w-5 text-right">
+                                  {e.warmth}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+
+                          {path.weakestLink.warmth < 55 && (
+                            <div className="mt-2 flex items-center gap-1.5 text-[10px] text-brand/80 bg-brand/8 border border-brand/15 rounded-lg px-2 py-1.5">
+                              Weak link: {path.weakestLink.from.name.split(" ")[0]} →{" "}
+                              {path.weakestLink.to.name.split(" ")[0]}
+                            </div>
+                          )}
+
+                          {idx === 0 && (
+                            <Button
+                              size="sm"
+                              className="w-full h-7 text-xs mt-2.5"
+                              onClick={() => {
+                                const targetContact = selectedNode;
+                                if (targetContact) {
+                                  router.push(`/approval-queue?contact=${targetContact.id}`);
+                                }
+                              }}
+                            >
+                              Draft intro
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Selected node footer */}
+                {selectedNode && (
+                  <div className="p-4 border-t border-border/40 bg-muted/20 flex-shrink-0">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <Info className="w-3 h-3 text-muted-foreground" />
+                      <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">
+                        Selected
+                      </span>
+                    </div>
+                    <p className="font-semibold text-sm">{selectedNode.name}</p>
+                    <p className="text-[11px] text-muted-foreground capitalize mt-0.5">
+                      {selectedNode.type?.replace(/_/g, " ")}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
