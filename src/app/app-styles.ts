@@ -25,7 +25,7 @@ export const COLORS = {
 
   // Accent Colors
   accent: {
-    indigo: "#8083ff", // primary/indigo container
+    blue: "#2563eb", // primary/blue
     emerald: "#4edea3", // secondary
     emeraldContainer: "#00a572", // secondary-container
   },
@@ -45,7 +45,7 @@ export const STYLE_CLASSES = {
     isDark ? `bg-[#201f22] border-[#464554]` : `bg-[#18181b] border-[#27272a]`,
 
   // Buttons
-  buttonPrimary: `bg-[#8083ff] text-white hover:bg-[#c0c1ff] hover:text-[#1000a9]`,
+  buttonPrimary: `bg-[#2563eb] text-white hover:bg-[#1d4ed8]`,
   buttonSecondary: `border border-[#464554] text-[#e5e1e4] hover:bg-[#2a2a2c]`,
   buttonGhost: `text-[#c7c4d7] hover:text-[#e5e1e4]`,
 

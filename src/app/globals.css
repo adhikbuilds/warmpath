@@ -120,15 +120,15 @@
   --input: #1c1b1d;
   --ring: #c0c1ff;
 
-  /* Brand = vibrant indigo (used for highlights) */
-  --brand: #8083ff;
+  /* Brand = blue */
+  --brand: #2563eb;
   --brand-foreground: #ffffff;
 
   /* Charts */
-  --chart-1: #c0c1ff;
+  --chart-1: #93c5fd;
   --chart-2: #4edea3;
   --chart-3: #ffb783;
-  --chart-4: #8083ff;
+  --chart-4: #2563eb;
   --chart-5: #00a572;
 
   /* Sidebar */
@@ -162,11 +162,11 @@
   --border: #464554;
   --input: #1c1b1d;
   --ring: #c0c1ff;
-  --brand: #8083ff;
+  --brand: #2563eb;
   --brand-foreground: #ffffff;
   --sidebar: #1c1b1d;
   --sidebar-foreground: #e5e1e4;
-  --sidebar-primary: #c0c1ff;
+  --sidebar-primary: #60a5fa;
   --sidebar-primary-foreground: #1000a9;
   --sidebar-accent: #2a2a2c;
   --sidebar-accent-foreground: #e5e1e4;

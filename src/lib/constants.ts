@@ -43,9 +43,9 @@ export const CHANNEL_CONFIG: Record<
   },
   meta_ads: {
     label: "Meta Ads",
-    color: "text-violet-500",
-    bg: "bg-violet-500/10",
-    border: "border-violet-500/20",
+    color: "text-blue-400",
+    bg: "bg-blue-500/10",
+    border: "border-blue-500/20",
     icon_color: "#0866FF",
   },
   warm_intro: {
@@ -110,8 +110,8 @@ export const CAMPAIGN_PLAY_TYPES = [
     impact: "medium" as const,
     risk: "low" as const,
     icon: "📣",
-    color: "text-violet-500",
-    bg: "bg-violet-500/10",
+    color: "text-blue-400",
+    bg: "bg-blue-500/10",
   },
   {
     id: "signal_based_outbound",

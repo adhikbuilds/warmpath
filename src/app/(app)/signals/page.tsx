@@ -12,7 +12,7 @@ const T = {
   bg: "#09090b",
   card: "#18181b",
   border: "#27272a",
-  primary: "#4f46e5",
+  primary: "#2563eb",
   emerald: "#10b981",
   muted: "#a1a1aa",
   veryMuted: "#71717a",
