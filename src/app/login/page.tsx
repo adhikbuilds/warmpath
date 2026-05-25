@@ -158,7 +158,7 @@ export default function LoginPage() {
           <button
             type="button"
             className="w-full h-11 rounded text-white text-[14px] font-semibold flex items-center justify-center gap-2 transition-colors mb-6 disabled:opacity-60"
-            style={{ backgroundColor: "#4f46e5" }}
+            style={{ backgroundColor: "#2563eb" }}
             onClick={handleDemo}
             disabled={isLoading}
           >
@@ -292,7 +292,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 className="w-full h-10 rounded text-white text-[14px] font-medium flex items-center justify-center gap-2 disabled:opacity-60 transition-colors"
-                style={{ backgroundColor: "#4f46e5" }}
+                style={{ backgroundColor: "#2563eb" }}
                 disabled={isLoading}
               >
                 {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}

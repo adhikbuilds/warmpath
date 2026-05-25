@@ -67,7 +67,7 @@ export function signalTypeLabel(type: string): string {
 
 export function signalTypeColor(type: string): string {
   const colors: Record<string, string> = {
-    job_posting: "bg-violet-500/10 text-violet-500 border-violet-500/20",
+    job_posting: "bg-blue-500/10 text-blue-400 border-blue-500/20",
     funding: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
     website_visit: "bg-blue-500/10 text-blue-500 border-blue-500/20",
     pricing_page_visit: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20",

@@ -47,7 +47,7 @@ function NavItem({ href, icon: Icon, label, badge, collapsed }: NavItemProps) {
         collapsed ? "justify-center px-2" : "",
         isActive ? "text-white" : "text-[#a1a1aa] hover:text-white",
       )}
-      style={isActive ? { backgroundColor: "#4f46e5" } : undefined}
+      style={isActive ? { backgroundColor: "#2563eb" } : undefined}
     >
       <Icon className="w-[18px] h-[18px] shrink-0" />
       {!collapsed && <span className="flex-1 truncate">{label}</span>}
@@ -66,7 +66,7 @@ function NavItem({ href, icon: Icon, label, badge, collapsed }: NavItemProps) {
       {collapsed && badge && badge > 0 ? (
         <span
           className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full"
-          style={{ backgroundColor: "#4f46e5" }}
+          style={{ backgroundColor: "#2563eb" }}
         />
       ) : null}
     </Link>

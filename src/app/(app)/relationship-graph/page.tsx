@@ -773,7 +773,7 @@ function RelationshipsSpreadsheet() {
                       <div className="flex items-center gap-2">
                         <div
                           className="w-5 h-5 rounded flex items-center justify-center text-[9px] font-bold flex-shrink-0"
-                          style={{ background: "#4f46e5", color: "#fff" }}
+                          style={{ background: "#2563eb", color: "#fff" }}
                         >
                           {accountFirst}
                         </div>
@@ -1206,7 +1206,7 @@ export default function RelationshipGraphPage() {
   const TAB_STYLES = (id: TabId): React.CSSProperties =>
     activeTab === id
       ? {
-          color: "#4f46e5",
+          color: "#2563eb",
           height: "100%",
           display: "flex",
           alignItems: "center",
@@ -1214,7 +1214,7 @@ export default function RelationshipGraphPage() {
           cursor: "pointer",
           background: "none",
           border: "none",
-          borderBottom: "2px solid #4f46e5",
+          borderBottom: "2px solid #2563eb",
           paddingBottom: 0,
           fontWeight: 500,
         }
@@ -1295,7 +1295,7 @@ export default function RelationshipGraphPage() {
           <button
             type="button"
             className="h-8 px-3 rounded flex items-center gap-1.5 text-xs font-medium transition-opacity hover:opacity-90"
-            style={{ background: "#4f46e5", color: "#fff" }}
+            style={{ background: "#2563eb", color: "#fff" }}
             onClick={() => toast.info("Add contact coming soon")}
           >
             <Plus className="w-3.5 h-3.5" />

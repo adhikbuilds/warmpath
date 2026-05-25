@@ -1073,7 +1073,7 @@ Thanks,
                   <div className="flex items-center gap-2">
                     <Kanban className="w-4 h-4 text-brand" />
                     <h2 className="text-base font-semibold">Warm Pipeline Board</h2>
-                    <span className="rounded-full bg-violet-600 px-2.5 py-1 text-[10px] font-semibold text-white">
+                    <span className="rounded-full bg-blue-600 px-2.5 py-1 text-[10px] font-semibold text-white">
                       {filteredPipelineItems.length} active cards
                     </span>
                   </div>
@@ -1135,7 +1135,7 @@ Thanks,
               </div>
             </div>
 
-            <div className="overflow-x-auto bg-[#fbfbfc] pb-5 pt-4 animate-fade-up delay-2">
+            <div className="overflow-x-auto bg-[#0d0d10] pb-5 pt-4 animate-fade-up delay-2">
               <div className="flex min-w-max gap-3 px-4">
                 {STAGE_ORDER.map((stage) => {
                   const stageItems = filteredPipelineItems.filter((p) => p.stage === stage);
@@ -1513,7 +1513,7 @@ Thanks,
                   <p className="text-xs font-medium text-muted-foreground mb-1.5 uppercase tracking-wider">
                     Urgency signal
                   </p>
-                  <span className="text-xs px-2 py-1 rounded bg-violet-500/10 text-violet-600 border border-violet-500/20">
+                  <span className="text-xs px-2 py-1 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
                     {selectedCard.urgencySignal}
                   </span>
                 </div>

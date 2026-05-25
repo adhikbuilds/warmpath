@@ -450,7 +450,7 @@ export default function ApprovalQueuePage() {
                       className={cn(
                         "w-full text-left p-4 border-b cursor-pointer transition-colors border-l-2",
                         isSelected
-                          ? "border-l-[#4f46e5]"
+                          ? "border-l-[#2563eb]"
                           : "border-l-transparent hover:border-l-[#71717a]",
                       )}
                       style={{
@@ -590,9 +590,9 @@ export default function ApprovalQueuePage() {
                   <a
                     href={selectedMessage.contact?.linkedin_url ?? "#"}
                     className="text-xs flex items-center gap-1 transition-colors"
-                    style={{ color: "#4f46e5" }}
+                    style={{ color: "#2563eb" }}
                     onMouseEnter={(e) => (e.currentTarget.style.color = "#818cf8")}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "#4f46e5")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "#2563eb")}
                     target="_blank"
                     rel="noreferrer"
                   >
@@ -658,7 +658,7 @@ export default function ApprovalQueuePage() {
                   className="text-sm font-semibold flex items-center gap-2"
                   style={{ color: "#e5e5e5" }}
                 >
-                  <Sparkles className="w-4 h-4" style={{ color: "#4f46e5" }} />
+                  <Sparkles className="w-4 h-4" style={{ color: "#2563eb" }} />
                   AI Draft Generation
                 </h3>
                 <span className="text-xs" style={{ color: "#a1a1aa" }}>
@@ -729,9 +729,9 @@ export default function ApprovalQueuePage() {
                     type="button"
                     onClick={handleRegenerate}
                     className="text-xs flex items-center gap-1 transition-colors"
-                    style={{ color: "#4f46e5" }}
+                    style={{ color: "#2563eb" }}
                     onMouseEnter={(e) => (e.currentTarget.style.color = "#818cf8")}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "#4f46e5")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "#2563eb")}
                     disabled={generatingIds?.has(selectedMessage.id)}
                   >
                     <RefreshCw

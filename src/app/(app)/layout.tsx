@@ -90,7 +90,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       >
         <div
           className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin"
-          style={{ borderColor: "#4f46e5", borderTopColor: "transparent" }}
+          style={{ borderColor: "#2563eb", borderTopColor: "transparent" }}
         />
       </div>
     );
@@ -125,9 +125,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <span
                   className="text-[11px] font-semibold px-2 py-1 rounded-md transition-colors"
                   style={{
-                    backgroundColor: "rgba(79,70,229,0.15)",
-                    color: "#818cf8",
-                    border: "1px solid rgba(79,70,229,0.2)",
+                    backgroundColor: "rgba(37,99,235,0.15)",
+                    color: "#60a5fa",
+                    border: "1px solid rgba(37,99,235,0.2)",
                   }}
                 >
                   {pendingCount} pending
