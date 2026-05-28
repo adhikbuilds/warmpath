@@ -183,7 +183,7 @@ export const DEMO_CAMPAIGN_ASSETS: CampaignAsset[] = [
 
 Sarah mentioned you're close to Acme's outbound hiring push I saw you're adding 3 SDRs this quarter.
 
-Most teams at your stage try to solve it with more headcount. We took a different angle: WarmPath routes every outreach through your team's warmest relationship path, so your SDRs are closing intro-ed conversations, not cold calls.
+Most teams at your stage try to solve it with more headcount. We took a different angle: WarmBlue routes every outreach through your team's warmest relationship path, so your SDRs are closing intro-ed conversations, not cold calls.
 
 SeriesAI went from 7% to 38% reply rate in 6 weeks. Happy to show you the graph of exactly how we'd map Acme's network.
 
@@ -207,10 +207,10 @@ Adhik`,
     type: "call_script",
     title: "Phone script Acme AI (Priya Sharma)",
     content: `OPENER:
-"Hey Priya, this is Adhik from WarmPath. Quick reason for the call we noticed Acme is hiring SDRs and Sarah Chen mentioned you're close to the outbound planning. I had a short idea on using warm-path selling instead of adding more cold volume. Got 2 minutes?"
+"Hey Priya, this is Adhik from WarmBlue. Quick reason for the call we noticed Acme is hiring SDRs and Sarah Chen mentioned you're close to the outbound planning. I had a short idea on using warm-path selling instead of adding more cold volume. Got 2 minutes?"
 
 IF YES:
-"Great. So most teams at your stage hire more SDRs and blast cold email and reply rates drop to 3-5%. We flip that. WarmPath maps your team's actual relationships and routes every message through the warmest path. Think of it like LinkedIn connections, but automated and grounded in your email history.
+"Great. So most teams at your stage hire more SDRs and blast cold email and reply rates drop to 3-5%. We flip that. WarmBlue maps your team's actual relationships and routes every message through the warmest path. Think of it like LinkedIn connections, but automated and grounded in your email history.
 
 SeriesAI went from 7% to 38% reply rate in their first month. For Acme specifically, I can see 4 warm paths to your target accounts already.
 
@@ -223,11 +223,11 @@ DISCOVERY QUESTIONS:
 - What's the biggest friction in your current SDR motion?
 
 OBJECTION: "We already use Apollo/Outreach"
-"Totally WarmPath isn't replacing your sequence tool. It's the warm-path layer on top. Apollo tells you who to target; WarmPath tells you who on your team already knows them and drafts the intro request. Those are different problems."
+"Totally WarmBlue isn't replacing your sequence tool. It's the warm-path layer on top. Apollo tells you who to target; WarmBlue tells you who on your team already knows them and drafts the intro request. Those are different problems."
 
 VOICEMAIL:
-"Hey Priya, Adhik from WarmPath. Quick one saw Acme is hiring SDRs and we just mapped 4 warm paths into your target accounts that you probably don't know exist. Would love to show you a 5-minute demo. I'll send you a note feel free to grab time on my calendar. Talk soon."`,
-    call_opener: "Hey Priya, this is Adhik from WarmPath. Quick reason for the call...",
+"Hey Priya, Adhik from WarmBlue. Quick one saw Acme is hiring SDRs and we just mapped 4 warm paths into your target accounts that you probably don't know exist. Would love to show you a 5-minute demo. I'll send you a note feel free to grab time on my calendar. Talk soon."`,
+    call_opener: "Hey Priya, this is Adhik from WarmBlue. Quick reason for the call...",
     discovery_questions: [
       "How many outbound touches does your team do per week right now?",
       "What's your current reply rate on cold outbound?",
@@ -235,13 +235,13 @@ VOICEMAIL:
     ],
     objection_responses: {
       "We already use Apollo":
-        "WarmPath isn't replacing your sequence tool it's the warm-path layer on top.",
+        "WarmBlue isn't replacing your sequence tool it's the warm-path layer on top.",
       "Not interested":
         "Totally fair. Can I ask what your current reply rate looks like? If it's above 15%, you don't need us.",
       "Send me an email":
         "Sure what's the best address? And is there a better time for a quick call this week?",
     },
-    voicemail_script: "Hey Priya, Adhik from WarmPath. Quick one saw Acme is hiring SDRs...",
+    voicemail_script: "Hey Priya, Adhik from WarmBlue. Quick one saw Acme is hiring SDRs...",
     status: "pending_approval",
     risk_score: 5,
     confidence_score: 0.87,
@@ -296,9 +296,9 @@ VOICEMAIL:
     title: "Meta retargeting ad Fintech CFOs",
     headline: "Still relying on cold outbound?",
     content:
-      "WarmPath helps GTM teams find warm paths into high-intent accounts and launch human-approved outreach across email, phone, WhatsApp, and ads. 5× higher reply rates.",
+      "WarmBlue helps GTM teams find warm paths into high-intent accounts and launch human-approved outreach across email, phone, WhatsApp, and ads. 5× higher reply rates.",
     primary_text:
-      "Most B2B teams send 200 cold emails to book 1 meeting. WarmPath teams send 40 warm-path messages and book 8. The difference is relationship routing.",
+      "Most B2B teams send 200 cold emails to book 1 meeting. WarmBlue teams send 40 warm-path messages and book 8. The difference is relationship routing.",
     status: "pending_approval",
     risk_score: 2,
     confidence_score: 0.94,
@@ -324,7 +324,7 @@ VOICEMAIL:
     type: "telegram_dm",
     title: "Telegram DM Dev-focused outreach",
     content:
-      "Hey! Noticed you're building in the B2B SaaS space. We just launched WarmPath it maps your team's actual network and routes outbound through warm intros automatically. Would love your honest feedback as an early user. Happy to give you free access for 3 months.",
+      "Hey! Noticed you're building in the B2B SaaS space. We just launched WarmBlue it maps your team's actual network and routes outbound through warm intros automatically. Would love your honest feedback as an early user. Happy to give you free access for 3 months.",
     status: "draft",
     risk_score: 4,
     confidence_score: 0.82,
@@ -339,7 +339,7 @@ VOICEMAIL:
     type: "voicemail",
     title: "Voicemail drop Aarav Singh",
     content:
-      "Hey Aarav, Adhik from WarmPath. Saw TechFlow just closed Series A congrats! Quick thought on warm outbound for your new GTM push. I'll shoot you a note but feel free to grab 15 minutes on my calendar link in the email. Cheers.",
+      "Hey Aarav, Adhik from WarmBlue. Saw TechFlow just closed Series A congrats! Quick thought on warm outbound for your new GTM push. I'll shoot you a note but feel free to grab 15 minutes on my calendar link in the email. Cheers.",
     status: "approved",
     risk_score: 2,
     confidence_score: 0.88,
@@ -422,7 +422,7 @@ export const DEMO_TELEGRAM_MESSAGES: TelegramMessage[] = [
     id: "tg-1",
     campaign_id: "camp-3",
     chat_type: "direct",
-    body: "Hey! Noticed you're building in the B2B SaaS space. We just launched WarmPath maps your team's network and routes outbound through warm intros automatically. Would love your honest feedback. Happy to give free access for 3 months.",
+    body: "Hey! Noticed you're building in the B2B SaaS space. We just launched WarmBlue maps your team's network and routes outbound through warm intros automatically. Would love your honest feedback. Happy to give free access for 3 months.",
     status: "draft",
     compliance_status: "pending",
   },
@@ -441,7 +441,7 @@ export const DEMO_META_CAMPAIGNS: MetaAdCampaign[] = [
     budget_daily: 50,
     headline: "Still relying on cold outbound?",
     primary_text:
-      "Most B2B teams send 200 cold emails to book 1 meeting. WarmPath teams send 40 warm-path messages and book 8. The difference is relationship routing automated.",
+      "Most B2B teams send 200 cold emails to book 1 meeting. WarmBlue teams send 40 warm-path messages and book 8. The difference is relationship routing automated.",
     description: "Warm-path GTM for high-intent fintech accounts.",
     creative_brief:
       "Show a split: cold email with 3% reply rate vs. warm path with 38% reply rate. Clean, data-forward visual.",
@@ -466,7 +466,7 @@ export const DEMO_META_CAMPAIGNS: MetaAdCampaign[] = [
     budget_daily: 75,
     headline: "Book 5× more meetings same team",
     primary_text:
-      "WarmPath finds who at your company already knows your target buyer then builds the warm intro campaign automatically. No new headcount.",
+      "WarmBlue finds who at your company already knows your target buyer then builds the warm intro campaign automatically. No new headcount.",
     cta: "Start Free Trial",
     status: "launched",
     simulated_results: {

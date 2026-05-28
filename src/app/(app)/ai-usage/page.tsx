@@ -278,7 +278,7 @@ export default function AIUsagePage() {
 
       <div className="text-center py-3">
         <p className="text-xs text-muted-foreground">
-          WarmPath defaults to mock mode full functionality, zero cost. Switch to remote only when
+          WarmBlue defaults to mock mode full functionality, zero cost. Switch to remote only when
           you're ready to go live.
         </p>
       </div>

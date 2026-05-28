@@ -2,6 +2,7 @@
 
 import {
   AlertTriangle,
+  Building2,
   CalendarClock,
   CheckCircle2,
   ChevronRight,
@@ -10,6 +11,8 @@ import {
   ListChecks,
   MailCheck,
   PhoneCall,
+  Radar,
+  UserCheck,
   Users,
   X,
 } from "lucide-react";
@@ -67,10 +70,24 @@ function getDueLabel(dueDateStr: string): { label: string; overdue: boolean; tod
 }
 
 function TaskCard({ task }: { task: FollowUpTask }) {
-  const { completeFollowUpTask, dismissFollowUpTask } = useSalesStore();
+  const {
+    completeFollowUpTask,
+    dismissFollowUpTask,
+    snoozeFollowUpTask,
+    reassignFollowUpTask,
+    teamMembers,
+    accounts,
+  } = useSalesStore();
   const Icon = TASK_ICONS[task.type];
   const color = TASK_COLORS[task.type];
   const due = getDueLabel(task.due_date);
+  const [menu, setMenu] = useState<null | "snooze" | "reassign">(null);
+
+  const linkedAccount = task.account_id
+    ? accounts.find((a) => a.id === task.account_id)
+    : task.account_name
+      ? accounts.find((a) => a.name === task.account_name)
+      : undefined;
 
   return (
     <Card
@@ -91,10 +108,29 @@ function TaskCard({ task }: { task: FollowUpTask }) {
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                  onClick={() => setMenu(menu === "snooze" ? null : "snooze")}
+                  title="Snooze"
+                >
+                  <Clock className="w-3.5 h-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                  onClick={() => setMenu(menu === "reassign" ? null : "reassign")}
+                  title="Reassign"
+                >
+                  <UserCheck className="w-3.5 h-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 text-muted-foreground hover:text-foreground"
                   onClick={() => {
                     completeFollowUpTask(task.id);
                     toast.success("Task completed");
                   }}
+                  title="Mark complete"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
                 </Button>
@@ -106,12 +142,69 @@ function TaskCard({ task }: { task: FollowUpTask }) {
                     dismissFollowUpTask(task.id);
                     toast.info("Task dismissed");
                   }}
+                  title="Dismiss"
                 >
                   <X className="w-3.5 h-3.5" />
                 </Button>
               </div>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed mb-2">{task.description}</p>
+
+            {/* Snooze panel */}
+            {menu === "snooze" && (
+              <div className="flex items-center gap-1.5 mb-2 p-2 rounded-md border border-border/60 bg-muted/30">
+                <span className="text-[11px] text-muted-foreground mr-1">Snooze for</span>
+                {[
+                  { label: "1h", h: 1 },
+                  { label: "4h", h: 4 },
+                  { label: "Tomorrow", h: 24 },
+                  { label: "3 days", h: 72 },
+                  { label: "1 week", h: 168 },
+                ].map((opt) => (
+                  <Button
+                    key={opt.label}
+                    size="sm"
+                    variant="outline"
+                    className="h-6 text-[10px] px-2"
+                    onClick={() => {
+                      snoozeFollowUpTask(task.id, opt.h);
+                      setMenu(null);
+                      toast.success(`Snoozed for ${opt.label.toLowerCase()}`);
+                    }}
+                  >
+                    {opt.label}
+                  </Button>
+                ))}
+              </div>
+            )}
+
+            {/* Reassign panel */}
+            {menu === "reassign" && (
+              <div className="flex items-center gap-1.5 flex-wrap mb-2 p-2 rounded-md border border-border/60 bg-muted/30">
+                <span className="text-[11px] text-muted-foreground mr-1">Reassign to</span>
+                {teamMembers.slice(0, 5).map((tm) => (
+                  <Button
+                    key={tm.id}
+                    size="sm"
+                    variant="outline"
+                    className="h-6 text-[10px] px-2"
+                    onClick={() => {
+                      reassignFollowUpTask(task.id, tm.name);
+                      setMenu(null);
+                      toast.success(`Reassigned to ${tm.name}`);
+                    }}
+                  >
+                    {tm.name}
+                  </Button>
+                ))}
+                {teamMembers.length === 0 && (
+                  <span className="text-[11px] text-muted-foreground italic">
+                    No team members configured
+                  </span>
+                )}
+              </div>
+            )}
+
             <div className="flex items-center gap-2 flex-wrap">
               <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${color}`}>
                 {TASK_LABELS[task.type]}
@@ -120,6 +213,12 @@ function TaskCard({ task }: { task: FollowUpTask }) {
                 <span className="text-[11px] text-muted-foreground">
                   {task.contact_name}
                   {task.account_name ? ` · ${task.account_name}` : ""}
+                </span>
+              )}
+              {task.assignee_name && (
+                <span className="text-[11px] text-brand flex items-center gap-0.5">
+                  <UserCheck className="w-2.5 h-2.5" />
+                  {task.assignee_name}
                 </span>
               )}
               <div className="ml-auto flex items-center gap-1">
@@ -137,15 +236,37 @@ function TaskCard({ task }: { task: FollowUpTask }) {
                 </span>
               </div>
             </div>
-            {task.warm_path_id && (
-              <div className="mt-2">
-                <Link
-                  href="/warm-leads?view=pipeline"
-                  className="inline-flex items-center gap-1 text-[11px] text-brand hover:underline"
-                >
-                  <ChevronRight className="w-3 h-3" />
-                  View warm path
-                </Link>
+
+            {/* Originating links */}
+            {(task.warm_path_id || task.signal_id || linkedAccount) && (
+              <div className="mt-2 flex items-center gap-3 flex-wrap">
+                {task.warm_path_id && (
+                  <Link
+                    href="/warm-leads?view=pipeline"
+                    className="inline-flex items-center gap-1 text-[11px] text-brand hover:underline"
+                  >
+                    <GitFork className="w-3 h-3" />
+                    Warm path
+                  </Link>
+                )}
+                {task.signal_id && (
+                  <Link
+                    href={`/signals?focus=${task.signal_id}`}
+                    className="inline-flex items-center gap-1 text-[11px] text-blue-500 hover:underline"
+                  >
+                    <Radar className="w-3 h-3" />
+                    Originating signal
+                  </Link>
+                )}
+                {linkedAccount && (
+                  <Link
+                    href={`/accounts/${linkedAccount.id}`}
+                    className="inline-flex items-center gap-1 text-[11px] text-emerald-500 hover:underline"
+                  >
+                    <Building2 className="w-3 h-3" />
+                    {linkedAccount.name}
+                  </Link>
+                )}
               </div>
             )}
           </div>

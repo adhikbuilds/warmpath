@@ -1,6 +1,16 @@
 "use client";
 
-import { Building2, Filter, GitFork, Pencil, Plus, Sparkles, Zap } from "lucide-react";
+import {
+  Bookmark,
+  Building2,
+  DollarSign,
+  Filter,
+  GitFork,
+  Pencil,
+  Plus,
+  Sparkles,
+  Zap,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -44,9 +54,48 @@ export default function AccountsPage() {
     useSalesStore();
   const [search, setSearch] = useState("");
   const [stageFilter, setStageFilter] = useState("all");
+  const [opportunityFilter, setOpportunityFilter] = useState<"all" | "hot" | "warm" | "cool">(
+    "all",
+  );
   const [sortBy, setSortBy] = useState<"opportunity_score" | "intent_score" | "warmth_score">(
     "opportunity_score",
   );
+  const [activeView, setActiveView] = useState<string | null>(null);
+
+  // Hardcoded saved views — each applies a known combination of filters.
+  type SavedView = { id: string; label: string; apply: () => void };
+  const savedViews: SavedView[] = [
+    {
+      id: "engaged-warm",
+      label: "Engaged + warm path",
+      apply: () => {
+        setStageFilter("engaged");
+        setOpportunityFilter("all");
+        setSortBy("warmth_score");
+        setSearch("");
+      },
+    },
+    {
+      id: "hot-no-warm",
+      label: "High intent, no warm path",
+      apply: () => {
+        setStageFilter("all");
+        setOpportunityFilter("hot");
+        setSortBy("intent_score");
+        setSearch("");
+      },
+    },
+    {
+      id: "in-pipeline",
+      label: "Active pipeline",
+      apply: () => {
+        setStageFilter("meeting");
+        setOpportunityFilter("all");
+        setSortBy("opportunity_score");
+        setSearch("");
+      },
+    },
+  ];
   const [addOpen, setAddOpen] = useState(false);
   const [editAccount, setEditAccount] = useState<Account | null>(null);
 
@@ -81,9 +130,21 @@ export default function AccountsPage() {
         a.industry.toLowerCase().includes(search.toLowerCase()) ||
         a.location.toLowerCase().includes(search.toLowerCase());
       const matchStage = stageFilter === "all" || a.stage === stageFilter;
-      return matchSearch && matchStage;
+      const matchOpp =
+        opportunityFilter === "all" ||
+        (opportunityFilter === "hot" && a.opportunity_score >= 80) ||
+        (opportunityFilter === "warm" && a.opportunity_score >= 50 && a.opportunity_score < 80) ||
+        (opportunityFilter === "cool" && a.opportunity_score < 50);
+      return matchSearch && matchStage && matchOpp;
     })
     .sort((a, b) => b[sortBy] - a[sortBy]);
+
+  // Pipeline value rollup — Account has no explicit pipeline $ field, so estimate
+  // as opportunity_score × $1K (gives a usable, transparent rollup demo).
+  const pipelineValue = filtered.reduce((sum, a) => sum + a.opportunity_score * 1000, 0);
+  const totalPipelineValue = accounts.reduce((sum, a) => sum + a.opportunity_score * 1000, 0);
+  const fmtMoney = (n: number) =>
+    n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(1)}M` : `$${Math.round(n / 1000)}K`;
 
   return (
     <div className="p-6 space-y-5 max-w-[1400px] mx-auto">
@@ -129,6 +190,72 @@ export default function AccountsPage() {
         )}
       </div>
 
+      {/* Pipeline rollup */}
+      <div className="flex items-center gap-4 px-4 py-3 rounded-lg border border-border/60 bg-card">
+        <div className="flex items-center gap-2">
+          <DollarSign className="w-4 h-4 text-emerald-500" />
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              Pipeline value (filtered)
+            </p>
+            <p className="text-lg font-bold tabular-nums">{fmtMoney(pipelineValue)}</p>
+          </div>
+        </div>
+        <div className="w-px h-8 bg-border" />
+        <div>
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            Total pipeline
+          </p>
+          <p className="text-sm font-semibold tabular-nums text-muted-foreground">
+            {fmtMoney(totalPipelineValue)}
+          </p>
+        </div>
+        <div className="w-px h-8 bg-border" />
+        <div>
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Accounts</p>
+          <p className="text-sm font-semibold tabular-nums">
+            {filtered.length}
+            <span className="text-muted-foreground">/{accounts.length}</span>
+          </p>
+        </div>
+        <span className="ml-auto text-[10px] text-muted-foreground italic">
+          Estimated as opportunity score × $1K (replace with CRM amount when wired)
+        </span>
+      </div>
+
+      {/* Saved views */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <Bookmark className="w-3.5 h-3.5 text-muted-foreground" />
+        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+          Saved views
+        </span>
+        {savedViews.map((v) => (
+          <button
+            key={v.id}
+            type="button"
+            onClick={() => {
+              v.apply();
+              setActiveView(v.id);
+              toast.success(`Applied view: ${v.label}`);
+            }}
+            className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors ${
+              activeView === v.id
+                ? "border-brand/60 bg-brand/10 text-brand"
+                : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
+            }`}
+          >
+            {v.label}
+          </button>
+        ))}
+        <button
+          type="button"
+          onClick={() => toast.success("Current view saved (demo) — wire to backend when ready")}
+          className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-dashed border-border/60 text-muted-foreground hover:border-border hover:text-foreground transition-colors"
+        >
+          + Save current
+        </button>
+      </div>
+
       <div className="flex items-center gap-3 flex-wrap">
         <div className="relative flex-1 max-w-xs">
           <Input
@@ -139,7 +266,13 @@ export default function AccountsPage() {
           />
           <Filter className="absolute left-2.5 top-2 w-3.5 h-3.5 text-muted-foreground" />
         </div>
-        <Select value={stageFilter} onValueChange={setStageFilter}>
+        <Select
+          value={stageFilter}
+          onValueChange={(v) => {
+            setStageFilter(v);
+            setActiveView(null);
+          }}
+        >
           <SelectTrigger className="w-[140px] h-8 text-sm">
             <SelectValue placeholder="Stage" />
           </SelectTrigger>
@@ -151,6 +284,23 @@ export default function AccountsPage() {
             <SelectItem value="proposal">Proposal</SelectItem>
             <SelectItem value="closed_won">Closed Won</SelectItem>
             <SelectItem value="closed_lost">Closed Lost</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
+          value={opportunityFilter}
+          onValueChange={(v) => {
+            setOpportunityFilter(v as typeof opportunityFilter);
+            setActiveView(null);
+          }}
+        >
+          <SelectTrigger className="w-[160px] h-8 text-sm">
+            <SelectValue placeholder="Opportunity" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All opportunity</SelectItem>
+            <SelectItem value="hot">Hot (80+)</SelectItem>
+            <SelectItem value="warm">Warm (50–79)</SelectItem>
+            <SelectItem value="cool">Cool (&lt; 50)</SelectItem>
           </SelectContent>
         </Select>
         <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
@@ -172,7 +322,7 @@ export default function AccountsPage() {
         {filtered.map((account) => {
           const accountContacts = contacts.filter((c) => c.account_id === account.id);
           const accountSignals = signals.filter((s) => s.account_id === account.id);
-          const hasWarmPath = warmPaths.some((wp) =>
+          const hasWarmBlue = warmPaths.some((wp) =>
             accountContacts.some((c) => c.id === wp.contact_id),
           );
           const urgentSignals = accountSignals.filter(
@@ -205,7 +355,7 @@ export default function AccountsPage() {
                       >
                         {account.stage.replace("_", " ")}
                       </Badge>
-                      {hasWarmPath && (
+                      {hasWarmBlue && (
                         <Badge
                           variant="outline"
                           className="text-[10px] bg-brand/10 text-brand border-brand/20"

@@ -17,7 +17,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/tasks": "Tasks",
   "/campaigns": "Campaigns",
   "/signals": "Signals",
-  "/relationship-graph": "Network Graph",
+  "/relationship-graph": "Relationships",
   "/accounts": "Accounts",
   "/contacts": "Contacts",
   "/discover": "Discover",
@@ -29,7 +29,7 @@ const PAGE_TITLES: Record<string, string> = {
 };
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { logout, isAuthenticated } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const {
     messages,
     signals,
@@ -81,8 +81,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (!hydrated) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#09090b" }}>
-        <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "#2563eb", borderTopColor: "transparent" }} />
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: "#09090b" }}
+      >
+        <div
+          className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin"
+          style={{ borderColor: "#2563eb", borderTopColor: "transparent" }}
+        />
       </div>
     );
   }

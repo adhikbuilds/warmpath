@@ -234,7 +234,7 @@ Adhik`;
     personalization_reason: `${signal ? `Signal: ${signal.type}` : "ICP match"}. ${warmPath ? `Warm path via ${warmPath.recommended_intro_person}.` : ""} Grounded in: Product Overview, ${signal ? "live signal" : "ICP scoring"}.`,
     factual_claims: [
       ...kb.approvedClaims,
-      signal ? signal.title : `${account.name} fits WarmPath ICP (${account.industry})`,
+      signal ? signal.title : `${account.name} fits WarmBlue ICP (${account.industry})`,
     ],
     supporting_sources: [
       ...kb.usedIds.map((id) => `KB item: ${id}`),
@@ -260,7 +260,7 @@ function buildPhoneScript(input: GenerateMessageInput): GeneratedMessageResult {
     : `been following ${account.name}`;
 
   const body = `OPENER:
-"Hey ${firstName}, this is Adhik from WarmPath. Quick reason for the call ${introName ? `${introName} mentioned you` : `I ${signalRef}`}'re close to ${account.name}'s outbound push. I had a short idea on warm-path selling instead of cold volume. Got 2 minutes?"
+"Hey ${firstName}, this is Adhik from WarmBlue. Quick reason for the call ${introName ? `${introName} mentioned you` : `I ${signalRef}`}'re close to ${account.name}'s outbound push. I had a short idea on warm-path selling instead of cold volume. Got 2 minutes?"
 
 IF YES:
 "Great. So ${kb.caseStudy}. For ${account.name} specifically, I can already see warm paths into your target accounts. Would a 20-minute Zoom make sense this week?"
@@ -271,10 +271,10 @@ DISCOVERY QUESTIONS:
 • Are you using a relationship layer or all cold?
 
 OBJECTION "We already use Apollo":
-"WarmPath isn't replacing your sequence tool it's the warm-path layer on top. Apollo tells you who to target; WarmPath tells you who already knows them."
+"WarmBlue isn't replacing your sequence tool it's the warm-path layer on top. Apollo tells you who to target; WarmBlue tells you who already knows them."
 
 VOICEMAIL:
-"Hey ${firstName}, Adhik from WarmPath. ${introName ? `${introName} mentioned` : `I ${signalRef} and`} thought you'd find this useful. We just mapped warm paths into your target accounts. I'll send a note feel free to grab time on my calendar."`;
+"Hey ${firstName}, Adhik from WarmBlue. ${introName ? `${introName} mentioned` : `I ${signalRef} and`} thought you'd find this useful. We just mapped warm paths into your target accounts. I'll send a note feel free to grab time on my calendar."`;
 
   return {
     body,
@@ -321,7 +321,7 @@ function buildTelegramMessage(input: GenerateMessageInput): GeneratedMessageResu
   const kb = getKBFacts(kbItems);
   const firstName = contact.name.split(" ")[0];
 
-  const body = `Hey ${firstName}! Noticed you're building in B2B SaaS. We just launched WarmPath it maps your team's actual network and routes outbound through warm intros automatically. Would love your honest feedback. Happy to give free access for 3 months.`;
+  const body = `Hey ${firstName}! Noticed you're building in B2B SaaS. We just launched WarmBlue it maps your team's actual network and routes outbound through warm intros automatically. Would love your honest feedback. Happy to give free access for 3 months.`;
 
   return {
     body,
@@ -513,7 +513,7 @@ class LocalAIProvider implements AIProvider {
       .map((k) => `[${k.type.toUpperCase()}] ${k.title}:\n${k.content.slice(0, 250)}`)
       .join("\n\n");
 
-    return `You are WarmPath's AI sales writer. Write personalized, warm B2B outbound messages that feel genuinely human.
+    return `You are WarmBlue's AI sales writer. Write personalized, warm B2B outbound messages that feel genuinely human.
 
 ${kbContext ? `KNOWLEDGE BASE (use these facts do not make up anything not listed here):\n${kbContext}` : ""}
 
@@ -717,7 +717,7 @@ class RemoteAIProvider implements AIProvider {
       .map((k) => `[${k.type.toUpperCase()}] ${k.title}:\n${k.content.slice(0, 300)}`)
       .join("\n\n");
 
-    return `You are WarmPath's AI sales writer. Write personalized, warm B2B outbound messages that feel genuinely human.
+    return `You are WarmBlue's AI sales writer. Write personalized, warm B2B outbound messages that feel genuinely human.
 
 ${kbContext ? `KNOWLEDGE BASE (use these facts do not fabricate anything not listed here):\n${kbContext}` : ""}
 

@@ -153,7 +153,7 @@ function FilterToggle({
   );
 }
 
-function WarmPathDots({ nodes }: { nodes: Array<{ id: string; name: string }> }) {
+function WarmBlueDots({ nodes }: { nodes: Array<{ id: string; name: string }> }) {
   return (
     <div className="flex items-center gap-0.5">
       {nodes.map((n, i) => (
@@ -572,7 +572,7 @@ export default function AudienceBuilderPage() {
                         <td className="px-4 py-3">
                           {path ? (
                             <div className="flex flex-col gap-0.5">
-                              <WarmPathDots nodes={path.nodes} />
+                              <WarmBlueDots nodes={path.nodes} />
                               <span className="text-[10px] text-brand font-medium">
                                 {path.warmth} warmth
                               </span>

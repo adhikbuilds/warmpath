@@ -4,8 +4,8 @@ import {
   AlertTriangle,
   Check,
   CheckCircle2,
+  Clock,
   ExternalLink,
-  Filter,
   Flame,
   GitFork,
   Info,
@@ -269,6 +269,43 @@ function getConnectorName(message: GeneratedMessage): string {
   return message.warm_path?.recommended_intro_person ?? "Direct Outreach";
 }
 
+// Synthetic SLA: drafts expire 48h after they enter the queue.
+// We don't have a real created_at on demo messages, so derive a stable
+// "hours remaining" from the message id hash.
+function expiresInHours(msgId: string): number {
+  let hash = 0;
+  for (let i = 0; i < msgId.length; i++) {
+    hash = (hash * 31 + msgId.charCodeAt(i)) | 0;
+  }
+  return 2 + (Math.abs(hash) % 47);
+}
+
+function slaTone(hours: number): { label: string; cls: string; urgent: boolean } {
+  if (hours <= 6)
+    return {
+      label: `${hours}h left`,
+      cls: "text-red-400 bg-red-500/10 border-red-500/30",
+      urgent: true,
+    };
+  if (hours <= 12)
+    return {
+      label: `${hours}h left`,
+      cls: "text-amber-400 bg-amber-500/10 border-amber-500/30",
+      urgent: false,
+    };
+  if (hours <= 24)
+    return {
+      label: `${hours}h left`,
+      cls: "text-yellow-400 bg-yellow-500/10 border-yellow-500/30",
+      urgent: false,
+    };
+  return {
+    label: `${hours}h left`,
+    cls: "text-zinc-400 bg-zinc-500/10 border-zinc-500/30",
+    urgent: false,
+  };
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ApprovalQueuePage() {
@@ -279,13 +316,51 @@ export default function ApprovalQueuePage() {
   const [editedBody, setEditedBody] = useState("");
   const [editedSubject, setEditedSubject] = useState("");
   const [showHistory, setShowHistory] = useState(false);
+  const [filterRep, setFilterRep] = useState<string>("all");
+  const [filterAccount, setFilterAccount] = useState<string>("all");
+  const [filterChannel, setFilterChannel] = useState<string>("all");
+  const [noteDismissed, setNoteDismissed] = useState(false);
+
+  const allPending = useMemo(
+    () => messages.filter((m) => m.approval_status === "pending"),
+    [messages],
+  );
+
+  const repOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          allPending
+            .map((m) => m.warm_path?.recommended_intro_person)
+            .filter((x): x is string => !!x),
+        ),
+      ),
+    [allPending],
+  );
+  const accountOptions = useMemo(
+    () =>
+      Array.from(new Set(allPending.map((m) => m.account?.name).filter((x): x is string => !!x))),
+    [allPending],
+  );
+  const channelOptions = useMemo(
+    () => Array.from(new Set(allPending.map((m) => m.channel))),
+    [allPending],
+  );
 
   const pendingMessages = useMemo(
     () =>
-      messages
-        .filter((m) => m.approval_status === "pending")
-        .sort((a, b) => getWarmthScore(b) - getWarmthScore(a)),
-    [messages],
+      allPending
+        .filter((m) => filterRep === "all" || m.warm_path?.recommended_intro_person === filterRep)
+        .filter((m) => filterAccount === "all" || m.account?.name === filterAccount)
+        .filter((m) => filterChannel === "all" || m.channel === filterChannel)
+        .sort((a, b) => {
+          // Most urgent (lowest hours left) first, then warmth
+          const ha = expiresInHours(a.id);
+          const hb = expiresInHours(b.id);
+          if (ha !== hb) return ha - hb;
+          return getWarmthScore(b) - getWarmthScore(a);
+        }),
+    [allPending, filterRep, filterAccount, filterChannel],
   );
 
   const selectedMessage =
@@ -379,24 +454,14 @@ export default function ApprovalQueuePage() {
         style={{ borderColor: "#27272a", backgroundColor: "#09090b" }}
       >
         {/* Queue Header */}
-        <div
-          className="h-12 border-b flex items-center justify-between px-4 shrink-0"
-          style={{ borderColor: "#27272a" }}
-        >
-          <h2 className="text-sm font-semibold" style={{ color: "#e5e5e5" }}>
-            Pending Intros
-          </h2>
-          <div className="flex gap-1">
-            <button
-              type="button"
-              className="p-1.5 rounded transition-colors"
-              style={{ color: "#a1a1aa" }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#e5e5e5")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "#a1a1aa")}
-              aria-label="Filter"
-            >
-              <Filter className="w-4 h-4" />
-            </button>
+        <div className="border-b shrink-0" style={{ borderColor: "#27272a" }}>
+          <div className="h-12 flex items-center justify-between px-4">
+            <h2 className="text-sm font-semibold" style={{ color: "#e5e5e5" }}>
+              Pending Intros
+              <span className="ml-2 text-xs font-normal" style={{ color: "#71717a" }}>
+                {pendingMessages.length} of {allPending.length}
+              </span>
+            </h2>
             <button
               type="button"
               className="p-1.5 rounded transition-colors"
@@ -408,6 +473,77 @@ export default function ApprovalQueuePage() {
               <MoreVertical className="w-4 h-4" />
             </button>
           </div>
+
+          {/* Filters */}
+          <div className="px-3 pb-3 flex gap-1.5">
+            <select
+              value={filterRep}
+              onChange={(e) => setFilterRep(e.target.value)}
+              className="flex-1 h-7 rounded px-2 text-[11px] border bg-transparent outline-none"
+              style={{ borderColor: "#27272a", color: "#e5e5e5", backgroundColor: "#09090b" }}
+              title="Filter by rep / connector"
+            >
+              <option value="all">All reps</option>
+              {repOptions.map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
+            </select>
+            <select
+              value={filterAccount}
+              onChange={(e) => setFilterAccount(e.target.value)}
+              className="flex-1 h-7 rounded px-2 text-[11px] border bg-transparent outline-none"
+              style={{ borderColor: "#27272a", color: "#e5e5e5", backgroundColor: "#09090b" }}
+              title="Filter by account"
+            >
+              <option value="all">All accounts</option>
+              {accountOptions.map((a) => (
+                <option key={a} value={a}>
+                  {a}
+                </option>
+              ))}
+            </select>
+            <select
+              value={filterChannel}
+              onChange={(e) => setFilterChannel(e.target.value)}
+              className="w-24 h-7 rounded px-2 text-[11px] border bg-transparent outline-none"
+              style={{ borderColor: "#27272a", color: "#e5e5e5", backgroundColor: "#09090b" }}
+              title="Filter by channel"
+            >
+              <option value="all">Channel</option>
+              {channelOptions.map((c) => (
+                <option key={c} value={c}>
+                  {c.replace("_", " ")}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Info note */}
+          {!noteDismissed && (
+            <div
+              className="mx-3 mb-3 flex items-start gap-2 rounded-md border p-2.5"
+              style={{
+                backgroundColor: "rgba(59,130,246,0.06)",
+                borderColor: "rgba(59,130,246,0.25)",
+              }}
+            >
+              <Info className="w-3 h-3 text-blue-400 flex-shrink-0 mt-0.5" />
+              <p className="text-[10.5px] leading-relaxed flex-1" style={{ color: "#a1a1aa" }}>
+                The queue populates automatically once signal detection runs — every entry has been
+                AI-drafted from a verified buying signal and a warm relationship path.
+              </p>
+              <button
+                type="button"
+                onClick={() => setNoteDismissed(true)}
+                className="text-zinc-500 hover:text-zinc-300"
+                aria-label="Dismiss"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Queue Scrollable List */}
@@ -441,6 +577,8 @@ export default function ApprovalQueuePage() {
                     ?.split(" ")
                     .slice(0, 3)
                     .join(" ");
+                  const hoursLeft = expiresInHours(msg.id);
+                  const sla = slaTone(hoursLeft);
 
                   return (
                     <button
@@ -468,12 +606,20 @@ export default function ApprovalQueuePage() {
                         }
                       }}
                     >
-                      <div className="flex justify-between items-start mb-2">
+                      <div className="flex justify-between items-start mb-2 gap-2">
                         <h3 className="font-semibold text-sm" style={{ color: "#e5e5e5" }}>
                           {msg.contact?.name ?? "Unknown Contact"}
                         </h3>
-                        <span className="text-xs" style={{ color: "#71717a" }}>
-                          {ws > 0 ? `${ws} warmth` : "—"}
+                        <span
+                          className={cn(
+                            "inline-flex items-center gap-1 border px-1.5 py-0.5 rounded text-[10px] font-medium flex-shrink-0",
+                            sla.cls,
+                            sla.urgent && "animate-pulse",
+                          )}
+                          title="Message expires after this window — connector intent dries up if it sits."
+                        >
+                          <Clock className="w-2.5 h-2.5" />
+                          {sla.label}
                         </span>
                       </div>
                       <p className="text-xs mb-2" style={{ color: "#a1a1aa" }}>
@@ -493,6 +639,12 @@ export default function ApprovalQueuePage() {
                             {ws} Warmth
                           </span>
                         )}
+                        <span
+                          className="px-1.5 py-0.5 rounded text-[10px] capitalize"
+                          style={{ backgroundColor: "#27272a", color: "#a1a1aa" }}
+                        >
+                          {msg.channel.replace("_", " ")}
+                        </span>
                         {contextTag && (
                           <span
                             className="px-2 py-0.5 rounded text-xs"

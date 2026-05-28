@@ -182,7 +182,7 @@ function buildPipelineItems(
       .filter((s) => s.account_id === wp.account_id)
       .sort((a, b) => b.urgency_score - a.urgency_score)[0];
     const pathNodes = wp.path_nodes.map((n) => n.name);
-    // Map WarmPath status to PipelineStage "active" covers the unstarted state
+    // Map WarmBlue status to PipelineStage "active" covers the unstarted state
     const stage: PipelineStage =
       wp.status === "active" ||
       wp.status === "intro_sent" ||
@@ -562,7 +562,7 @@ export default function WarmLeadsPage() {
   const [composeAccount, setComposeAccount] = useState<(typeof accounts)[0] | null>(null);
   const [composeContact, setComposeContact] = useState<(typeof contacts)[0] | null>(null);
   const [composeSignal, setComposeSignal] = useState<(typeof signals)[0] | null>(null);
-  const [composeWarmPath, setComposeWarmPath] = useState<(typeof warmPaths)[0] | null>(null);
+  const [composeWarmBlue, setComposeWarmBlue] = useState<(typeof warmPaths)[0] | null>(null);
 
   // List view state
   const [search, setSearch] = useState("");
@@ -606,9 +606,9 @@ export default function WarmLeadsPage() {
       const matchIndustry = industryFilter === "all" || a.industry === industryFilter;
       if (!matchSearch || !matchIndustry) return false;
       if (focusMode && view === "list") {
-        const hasWarmPath = warmPaths.some((wp) => wp.account_id === a.id);
+        const hasWarmBlue = warmPaths.some((wp) => wp.account_id === a.id);
         const hasUrgentSignal = signals.some((s) => s.account_id === a.id && s.urgency_score >= 70);
-        return hasWarmPath && hasUrgentSignal;
+        return hasWarmBlue && hasUrgentSignal;
       }
       return true;
     })
@@ -720,7 +720,7 @@ export default function WarmLeadsPage() {
 Hi ${selectedCard.introBy},
 
 Would you be open to a quick intro to ${selectedCard.contactName} at ${selectedCard.accountName}?
-We've been tracking their expansion signals and think there's a strong fit for WarmPath.
+We've been tracking their expansion signals and think there's a strong fit for WarmBlue.
 Happy to give you more context first.
 
 Thanks,
@@ -774,6 +774,7 @@ Thanks,
             variant={focusMode ? "default" : "outline"}
             className="h-8 gap-1.5"
             onClick={() => setFocusMode((f) => !f)}
+            title="Focus mode hides accounts without a warm path or urgent signal so you only see the highest-leverage leads to work today."
           >
             <Target className="w-3.5 h-3.5" />
             {focusMode ? "Focus: ON" : "Focus mode"}
@@ -872,8 +873,8 @@ Thanks,
                       })()
                     : null;
 
-                const hasWarmPath = !!computedPath;
-                const storeWarmPath = warmPaths.find((wp) => wp.account_id === account.id);
+                const hasWarmBlue = !!computedPath;
+                const storeWarmBlue = warmPaths.find((wp) => wp.account_id === account.id);
 
                 // Find the evidence string for the connector→prospect edge
                 const connectorEdge =
@@ -987,7 +988,7 @@ Thanks,
                                 </div>
                                 <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1 italic">
                                   {connectorEdge?.evidence ??
-                                    storeWarmPath?.path_explanation?.slice(0, 60) ??
+                                    storeWarmBlue?.path_explanation?.slice(0, 60) ??
                                     "No direct connection"}
                                 </p>
                                 {isWeakPath && (
@@ -1015,40 +1016,49 @@ Thanks,
                           </div>
                         </div>
                         <div className="flex flex-col gap-1.5 flex-shrink-0">
-                          <Button
-                            size="sm"
-                            className="h-7 text-xs gap-1 px-3"
-                            onClick={() => {
-                              addMessageToQueue({
-                                account_id: account.id,
-                                contact_id: topContact?.id ?? "",
-                                warm_path_id: storeWarmPath?.id,
-                                signal_id: topSignal?.id,
-                                channel: hasWarmPath ? "warm_intro" : "email",
-                                subject: topSignal
-                                  ? `${topSignal.title} — ${account.name}`
-                                  : `Outreach — ${account.name}`,
-                                body: `Hi ${topContact?.name?.split(" ")[0] ?? "there"},\n\n${topSignal ? topSignal.description + "\n\n" : ""}I wanted to reach out about ${account.name} — ${hasWarmPath ? "we have a warm path through your network" : "think there's a great fit here"}.\n\nWould love 15 minutes to share what we're working on.\n\nBest,\nAdhik`,
-                                status: "draft",
-                                approval_status: "pending",
-                                generated_by_ai: true,
-                                confidence_score: hasWarmPath ? 0.88 : 0.72,
-                                personalization_reason:
-                                  topSignal?.description ??
-                                  `Warm leads outreach to ${account.industry}`,
-                                factual_claims: topSignal ? [topSignal.title] : [],
-                                supporting_sources: ["WarmPath signal monitor"],
-                                risk_flags: [],
-                              });
-                              toast.success(`Outreach drafted for ${account.name}`, {
-                                description: "Review and approve it in the Approval Queue.",
-                              });
-                              router.push("/approval-queue");
-                            }}
-                          >
-                            <MessageSquare className="w-3 h-3" />
-                            {hasWarmPath ? "Craft intro" : "Cold email"}
-                          </Button>
+                          {hasWarmBlue ? (
+                            <Button
+                              size="sm"
+                              className="h-7 text-xs gap-1 px-3"
+                              onClick={() => {
+                                addMessageToQueue({
+                                  account_id: account.id,
+                                  contact_id: topContact?.id ?? "",
+                                  warm_path_id: storeWarmBlue?.id,
+                                  signal_id: topSignal?.id,
+                                  channel: "warm_intro",
+                                  subject: topSignal
+                                    ? `${topSignal.title} — ${account.name}`
+                                    : `Outreach — ${account.name}`,
+                                  body: `Hi ${topContact?.name?.split(" ")[0] ?? "there"},\n\n${topSignal ? topSignal.description + "\n\n" : ""}I wanted to reach out about ${account.name} — we have a warm path through your network.\n\nWould love 15 minutes to share what we're working on.\n\nBest,\nAdhik`,
+                                  status: "draft",
+                                  approval_status: "pending",
+                                  generated_by_ai: true,
+                                  confidence_score: 0.88,
+                                  personalization_reason:
+                                    topSignal?.description ??
+                                    `Warm leads outreach to ${account.industry}`,
+                                  factual_claims: topSignal ? [topSignal.title] : [],
+                                  supporting_sources: ["WarmBlue signal monitor"],
+                                  risk_flags: [],
+                                });
+                                toast.success(`Outreach drafted for ${account.name}`, {
+                                  description: "Review and approve it in the Approval Queue.",
+                                });
+                                router.push("/approval-queue");
+                              }}
+                            >
+                              <MessageSquare className="w-3 h-3" />
+                              Craft intro
+                            </Button>
+                          ) : (
+                            <span
+                              className="h-7 text-[10px] px-2 inline-flex items-center justify-center rounded-md border border-amber-500/30 text-amber-500 bg-amber-500/5"
+                              title="No warm path available. WarmBlue only sends through trusted relationships."
+                            >
+                              No warm path
+                            </span>
+                          )}
                           <Button size="sm" variant="outline" className="h-7 text-xs px-3" asChild>
                             <Link href={`/accounts/${account.id}`}>View</Link>
                           </Button>
@@ -1313,7 +1323,7 @@ Thanks,
                                         signal_id: item.signalId,
                                         channel: item.stage === "active" ? "warm_intro" : "email",
                                         subject: `Follow-up — ${item.contactName} at ${item.accountName}`,
-                                        body: `Hi ${item.contactName.split(" ")[0]},\n\nFollowing up on our conversation — wanted to share how WarmPath can help ${item.accountName} with warm outbound.\n\nBest,\nAdhik`,
+                                        body: `Hi ${item.contactName.split(" ")[0]},\n\nFollowing up on our conversation — wanted to share how WarmBlue can help ${item.accountName} with warm outbound.\n\nBest,\nAdhik`,
                                         status: "draft",
                                         approval_status: "pending",
                                         generated_by_ai: true,
