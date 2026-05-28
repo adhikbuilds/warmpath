@@ -1,7 +1,7 @@
 "use client";
 
 import { Building2, Settings, Sparkles, Target, Users } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuthStore } from "@/stores/authStore";
+import { useSalesStore } from "@/stores/salesStore";
 
 const INDUSTRIES = [
   "SaaS",
@@ -88,8 +89,8 @@ export default function SettingsPage() {
   );
 
   // Workspace / company info state
-  const [workspaceName, setWorkspaceName] = useState("WarmPath");
-  const [workspaceWebsite, setWorkspaceWebsite] = useState("warmpath.ai");
+  const [workspaceName, setWorkspaceName] = useState("WarmBlue");
+  const [workspaceWebsite, setWorkspaceWebsite] = useState("warmblue.ai");
   const [workspaceDescription, setWorkspaceDescription] = useState(
     "AI sales agent that routes outreach through your team's relationship graph",
   );
@@ -97,7 +98,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("warmpath-icp-settings");
+      const saved = localStorage.getItem("warmblue-icp-settings");
       if (saved) {
         const d = JSON.parse(saved);
         if (d.selectedIndustries) setSelectedIndustries(d.selectedIndustries);
@@ -110,7 +111,7 @@ export default function SettingsPage() {
       }
     } catch {}
     try {
-      const saved = localStorage.getItem("warmpath-persona-settings");
+      const saved = localStorage.getItem("warmblue-persona-settings");
       if (saved) {
         const d = JSON.parse(saved);
         if (d.tone) setPersonaTone(d.tone);
@@ -119,14 +120,14 @@ export default function SettingsPage() {
       }
     } catch {}
     try {
-      const saved = localStorage.getItem("warmpath-signal-settings");
+      const saved = localStorage.getItem("warmblue-signal-settings");
       if (saved) {
         const d = JSON.parse(saved);
         setEnabledSignals(d);
       }
     } catch {}
     try {
-      const saved = localStorage.getItem("warmpath-workspace");
+      const saved = localStorage.getItem("warmblue-workspace");
       if (saved) {
         const d = JSON.parse(saved);
         if (d.name) setWorkspaceName(d.name);
@@ -140,7 +141,7 @@ export default function SettingsPage() {
     setSavingWorkspace(true);
     try {
       localStorage.setItem(
-        "warmpath-workspace",
+        "warmblue-workspace",
         JSON.stringify({
           name: workspaceName,
           website: workspaceWebsite,
@@ -158,14 +159,44 @@ export default function SettingsPage() {
 
   // Team state
   const [teamMembers] = useState([
-    { id: "1", name: "Adhik Agarwal", email: "adhik@warmpath.ai", role: "Admin", connections: 847 },
-    { id: "2", name: "Sarah Chen", email: "sarah@warmpath.ai", role: "Member", connections: 1240 },
-    { id: "3", name: "Rohan Mehta", email: "rohan@warmpath.ai", role: "Member", connections: 634 },
+    { id: "1", name: "Adhik Agarwal", email: "adhik@warmblue.ai", role: "Admin", connections: 847 },
+    { id: "2", name: "Sarah Chen", email: "sarah@warmblue.ai", role: "Member", connections: 1240 },
+    { id: "3", name: "Rohan Mehta", email: "rohan@warmblue.ai", role: "Member", connections: 634 },
   ]);
 
   const toggleItem = (item: string, selected: string[], setSelected: (s: string[]) => void) => {
     setSelected(selected.includes(item) ? selected.filter((i) => i !== item) : [...selected, item]);
   };
+
+  // Live ICP match counter: count accounts from the store that match current ICP settings.
+  const { accounts } = useSalesStore();
+  const icpMatchCount = useMemo(() => {
+    const geoTokens = geographies
+      .split(",")
+      .map((g) => g.trim().toLowerCase())
+      .filter(Boolean);
+    return accounts.filter((a) => {
+      const matchIndustry =
+        selectedIndustries.length === 0 ||
+        selectedIndustries.some((ind) => a.industry?.toLowerCase().includes(ind.toLowerCase()));
+      // Size: employee_count vs selected bands
+      const matchSize =
+        selectedSizes.length === 0 ||
+        selectedSizes.some((band) => {
+          const [lo, hi] = band.split("-").map(Number);
+          const emp = a.employee_count ?? 0;
+          if (!hi) return emp >= lo;
+          return emp >= lo && emp <= hi;
+        });
+      const matchGeo =
+        geoTokens.length === 0 || geoTokens.some((g) => a.location?.toLowerCase().includes(g));
+      const rev = (a as { annual_revenue?: number }).annual_revenue ?? 0;
+      const matchRevenue =
+        (!minRevenue || rev === 0 || rev >= Number(minRevenue) * 1_000_000) &&
+        (!maxRevenue || rev === 0 || rev <= Number(maxRevenue) * 1_000_000);
+      return matchIndustry && matchSize && matchGeo && matchRevenue;
+    }).length;
+  }, [accounts, selectedIndustries, selectedSizes, geographies, minRevenue, maxRevenue, jobTitles]);
 
   return (
     <div className="p-6 space-y-5 max-w-[900px] mx-auto">
@@ -197,6 +228,24 @@ export default function SettingsPage() {
 
         {/* ICP Builder */}
         <TabsContent value="icp" className="mt-4 space-y-4">
+          {/* Live match counter */}
+          <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-brand/30 bg-brand/5">
+            <Target className="w-4 h-4 text-brand flex-shrink-0" />
+            <div className="flex-1">
+              <span className="text-sm font-semibold">{icpMatchCount}</span>
+              <span className="text-sm text-muted-foreground">
+                {" "}
+                of {accounts.length} accounts in your CRM match this ICP
+              </span>
+            </div>
+            <Badge
+              variant="outline"
+              className="text-[10px] bg-brand/10 text-brand border-brand/25 tabular-nums"
+            >
+              {Math.round((icpMatchCount / Math.max(accounts.length, 1)) * 100)}% coverage
+            </Badge>
+          </div>
+
           <Card className="border-border/60">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2">
@@ -206,40 +255,58 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-5">
               <div>
-                <Label className="text-xs font-medium mb-2 block">Target industries</Label>
+                <Label className="text-xs font-medium mb-2 block">
+                  Target industries
+                  {selectedIndustries.length > 0 && (
+                    <span className="ml-2 text-brand font-normal">
+                      {selectedIndustries.length} selected
+                    </span>
+                  )}
+                </Label>
                 <div className="flex flex-wrap gap-1.5">
                   {INDUSTRIES.map((ind) => (
                     <button
                       type="button"
                       key={ind}
                       onClick={() => toggleItem(ind, selectedIndustries, setSelectedIndustries)}
-                      className={`text-xs px-2.5 py-1 rounded border transition-colors ${
+                      className={`text-xs px-2.5 py-1 rounded border transition-colors font-medium ${
                         selectedIndustries.includes(ind)
-                          ? "bg-brand/10 text-brand border-brand/30"
-                          : "border-border/60 text-muted-foreground hover:border-border"
+                          ? "bg-brand text-white border-brand shadow-sm"
+                          : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
                       }`}
                     >
                       {ind}
+                      {selectedIndustries.includes(ind) && (
+                        <span className="ml-1 opacity-70">✓</span>
+                      )}
                     </button>
                   ))}
                 </div>
               </div>
 
               <div>
-                <Label className="text-xs font-medium mb-2 block">Company size (employees)</Label>
+                <Label className="text-xs font-medium mb-2 block">
+                  Company size (employees)
+                  {selectedSizes.length > 0 && (
+                    <span className="ml-2 text-brand font-normal">
+                      {selectedSizes.length} selected
+                    </span>
+                  )}
+                </Label>
                 <div className="flex flex-wrap gap-1.5">
                   {COMPANY_SIZES.map((size) => (
                     <button
                       type="button"
                       key={size}
                       onClick={() => toggleItem(size, selectedSizes, setSelectedSizes)}
-                      className={`text-xs px-2.5 py-1 rounded border transition-colors ${
+                      className={`text-xs px-2.5 py-1 rounded border transition-colors font-medium ${
                         selectedSizes.includes(size)
-                          ? "bg-brand/10 text-brand border-brand/30"
-                          : "border-border/60 text-muted-foreground hover:border-border"
+                          ? "bg-brand text-white border-brand shadow-sm"
+                          : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
                       }`}
                     >
                       {size}
+                      {selectedSizes.includes(size) && <span className="ml-1 opacity-70">✓</span>}
                     </button>
                   ))}
                 </div>
@@ -296,7 +363,7 @@ export default function SettingsPage() {
                       onClick={() => toggleItem(tech, selectedTech, setSelectedTech)}
                       className={`text-xs px-2.5 py-1 rounded border transition-colors ${
                         selectedTech.includes(tech)
-                          ? "bg-brand/10 text-brand border-brand/30"
+                          ? "bg-brand text-white border-brand shadow-sm"
                           : "border-border/60 text-muted-foreground hover:border-border"
                       }`}
                     >
@@ -310,7 +377,7 @@ export default function SettingsPage() {
                 size="sm"
                 onClick={() => {
                   localStorage.setItem(
-                    "warmpath-icp-settings",
+                    "warmblue-icp-settings",
                     JSON.stringify({
                       selectedIndustries,
                       selectedSizes,
@@ -397,7 +464,7 @@ export default function SettingsPage() {
                 size="sm"
                 onClick={() => {
                   localStorage.setItem(
-                    "warmpath-persona-settings",
+                    "warmblue-persona-settings",
                     JSON.stringify({
                       tone: personaTone,
                       style: personaStyle,
@@ -447,7 +514,7 @@ export default function SettingsPage() {
                 size="sm"
                 className="mt-2"
                 onClick={() => {
-                  localStorage.setItem("warmpath-signal-settings", JSON.stringify(enabledSignals));
+                  localStorage.setItem("warmblue-signal-settings", JSON.stringify(enabledSignals));
                   toast.success("Signal preferences saved");
                 }}
               >

@@ -17,7 +17,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       async authorize(credentials) {
         const email =
-          credentials?.demo === "true" ? "demo@warmpath.ai" : String(credentials?.email ?? "");
+          credentials?.demo === "true" ? "demo@warmblue.ai" : String(credentials?.email ?? "");
         const password =
           credentials?.demo === "true" ? "demo123" : String(credentials?.password ?? "");
 

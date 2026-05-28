@@ -28,7 +28,7 @@ export function AppShell({ children, activeNav }: { children: ReactNode; activeN
             W
           </div>
           <div>
-            <h1 className="text-sm font-semibold text-[#e5e1e4]">WarmPath</h1>
+            <h1 className="text-sm font-semibold text-[#e5e1e4]">WarmBlue</h1>
             <p className="text-xs text-[#c7c4d7]">High Performance</p>
           </div>
         </div>

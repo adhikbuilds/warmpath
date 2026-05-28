@@ -202,41 +202,6 @@ export default function AnalyticsPage() {
 
   const meetingsFromWarm = analytics ? analytics.messages_funnel.sent : sentMessages;
 
-  const funnel = analytics?.messages_funnel ?? {
-    total: totalMessages,
-    pending: messages.filter((m) => m.approval_status === "pending").length,
-    approved: approvedMessages,
-    sent: sentMessages,
-    rejected: messages.filter((m) => m.approval_status === "rejected").length,
-  };
-
-  const warmFunnelTotal = funnel.total || 1;
-  const WARM_FUNNEL = [
-    {
-      stage: "Queued / Pending",
-      count: funnel.pending,
-      pct: Math.round((funnel.pending / warmFunnelTotal) * 100),
-    },
-    {
-      stage: "Approved",
-      count: funnel.approved,
-      pct: Math.round((funnel.approved / warmFunnelTotal) * 100),
-    },
-    { stage: "Sent", count: funnel.sent, pct: Math.round((funnel.sent / warmFunnelTotal) * 100) },
-    {
-      stage: "Rejected",
-      count: funnel.rejected,
-      pct: Math.round((funnel.rejected / warmFunnelTotal) * 100),
-    },
-  ];
-
-  const COLD_FUNNEL = [
-    { stage: "Sent", count: 180, pct: 100 },
-    { stage: "Opened", count: 54, pct: 30 },
-    { stage: "Replied", count: 9, pct: 5 },
-    { stage: "Meeting booked", count: 3, pct: 1.7 },
-  ];
-
   const signalChartData = (analytics?.signal_attribution ?? []).map((s) => ({
     signal: s.display_name,
     count: s.count,
@@ -651,74 +616,141 @@ export default function AnalyticsPage() {
               </p>
             </CardContent>
           </Card>
-
-          <div className="space-y-4">
-            <Card className="border-border/60">
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-semibold text-green-600 dark:text-green-400">
-                    Warm Outreach Funnel
-                  </CardTitle>
-                  <Badge
-                    variant="outline"
-                    className="text-[10px] bg-green-500/10 text-green-600 border-green-500/20"
-                  >
-                    {warmReplyRate}% approved
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0 space-y-2">
-                {WARM_FUNNEL.map(({ stage, count, pct }) => (
-                  <div key={stage}>
-                    <div className="flex items-center justify-between text-xs mb-1">
-                      <span className="text-muted-foreground">{stage}</span>
-                      <span className="font-medium">
-                        {count} <span className="text-muted-foreground font-normal">({pct}%)</span>
-                      </span>
-                    </div>
-                    <div className="h-2 rounded-full bg-muted overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-green-500 transition-all duration-500"
-                        style={{ width: `${Math.max(pct, 2)}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            <Card className="border-border/60">
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-semibold text-muted-foreground">
-                    Cold Outreach Funnel
-                  </CardTitle>
-                  <Badge variant="outline" className="text-[10px]">
-                    5% reply rate
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0 space-y-2">
-                {COLD_FUNNEL.map(({ stage, count, pct }) => (
-                  <div key={stage}>
-                    <div className="flex items-center justify-between text-xs mb-1">
-                      <span className="text-muted-foreground">{stage}</span>
-                      <span className="font-medium">
-                        {count} <span className="text-muted-foreground font-normal">({pct}%)</span>
-                      </span>
-                    </div>
-                    <div className="h-2 rounded-full bg-muted overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-[#908fa0] transition-all duration-500"
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
         </div>
+      </div>
+
+      {/* ── Intro Credit Leaderboard (promoted above signal attribution) ─── */}
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <Trophy className="w-4 h-4 text-[#e8a55a]" />
+          <h2 className="text-base font-semibold">Intro Credit Leaderboard</h2>
+          <Badge variant="outline" className="text-[10px] ml-auto text-muted-foreground">
+            This period
+          </Badge>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-4 mb-5">
+          {[
+            { label: "Total intros sent", value: "14", sub: "by your team" },
+            { label: "Intros accepted", value: "9", sub: "64% acceptance rate" },
+            { label: "Meetings from intros", value: "6", sub: "67% → meeting rate" },
+          ].map((s) => (
+            <Card key={s.label} className="border-border/60">
+              <CardContent className="p-5">
+                <p className="text-3xl font-bold tabular-nums">{s.value}</p>
+                <p className="text-sm font-medium mt-0.5">{s.label}</p>
+                <p className="text-[11px] text-muted-foreground mt-1">{s.sub}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <Card className="border-border/60">
+          <CardContent className="p-0">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border/60">
+                  {["Rep", "Intros sent", "Accepted", "Meetings booked", "Conversion"].map((h) => (
+                    <th
+                      key={h}
+                      className={`px-5 py-3 text-xs font-semibold text-muted-foreground ${
+                        h === "Rep" ? "text-left" : "text-right"
+                      }`}
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  {
+                    name: "Sarah Chen",
+                    initials: "SC",
+                    intros: 6,
+                    accepted: 5,
+                    meetings: 4,
+                    pct: 67,
+                  },
+                  {
+                    name: "Adhik Agarwal",
+                    initials: "AA",
+                    intros: 4,
+                    accepted: 3,
+                    meetings: 2,
+                    pct: 50,
+                    isYou: true,
+                  },
+                  {
+                    name: "Rohan Mehta",
+                    initials: "RM",
+                    intros: 3,
+                    accepted: 1,
+                    meetings: 0,
+                    pct: 0,
+                  },
+                  {
+                    name: "Maya Iyer",
+                    initials: "MI",
+                    intros: 1,
+                    accepted: 0,
+                    meetings: 0,
+                    pct: 0,
+                  },
+                ].map((row, i) => (
+                  <tr
+                    key={row.name}
+                    className={`border-b border-border/40 last:border-0 hover:bg-muted/20 transition-colors ${row.isYou ? "bg-brand/4" : ""}`}
+                  >
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-full bg-brand/10 flex items-center justify-center text-[11px] font-bold text-brand flex-shrink-0">
+                          {row.initials}
+                        </div>
+                        <span className="font-medium">
+                          {row.name}
+                          {row.isYou && (
+                            <span className="ml-1.5 text-[10px] text-brand font-normal">(you)</span>
+                          )}
+                        </span>
+                        {i === 0 && (
+                          <Trophy
+                            className="w-3.5 h-3.5 text-[#e8a55a]"
+                            aria-label="Top contributor"
+                          />
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-5 py-3.5 text-right font-semibold tabular-nums">
+                      {row.intros}
+                    </td>
+                    <td className="px-5 py-3.5 text-right tabular-nums">{row.accepted}</td>
+                    <td className="px-5 py-3.5 text-right tabular-nums font-semibold text-[#5db872]">
+                      {row.meetings}
+                    </td>
+                    <td className="px-5 py-3.5 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full"
+                            style={{
+                              width: `${row.pct}%`,
+                              backgroundColor:
+                                row.pct >= 50 ? "#5db872" : row.pct > 0 ? "#e8a55a" : "#94a3b8",
+                            }}
+                          />
+                        </div>
+                        <span className="text-xs font-medium w-8 text-right tabular-nums">
+                          {row.pct}%
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
       </div>
 
       {/* ── Section 4 Signal Attribution + Channel Breakdown ─────────────── */}
@@ -968,142 +1000,6 @@ export default function AnalyticsPage() {
                 </tbody>
               </table>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* ── Section 6 Intro Credit Leaderboard ──────────────────────────── */}
-      <div>
-        <div className="flex items-center gap-2 mb-4">
-          <Trophy className="w-4 h-4 text-[#e8a55a]" />
-          <h2 className="text-base font-semibold">Intro Credit Leaderboard</h2>
-          <Badge variant="outline" className="text-[10px] ml-auto text-muted-foreground">
-            This period
-          </Badge>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-4 mb-5">
-          {[
-            { label: "Total intros sent", value: "14", sub: "by your team" },
-            { label: "Intros accepted", value: "9", sub: "64% acceptance rate" },
-            { label: "Meetings from intros", value: "6", sub: "67% → meeting rate" },
-          ].map((s) => (
-            <Card key={s.label} className="border-border/60">
-              <CardContent className="p-5">
-                <p className="text-3xl font-bold tabular-nums">{s.value}</p>
-                <p className="text-sm font-medium mt-0.5">{s.label}</p>
-                <p className="text-[11px] text-muted-foreground mt-1">{s.sub}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <Card className="border-border/60">
-          <CardContent className="p-0">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border/60">
-                  {["Rep", "Intros sent", "Accepted", "Meetings booked", "Conversion"].map((h) => (
-                    <th
-                      key={h}
-                      className={`px-5 py-3 text-xs font-semibold text-muted-foreground ${
-                        h === "Rep" ? "text-left" : "text-right"
-                      }`}
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  {
-                    name: "Sarah Chen",
-                    initials: "SC",
-                    intros: 6,
-                    accepted: 5,
-                    meetings: 4,
-                    pct: 67,
-                  },
-                  {
-                    name: "Adhik Agarwal",
-                    initials: "AA",
-                    intros: 4,
-                    accepted: 3,
-                    meetings: 2,
-                    pct: 50,
-                    isYou: true,
-                  },
-                  {
-                    name: "Rohan Mehta",
-                    initials: "RM",
-                    intros: 3,
-                    accepted: 1,
-                    meetings: 0,
-                    pct: 0,
-                  },
-                  {
-                    name: "Maya Iyer",
-                    initials: "MI",
-                    intros: 1,
-                    accepted: 0,
-                    meetings: 0,
-                    pct: 0,
-                  },
-                ].map((row, i) => (
-                  <tr
-                    key={row.name}
-                    className={`border-b border-border/40 last:border-0 hover:bg-muted/20 transition-colors ${
-                      row.isYou ? "bg-brand/4" : ""
-                    }`}
-                  >
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-full bg-brand/10 flex items-center justify-center text-[11px] font-bold text-brand flex-shrink-0">
-                          {row.initials}
-                        </div>
-                        <span className="font-medium">
-                          {row.name}
-                          {row.isYou && (
-                            <span className="ml-1.5 text-[10px] text-brand font-normal">(you)</span>
-                          )}
-                        </span>
-                        {i === 0 && (
-                          <Trophy
-                            className="w-3.5 h-3.5 text-[#e8a55a]"
-                            aria-label="Top contributor"
-                          />
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-5 py-3.5 text-right font-semibold tabular-nums">
-                      {row.intros}
-                    </td>
-                    <td className="px-5 py-3.5 text-right tabular-nums">{row.accepted}</td>
-                    <td className="px-5 py-3.5 text-right tabular-nums font-semibold text-[#5db872]">
-                      {row.meetings}
-                    </td>
-                    <td className="px-5 py-3.5 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full"
-                            style={{
-                              width: `${row.pct}%`,
-                              backgroundColor:
-                                row.pct >= 50 ? "#5db872" : row.pct > 0 ? "#e8a55a" : "#94a3b8",
-                            }}
-                          />
-                        </div>
-                        <span className="text-xs font-medium w-8 text-right tabular-nums">
-                          {row.pct}%
-                        </span>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </CardContent>
         </Card>
       </div>

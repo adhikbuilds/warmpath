@@ -41,7 +41,7 @@ const STEPS = [
     title: "Warm Leads",
     tagline: "Know exactly who to call today",
     description:
-      "WarmPath ranks every prospect by how warm your team's connection is and shows the exact intro path to take.",
+      "WarmBlue ranks every prospect by how warm your team's connection is and shows the exact intro path to take.",
     bullets: [
       "Pipeline board — drag leads across stages",
       "Each card shows who on your team knows them",
@@ -55,7 +55,7 @@ const STEPS = [
     title: "Approval Queue",
     tagline: "AI drafts — you approve before it sends",
     description:
-      "WarmPath writes personalised messages for each prospect. They land here first. Review, tweak, then approve — nothing goes out without your sign-off.",
+      "WarmBlue writes personalised messages for each prospect. They land here first. Review, tweak, then approve — nothing goes out without your sign-off.",
     bullets: [
       "See buying signals and warm path for each draft",
       "Edit the message inline before approving",
@@ -97,7 +97,7 @@ const STEPS = [
     title: "Signals",
     tagline: "Know the perfect moment to reach out",
     description:
-      "WarmPath monitors 13 buying signals 24/7 — funding rounds, leadership changes, job postings, and more.",
+      "WarmBlue monitors 13 buying signals 24/7 — funding rounds, leadership changes, job postings, and more.",
     bullets: [
       "Act-Now score tells you which signals matter most",
       "Click any signal to reveal the warm intro path",
@@ -153,7 +153,7 @@ const STEPS = [
     title: "Integrations",
     tagline: "Connect your existing tools",
     description:
-      "Link LinkedIn, Gmail, Salesforce, and more. WarmPath pulls relationship data from the tools your team already uses.",
+      "Link LinkedIn, Gmail, Salesforce, and more. WarmBlue pulls relationship data from the tools your team already uses.",
     bullets: [
       "LinkedIn syncs connections for the relationship graph",
       "Gmail/Outlook pulls email history for warmth scoring",

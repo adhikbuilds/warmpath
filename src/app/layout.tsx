@@ -25,7 +25,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "WarmPath — Turn cold prospects into warm intros",
+  title: "WarmBlue — Turn cold prospects into warm intros",
   description:
     "The first sales agent built on your team's relationship graph. Find warm paths, detect buying signals, and approve AI-drafted outreach in minutes.",
 };

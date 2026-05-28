@@ -73,7 +73,7 @@ function SlideTitle() {
             className="text-2xl font-semibold tracking-tight"
             style={{ color: C.onDark, fontFamily: SANS }}
           >
-            WarmPath
+            WarmBlue
           </span>
         </div>
 
@@ -435,7 +435,7 @@ function SlideHowItWorks() {
     {
       n: "01",
       title: "Connect your stack",
-      desc: "OAuth into LinkedIn, Gmail, Salesforce, HubSpot. WarmPath ingests relationship signals in minutes.",
+      desc: "OAuth into LinkedIn, Gmail, Salesforce, HubSpot. WarmBlue ingests relationship signals in minutes.",
     },
     {
       n: "02",
@@ -445,7 +445,7 @@ function SlideHowItWorks() {
     {
       n: "03",
       title: "Target a prospect",
-      desc: "Paste a LinkedIn URL or upload a list. WarmPath finds the warmest intro path and scores it 0-100.",
+      desc: "Paste a LinkedIn URL or upload a list. WarmBlue finds the warmest intro path and scores it 0-100.",
     },
     {
       n: "04",
@@ -1146,7 +1146,7 @@ function SlideCompetition() {
                   Feature
                 </th>
                 {[
-                  { name: "WarmPath", highlight: true },
+                  { name: "WarmBlue", highlight: true },
                   { name: "Apollo" },
                   { name: "Clay" },
                   { name: "Artisan" },
@@ -1359,7 +1359,7 @@ function SlideTraction() {
                 Try the live demo
               </div>
               <div style={{ fontFamily: SANS, fontWeight: 700, fontSize: 14, color: "#fff" }}>
-                demo@warmpath.ai / demo123
+                demo@warmblue.ai / demo123
               </div>
               <div
                 style={{
@@ -1414,7 +1414,7 @@ function SlideTeam() {
               name: "Adhik Agarwal",
               role: "CEO & Product",
               school: "BITS Pilani",
-              bio: "Built and shipped WarmPath end-to-end. Background in distributed systems and product design. Previously interned at a Series B SaaS.",
+              bio: "Built and shipped WarmBlue end-to-end. Background in distributed systems and product design. Previously interned at a Series B SaaS.",
               color: C.primary,
             },
             {
@@ -1638,7 +1638,7 @@ function SlideAsk() {
           </div>
           <div className="rounded-full px-6 py-3" style={{ border: `1px solid #ffffff22` }}>
             <span style={{ fontFamily: SANS, fontSize: 14, color: C.onDarkSoft }}>
-              demo@warmpath.ai · demo123
+              demo@warmblue.ai · demo123
             </span>
           </div>
         </div>
@@ -1650,7 +1650,7 @@ function SlideAsk() {
 // ─── Slide deck shell ──────────────────────────────────────────────────────────
 
 const SLIDES = [
-  { id: "title", label: "WarmPath", component: SlideTitle },
+  { id: "title", label: "WarmBlue", component: SlideTitle },
   { id: "problem", label: "Problem", component: SlideProblem },
   { id: "solution", label: "Solution", component: SlideSolution },
   { id: "how", label: "How It Works", component: SlideHowItWorks },
@@ -1722,7 +1722,7 @@ export default function PitchDeck() {
                   : C.ink,
             }}
           >
-            WarmPath
+            WarmBlue
           </span>
         </div>
         <div

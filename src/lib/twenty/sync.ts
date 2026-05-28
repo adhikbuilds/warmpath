@@ -6,7 +6,7 @@ import {
   getTwentyPeople,
 } from "./client";
 
-// Map Twenty company → WarmPath Account
+// Map Twenty company → WarmBlue Account
 export function mapTwentyCompanyToAccount(
   c: Awaited<ReturnType<typeof getTwentyCompanies>>[0],
 ): Account {
@@ -31,7 +31,7 @@ export function mapTwentyCompanyToAccount(
   };
 }
 
-// Map Twenty person → WarmPath Contact
+// Map Twenty person → WarmBlue Contact
 export function mapTwentyPersonToContact(
   p: Awaited<ReturnType<typeof getTwentyPeople>>[0],
 ): Contact {
@@ -52,7 +52,7 @@ export function mapTwentyPersonToContact(
   };
 }
 
-// Pull all accounts + contacts from Twenty and return as WarmPath types
+// Pull all accounts + contacts from Twenty and return as WarmBlue types
 export async function syncFromTwenty(): Promise<{ accounts: Account[]; contacts: Contact[] }> {
   const [companies, people] = await Promise.all([getTwentyCompanies(), getTwentyPeople()]);
   return {
@@ -61,7 +61,7 @@ export async function syncFromTwenty(): Promise<{ accounts: Account[]; contacts:
   };
 }
 
-// Push a new WarmPath account to Twenty
+// Push a new WarmBlue account to Twenty
 export async function pushAccountToTwenty(
   acc: Pick<Account, "name" | "domain" | "industry" | "employee_count">,
 ): Promise<void> {
@@ -73,7 +73,7 @@ export async function pushAccountToTwenty(
   });
 }
 
-// Push a new WarmPath contact to Twenty
+// Push a new WarmBlue contact to Twenty
 export async function pushContactToTwenty(
   contact: Pick<Contact, "name" | "email" | "title" | "linkedin_url">,
   twentyCompanyId?: string,

@@ -1,4 +1,4 @@
-// WarmPath Design System - Updated Color Palette
+// WarmBlue Design System - Updated Color Palette
 export const COLORS = {
   // Backgrounds
   bg: {
