@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { Logo } from "@/components/logo";
 import { cn, getInitials } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
 import { useSalesStore } from "@/stores/salesStore";
@@ -144,10 +145,23 @@ export function AppSidebar() {
         className="flex items-center px-3 py-4 shrink-0"
         style={{ borderBottom: "1px solid #27272a" }}
       >
-        {!collapsed && (
-          <span className="flex-1 text-[16px] font-bold text-white tracking-tight pl-1">
-            WarmPath
-          </span>
+        {!collapsed ? (
+          <Link
+            href="/dashboard"
+            className="flex-1 flex items-center gap-2 pl-1 text-white"
+            aria-label="WarmBlue"
+          >
+            <Logo size={22} />
+            <span className="text-[16px] font-bold tracking-tight">WarmBlue</span>
+          </Link>
+        ) : (
+          <Link
+            href="/dashboard"
+            className="flex-1 flex items-center justify-center text-white"
+            aria-label="WarmBlue"
+          >
+            <Logo size={22} />
+          </Link>
         )}
         <button
           type="button"
@@ -237,12 +251,12 @@ export function AppSidebar() {
           <NavItem
             href="/relationship-graph"
             icon={Network}
-            label="Network Graph"
+            label="Relationships"
             collapsed={collapsed}
           />
+          <NavItem href="/discover" icon={Compass} label="Discover" collapsed={collapsed} />
           <NavItem href="/accounts" icon={Building2} label="Accounts" collapsed={collapsed} />
           <NavItem href="/contacts" icon={Users} label="Contacts" collapsed={collapsed} />
-          <NavItem href="/discover" icon={Compass} label="Discover" collapsed={collapsed} />
           <NavItem href="/analytics" icon={TrendingUp} label="Analytics" collapsed={collapsed} />
         </NavSection>
 

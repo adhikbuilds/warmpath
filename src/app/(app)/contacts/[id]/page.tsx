@@ -55,7 +55,7 @@ function getResearchHooks(contactId: string, contactName: string): ResearchHook[
       {
         id: "h1",
         source: "LinkedIn",
-        text: "Priya posted about scaling RevOps tooling 3 days ago directly aligns with WarmPath's workflow positioning.",
+        text: "Priya posted about scaling RevOps tooling 3 days ago directly aligns with WarmBlue's workflow positioning.",
         relevance: "high",
       },
       {
@@ -95,7 +95,7 @@ function getResearchHooks(contactId: string, contactName: string): ResearchHook[
       {
         id: "h1",
         source: "LinkedIn",
-        text: "Liam commented on a Clay post asking about 'enrichment at scale without burning list quality' exact pain WarmPath solves.",
+        text: "Liam commented on a Clay post asking about 'enrichment at scale without burning list quality' exact pain WarmBlue solves.",
         relevance: "high",
       },
       {
@@ -737,7 +737,7 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
                         age: "2 days ago",
                       },
                       {
-                        text: `Commented on a thread about scaling B2B outbound highly relevant to WarmPath's positioning`,
+                        text: `Commented on a thread about scaling B2B outbound highly relevant to WarmBlue's positioning`,
                         age: "5 days ago",
                       },
                     ].map((item, i) => (

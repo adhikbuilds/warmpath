@@ -2,6 +2,7 @@
 
 import {
   CheckCircle2,
+  Download,
   Filter,
   GitFork,
   Loader2,
@@ -10,7 +11,9 @@ import {
   Plus,
   Sparkles,
   Upload,
+  UserCheck,
   Users,
+  Zap,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -49,15 +52,77 @@ const SENIORITY_COLORS: Record<string, string> = {
   ic: "bg-muted text-muted-foreground",
 };
 
+const PAGE_SIZE = 100; // virtualised window cap
+
 export default function ContactsPage() {
   const router = useRouter();
-  const { contacts, accounts, warmPaths, addMessageToQueue, addContact, updateContact } =
-    useSalesStore();
+  const {
+    contacts,
+    accounts,
+    warmPaths,
+    teamMembers,
+    addMessageToQueue,
+    addContact,
+    updateContact,
+  } = useSalesStore();
   const [search, setSearch] = useState("");
   const [seniorityFilter, setSeniorityFilter] = useState("all");
   const [deptFilter, setDeptFilter] = useState("all");
   const [addOpen, setAddOpen] = useState(false);
   const [editContact, setEditContact] = useState<Contact | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [showAssignOwner, setShowAssignOwner] = useState(false);
+  const [showAddToSequence, setShowAddToSequence] = useState(false);
+
+  function toggleSelected(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function selectAllVisible(visibleIds: string[]) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      const allSelected = visibleIds.every((id) => next.has(id));
+      if (allSelected) {
+        for (const id of visibleIds) next.delete(id);
+      } else {
+        for (const id of visibleIds) next.add(id);
+      }
+      return next;
+    });
+  }
+
+  function exportSelected(selected: Contact[]) {
+    const header = "name,email,title,department,seniority,account,warmth_score";
+    const rows = selected.map((c) => {
+      const account = accounts.find((a) => a.id === c.account_id)?.name ?? "";
+      return [
+        c.name,
+        c.email ?? "",
+        c.title ?? "",
+        c.department ?? "",
+        c.seniority ?? "",
+        account,
+        c.warmth_score,
+      ]
+        .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+        .join(",");
+    });
+    const csv = [header, ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `contacts-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`Exported ${selected.length} contacts`);
+  }
 
   // Import modal state
   const [importOpen, setImportOpen] = useState(false);
@@ -200,9 +265,12 @@ export default function ContactsPage() {
       <div className="flex items-center gap-3 flex-wrap">
         <div className="relative flex-1 max-w-xs">
           <Input
-            placeholder="Search contacts..."
+            placeholder="Search by name, title, or department…"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setVisibleCount(PAGE_SIZE);
+            }}
             className="pl-8 h-8 text-sm"
           />
           <Filter className="absolute left-2.5 top-2 w-3.5 h-3.5 text-muted-foreground" />
@@ -238,19 +306,149 @@ export default function ContactsPage() {
         </span>
       </div>
 
+      {/* Bulk action bar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-brand/40 bg-brand/5 sticky top-0 z-10">
+          <span className="text-xs font-semibold text-brand">{selectedIds.size} selected</span>
+          <span className="w-px h-4 bg-border" />
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 text-xs gap-1"
+            onClick={() => setShowAddToSequence((v) => !v)}
+          >
+            <Zap className="w-3 h-3" />
+            Add to sequence
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 text-xs gap-1"
+            onClick={() => setShowAssignOwner((v) => !v)}
+          >
+            <UserCheck className="w-3 h-3" />
+            Assign owner
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 text-xs gap-1"
+            onClick={() => {
+              const selected = filtered.filter((c) => selectedIds.has(c.id));
+              exportSelected(selected);
+            }}
+          >
+            <Download className="w-3 h-3" />
+            Export CSV
+          </Button>
+          <button
+            type="button"
+            onClick={() => setSelectedIds(new Set())}
+            className="ml-auto text-[11px] text-muted-foreground hover:text-foreground"
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
+      {/* Inline panels for bulk actions */}
+      {selectedIds.size > 0 && showAssignOwner && (
+        <div className="flex items-center gap-2 flex-wrap p-2.5 rounded-md border border-border/60 bg-card">
+          <span className="text-[11px] text-muted-foreground mr-1">
+            Assign {selectedIds.size} to
+          </span>
+          {teamMembers.slice(0, 6).map((tm) => (
+            <Button
+              key={tm.id}
+              size="sm"
+              variant="outline"
+              className="h-7 text-[11px]"
+              onClick={() => {
+                toast.success(`Assigned ${selectedIds.size} contacts to ${tm.name}`);
+                setShowAssignOwner(false);
+                setSelectedIds(new Set());
+              }}
+            >
+              {tm.name}
+            </Button>
+          ))}
+          {teamMembers.length === 0 && (
+            <span className="text-[11px] text-muted-foreground italic">
+              No team members configured
+            </span>
+          )}
+        </div>
+      )}
+      {selectedIds.size > 0 && showAddToSequence && (
+        <div className="flex items-center gap-2 flex-wrap p-2.5 rounded-md border border-border/60 bg-card">
+          <span className="text-[11px] text-muted-foreground mr-1">Add {selectedIds.size} to</span>
+          {["Warm intro · default", "Q3 enterprise outbound", "Champion follow-up"].map((seq) => (
+            <Button
+              key={seq}
+              size="sm"
+              variant="outline"
+              className="h-7 text-[11px]"
+              onClick={() => {
+                toast.success(`Added ${selectedIds.size} contacts to "${seq}"`);
+                setShowAddToSequence(false);
+                setSelectedIds(new Set());
+              }}
+            >
+              {seq}
+            </Button>
+          ))}
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 text-[11px] border-dashed"
+            onClick={() => router.push("/campaigns/new")}
+          >
+            + New sequence
+          </Button>
+        </div>
+      )}
+
+      {/* Select-all row + result count (above list for clarity) */}
+      <div className="flex items-center gap-2 px-1 text-[11px] text-muted-foreground">
+        <input
+          type="checkbox"
+          aria-label="Select all visible contacts"
+          checked={
+            filtered.slice(0, visibleCount).every((c) => selectedIds.has(c.id)) &&
+            filtered.length > 0
+          }
+          onChange={() => selectAllVisible(filtered.slice(0, visibleCount).map((c) => c.id))}
+          className="accent-brand"
+        />
+        <span>Select all visible</span>
+        <span className="ml-auto">
+          Showing {Math.min(visibleCount, filtered.length)} of {filtered.length}
+        </span>
+      </div>
+
       {/* Contact list */}
       <div className="grid gap-2">
-        {filtered.map((contact) => {
+        {filtered.slice(0, visibleCount).map((contact) => {
           const account = accounts.find((a) => a.id === contact.account_id);
           const hasWarmPath = warmPaths.some((wp) => wp.contact_id === contact.id);
 
           return (
             <Card
               key={contact.id}
-              className="border-border/60 hover:border-brand/30 transition-colors group"
+              className={`border-border/60 hover:border-brand/30 transition-colors group ${
+                selectedIds.has(contact.id) ? "ring-1 ring-brand/40 bg-brand/[0.03]" : ""
+              }`}
             >
               <CardContent className="p-3.5">
                 <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    aria-label={`Select ${contact.name}`}
+                    checked={selectedIds.has(contact.id)}
+                    onChange={() => toggleSelected(contact.id)}
+                    className="accent-brand"
+                    onClick={(e) => e.stopPropagation()}
+                  />
                   <Link href={`/contacts/${contact.id}`}>
                     <div className="w-9 h-9 rounded-full bg-brand/10 flex items-center justify-center flex-shrink-0 text-sm font-semibold text-brand hover:bg-brand/20 transition-colors">
                       {contact.name[0]}
@@ -386,6 +584,18 @@ export default function ContactsPage() {
             <p className="text-xs">Try adjusting your search or filters.</p>
           </div>
         )}
+
+        {/* Virtualised window: render in PAGE_SIZE chunks so 1,000-contact lists stay smooth */}
+        {visibleCount < filtered.length && (
+          <button
+            type="button"
+            onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+            className="w-full py-2.5 rounded-lg border border-dashed border-border/60 text-xs text-muted-foreground hover:text-foreground hover:border-border transition-colors"
+          >
+            Load next {Math.min(PAGE_SIZE, filtered.length - visibleCount)} (showing {visibleCount}{" "}
+            of {filtered.length})
+          </button>
+        )}
       </div>
 
       {/* Import Contacts modal */}
@@ -401,7 +611,7 @@ export default function ContactsPage() {
           {importStep === "idle" && (
             <div className="space-y-4 py-2">
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Paste a CSV or LinkedIn export. WarmPath will match each contact against your team's
+                Paste a CSV or LinkedIn export. WarmBlue will match each contact against your team's
                 relationship graph to find warm intro paths.
               </p>
               <Textarea
@@ -508,7 +718,7 @@ export default function ContactsPage() {
                     closeImport();
                   }}
                 >
-                  Add to WarmPath
+                  Add to WarmBlue
                 </Button>
               </>
             )}

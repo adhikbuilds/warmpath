@@ -1,5 +1,5 @@
 /**
- * WarmPath Graph Engine
+ * WarmBlue Graph Engine
  *
  * Computes warm paths through the relationship graph.
  * Replaces hardcoded WarmPath[] with real BFS + warmth scoring.
