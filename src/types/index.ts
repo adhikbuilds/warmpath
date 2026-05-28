@@ -725,9 +725,12 @@ export interface FollowUpTask {
   description: string;
   due_date: string;
   warm_path_id?: string;
+  signal_id?: string;
+  account_id?: string;
   contact_name?: string;
   account_name?: string;
   introducer_name?: string;
+  assignee_name?: string;
   created_at: string;
   completed_at?: string;
 }

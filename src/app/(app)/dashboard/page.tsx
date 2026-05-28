@@ -128,7 +128,7 @@ ${userName}`;
 
           {/* Note */}
           <p className="text-[11px] text-[#c7c4d7] italic border-l-2 border-[#4edea3]/40 pl-3">
-            This message doesn't mention WarmPath or sales. Keep it authentic.
+            This message doesn't mention WarmBlue or sales. Keep it authentic.
           </p>
 
           {/* Actions */}
@@ -244,7 +244,7 @@ ${userFirstName}`;
 
           {/* Note */}
           <p className="text-[11px] text-[#c7c4d7] italic border-l-2 border-violet-500/40 pl-3">
-            This message references your existing relationship, not WarmPath. Keep it authentic.
+            This message references your existing relationship, not WarmBlue. Keep it authentic.
           </p>
 
           {/* Actions */}
@@ -290,7 +290,6 @@ export default function DashboardPage() {
     contacts,
     signals,
     campaignAssets,
-    teamMembers,
     relationshipEdges,
     followUpTasks,
     completeFollowUpTask,
@@ -556,7 +555,7 @@ export default function DashboardPage() {
                       confidence_score: 0.85,
                       personalization_reason: topPlay.signal.description ?? topPlay.signal.title,
                       factual_claims: [topPlay.signal.title],
-                      supporting_sources: ["WarmPath signal monitor"],
+                      supporting_sources: ["WarmBlue signal monitor"],
                       risk_flags: [],
                     });
                     toast.success("1:1 intro request drafted — review it before sending");
@@ -619,38 +618,70 @@ export default function DashboardPage() {
       )}
 
       {/* ── 7-day activity bar chart ──────────────────────────────────────── */}
-      <div>
-        <p className="text-xs font-semibold text-[#c7c4d7] uppercase tracking-wider mb-2 flex items-center gap-1.5">
-          <Activity className="w-3.5 h-3.5" />
-          Personalized drafts this week
-        </p>
-        <div className="flex items-end gap-1 h-14">
-          {weekDays.map((day, i) => {
-            const count = dayCounts[i];
-            const heightPct = count > 0 ? Math.max(15, (count / maxDayCount) * 100) : 4;
-            const isToday = i === 6;
-            const label = day.toLocaleDateString("en-US", { weekday: "short" });
-            return (
-              <div key={day.toDateString()} className="flex flex-col items-center gap-1 flex-1">
-                <div className="w-full flex items-end justify-center" style={{ height: 40 }}>
-                  <div
-                    className={`w-full rounded-sm transition-all ${isToday ? "bg-[#8083ff]" : "bg-[#8083ff]/30"}`}
-                    style={{ height: `${heightPct}%` }}
-                  />
-                </div>
-                <span
-                  className={`text-[9px] ${isToday ? "text-[#4edea3] font-semibold" : "text-[#c7c4d7]/60"}`}
-                >
-                  {label}
+      {(() => {
+        const total = dayCounts.reduce((a, b) => a + b, 0);
+        const avg = total / 7;
+        const teamBenchmark = 4; // team avg drafts/day
+        return (
+          <div>
+            <div className="flex items-baseline justify-between mb-2">
+              <p className="text-xs font-semibold text-[#c7c4d7] uppercase tracking-wider flex items-center gap-1.5">
+                <Activity className="w-3.5 h-3.5" />
+                Personalized drafts this week
+              </p>
+              <div className="flex items-center gap-3 text-[10px] text-[#c7c4d7]">
+                <span>{total} this week</span>
+                <span>Avg {avg.toFixed(1)}/day</span>
+                <span className="flex items-center gap-1">
+                  <span className="w-3 h-px border-t border-dashed border-emerald-500/60" />
+                  Team benchmark {teamBenchmark}/day
                 </span>
-                {count > 0 && (
-                  <span className="text-[9px] text-[#c7c4d7] tabular-nums">{count}</span>
-                )}
               </div>
-            );
-          })}
-        </div>
-      </div>
+            </div>
+            <div className="relative flex items-end gap-1 h-20 pl-8 pr-1">
+              {/* Y-axis ticks */}
+              <div className="absolute left-0 top-0 bottom-5 w-7 flex flex-col justify-between text-[9px] text-[#c7c4d7]/50 tabular-nums pr-1 text-right">
+                <span>{maxDayCount}</span>
+                <span>{Math.round(maxDayCount / 2)}</span>
+                <span>0</span>
+              </div>
+              {/* Benchmark line */}
+              <div
+                className="absolute left-8 right-1 border-t border-dashed border-emerald-500/40 pointer-events-none"
+                style={{ bottom: `${20 + (teamBenchmark / maxDayCount) * 60}px` }}
+              />
+              {weekDays.map((day, i) => {
+                const count = dayCounts[i];
+                const heightPct = count > 0 ? Math.max(8, (count / maxDayCount) * 100) : 3;
+                const isToday = i === 6;
+                const label = day.toLocaleDateString("en-US", { weekday: "short" });
+                return (
+                  <div
+                    key={day.toDateString()}
+                    className="flex flex-col items-center gap-1 flex-1 relative"
+                  >
+                    <div className="w-full flex items-end justify-center" style={{ height: 60 }}>
+                      <div
+                        className={`w-full rounded-sm transition-all ${isToday ? "bg-[#8083ff]" : "bg-[#8083ff]/30"}`}
+                        style={{ height: `${heightPct}%` }}
+                        title={`${label}: ${count} drafts`}
+                      />
+                    </div>
+                    <span
+                      className={`text-[9px] ${isToday ? "text-[#4edea3] font-semibold" : "text-[#c7c4d7]/60"}`}
+                    >
+                      {label}
+                    </span>
+                    {count > 0 && (
+                      <span className="text-[9px] text-[#c7c4d7] tabular-nums">{count}</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
 
       <div className="grid lg:grid-cols-[1fr_320px] gap-6">
         {/* ── Left column ──────────────────────────────────────────────────── */}
@@ -727,12 +758,15 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Champion moves */}
+          {/* Signals (champion job-change) */}
           {championSignals.length > 0 && (
             <Card className="border-violet-500/20 bg-violet-500/[0.02]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-xs font-semibold flex items-center gap-1.5">Champion moves</p>
+                  <p className="text-xs font-semibold flex items-center gap-1.5">
+                    <Trophy className="w-3.5 h-3.5 text-violet-500" />
+                    Signals · Champion job changes
+                  </p>
                   <Badge
                     variant="outline"
                     className="text-[10px] bg-violet-500/10 text-violet-500 border-violet-500/20"
@@ -741,8 +775,8 @@ export default function DashboardPage() {
                   </Badge>
                 </div>
                 <p className="text-[11px] text-[#c7c4d7] mb-3 leading-relaxed">
-                  Your champions changed jobs. Reach out now your relationship gives you a warm path
-                  advantage at their new company.
+                  Champions in your network changed jobs. Reach out now — your relationship gives
+                  you a warm-path advantage at their new company.
                 </p>
                 <div className="space-y-2.5 mb-3">
                   {championSignals.map((signal) => {
@@ -869,56 +903,76 @@ export default function DashboardPage() {
               )}
             </CardContent>
           </Card>
+        </div>
+      </div>
 
-          {/* Warm paths quick view */}
-          <Card className="border-[#464554]">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-semibold flex items-center gap-1.5">
-                  <GitFork className="w-3.5 h-3.5 text-[#c7c4d7]" />
-                  Warm paths
-                </p>
+      {/* ── Horizontal cards (moved out of right rail) ───────────────────── */}
+      {/* Warm paths · horizontal */}
+      <Card className="border-[#464554]">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-semibold flex items-center gap-1.5">
+              <GitFork className="w-3.5 h-3.5 text-[#c7c4d7]" />
+              Warm paths
+            </p>
+            <Link
+              href="/relationship-graph"
+              className="text-[11px] text-[#c7c4d7] hover:text-[#e5e1e4]"
+            >
+              View graph
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {warmPaths.slice(0, 4).map((wp) => {
+              const acc = accounts.find((a) => a.id === wp.account_id);
+              const label = warmthLabel(wp.warmth_score);
+              const labelColor = warmthLabelColor(wp.warmth_score);
+              return (
                 <Link
-                  href="/relationship-graph"
-                  className="text-[11px] text-[#c7c4d7] hover:text-[#e5e1e4]"
+                  key={wp.id}
+                  href={`/accounts/${wp.account_id}`}
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-[#464554] bg-[#201f22]/40 hover:bg-[#201f22] transition-colors"
                 >
-                  View graph
+                  <div className="w-7 h-7 rounded-md bg-[#8083ff]/10 flex items-center justify-center text-[11px] font-bold text-[#4edea3] flex-shrink-0">
+                    {acc?.name?.[0] ?? "?"}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium truncate">{acc?.name}</p>
+                    <p className="text-[10px] text-[#c7c4d7] truncate">
+                      via {wp.recommended_intro_person ?? "—"}
+                    </p>
+                  </div>
+                  <div className={`text-[10px] font-semibold ${labelColor} flex-shrink-0`}>
+                    {label}
+                  </div>
                 </Link>
-              </div>
-              <div className="space-y-2.5">
-                {warmPaths.slice(0, 4).map((wp) => {
-                  const acc = accounts.find((a) => a.id === wp.account_id);
-                  const label = warmthLabel(wp.warmth_score);
-                  const labelColor = warmthLabelColor(wp.warmth_score);
-                  return (
-                    <div key={wp.id} className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-md bg-[#8083ff]/10 flex items-center justify-center text-[10px] font-bold text-[#4edea3] flex-shrink-0">
-                        {acc?.name?.[0] ?? "?"}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium truncate">{acc?.name}</p>
-                        <p className="text-[10px] text-[#c7c4d7] truncate">
-                          via {wp.recommended_intro_person ?? "your network"}
-                        </p>
-                      </div>
-                      <div className={`text-[10px] font-semibold ${labelColor}`}>{label}</div>
-                    </div>
-                  );
-                })}
-              </div>
-              <Button size="sm" variant="outline" className="w-full h-8 text-xs mt-3" asChild>
-                <Link href="/warm-leads">Find more warm paths</Link>
-              </Button>
-            </CardContent>
-          </Card>
+              );
+            })}
+          </div>
+          <Button size="sm" variant="outline" className="h-8 text-xs mt-3" asChild>
+            <Link href="/warm-leads">Find more warm paths</Link>
+          </Button>
+        </CardContent>
+      </Card>
 
-          {/* Network health */}
-          <Card className="border-[#464554]">
-            <CardContent className="p-4">
-              <p className="text-xs font-semibold mb-3 flex items-center gap-1.5">
-                <Network className="w-3.5 h-3.5 text-[#c7c4d7]" />
-                Network health
-              </p>
+      {/* Network health · horizontal */}
+      <Card className="border-[#464554]">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-semibold flex items-center gap-1.5">
+              <Network className="w-3.5 h-3.5 text-[#c7c4d7]" />
+              Network health
+            </p>
+            <Link
+              href="/relationship-graph?view=coverage"
+              className="text-[11px] text-[#c7c4d7] hover:text-[#e5e1e4]"
+            >
+              View full network
+            </Link>
+          </div>
+          <div className="grid md:grid-cols-[1fr_2fr] gap-5 items-start">
+            {/* Left: composition */}
+            <div>
               <div className="flex h-2.5 rounded-full overflow-hidden mb-2">
                 <div
                   className="bg-emerald-500 h-full"
@@ -930,7 +984,7 @@ export default function DashboardPage() {
                 />
                 <div className="bg-muted h-full flex-1" />
               </div>
-              <div className="flex items-center gap-3 text-[11px] mb-3">
+              <div className="flex flex-wrap items-center gap-3 text-[11px]">
                 <span className="flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-emerald-500" />
                   {warmEdges} warm
@@ -944,73 +998,42 @@ export default function DashboardPage() {
                   {coldEdges} cold
                 </span>
               </div>
-              {decayingConnections.length > 0 && (
-                <div className="space-y-2 border-t border-border/40 pt-3">
-                  {decayingConnections.slice(0, 2).map(({ edge }) => {
-                    const isFrom = edge.from_type === "team_member" || edge.from_type === "user";
-                    const name = isFrom ? edge.to_name : edge.from_name;
-                    const days = Math.round(
-                      (Date.now() - new Date(edge.last_interaction_at).getTime()) / 86400000,
-                    );
-                    return (
-                      <div key={edge.id} className="flex items-center gap-2 text-xs">
-                        <Link2Off className="w-3 h-3 text-[#4edea3] flex-shrink-0" />
-                        <span className="flex-1 truncate font-medium">{name}</span>
-                        <span className="text-[10px] text-[#4edea3]">{days}d ago</span>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-6 text-[10px] border-[#8083ff]/30 text-[#4edea3] hover:bg-[#8083ff]/10 flex-shrink-0"
-                          onClick={() => openReEngage(edge)}
-                        >
-                          Re-engage
-                        </Button>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-              <Button size="sm" variant="outline" className="w-full h-8 text-xs mt-3" asChild>
-                <Link href="/relationship-graph?view=coverage">View full network</Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Team */}
-          {teamMembers.length > 0 && (
-            <Card className="border-[#464554]">
-              <CardContent className="p-4">
-                <p className="text-xs font-semibold mb-3 flex items-center gap-1.5">
-                  <Users className="w-3.5 h-3.5 text-[#c7c4d7]" />
-                  Your network ({teamMembers.length} members)
-                </p>
-                <div className="space-y-2">
-                  {teamMembers.slice(0, 4).map((tm) => (
-                    <div key={tm.id} className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-[#c7c4d7] flex-shrink-0">
-                        {tm.name[0]}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium truncate">{tm.name}</p>
-                        <p className="text-[10px] text-[#c7c4d7] truncate">{tm.title}</p>
-                      </div>
-                      <div className="w-12 h-1.5 rounded-full bg-muted overflow-hidden flex-shrink-0">
-                        <div
-                          className="h-full bg-[#8083ff] rounded-full"
-                          style={{ width: `${tm.relationship_score}%` }}
-                        />
-                      </div>
+            </div>
+            {/* Right: decaying connections inline */}
+            {decayingConnections.length > 0 && (
+              <div className="grid sm:grid-cols-2 gap-2 border-l border-border/40 pl-5">
+                {decayingConnections.slice(0, 4).map(({ edge }) => {
+                  const isFrom = edge.from_type === "team_member" || edge.from_type === "user";
+                  const name = isFrom ? edge.to_name : edge.from_name;
+                  const days = Math.round(
+                    (Date.now() - new Date(edge.last_interaction_at).getTime()) / 86400000,
+                  );
+                  return (
+                    <div
+                      key={edge.id}
+                      className="flex items-center gap-2 text-xs px-2 py-1.5 rounded-md bg-[#201f22]/40 border border-[#464554]"
+                    >
+                      <Link2Off className="w-3 h-3 text-[#4edea3] flex-shrink-0" />
+                      <span className="flex-1 truncate font-medium">{name}</span>
+                      <span className="text-[10px] text-[#4edea3] tabular-nums flex-shrink-0">
+                        {days}d
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-6 text-[10px] px-2 border-[#8083ff]/30 text-[#4edea3] hover:bg-[#8083ff]/10 flex-shrink-0"
+                        onClick={() => openReEngage(edge)}
+                      >
+                        Re-engage
+                      </Button>
                     </div>
-                  ))}
-                </div>
-                <Button size="sm" variant="outline" className="w-full h-8 text-xs mt-3" asChild>
-                  <Link href="/relationship-graph">Explore relationship graph</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* ── Re-engage Sheet ───────────────────────────────────────────────── */}
       <ReEngageSheet

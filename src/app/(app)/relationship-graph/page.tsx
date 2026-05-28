@@ -935,6 +935,8 @@ export default function RelationshipGraphPage() {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const graphWrapRef = useRef<HTMLDivElement>(null);
+  // biome-ignore lint/suspicious/noExplicitAny: force-graph ref has untyped d3 API
+  const fgRef = useRef<any>(null);
   const [dimensions, setDimensions] = useState({ width: 900, height: 600 });
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -986,7 +988,7 @@ export default function RelationshipGraphPage() {
 
   const sourceTeamIds = useMemo(() => teamMembers.map((t) => t.id), [teamMembers]);
 
-  const accountsWithWarmPath = useMemo(
+  const accountsWithWarmBlue = useMemo(
     () => new Set(warmPaths.map((wp) => wp.account_id)),
     [warmPaths],
   );
@@ -1060,7 +1062,7 @@ export default function RelationshipGraphPage() {
         type: "account",
         val: Math.max(5, a.opportunity_score / 12),
         color: NODE_COLORS.account,
-        hasWarmPath: accountsWithWarmPath.has(a.id),
+        hasWarmBlue: accountsWithWarmBlue.has(a.id),
       })),
     ];
 
@@ -1082,7 +1084,41 @@ export default function RelationshipGraphPage() {
     ];
 
     return { nodes: graphNodes, links: graphLinks };
-  }, [teamMembers, contacts, accounts, filteredEdges, accountsWithWarmPath]);
+  }, [teamMembers, contacts, accounts, filteredEdges, accountsWithWarmBlue]);
+
+  // ── Total reachable paths (mathematical model) ─────────────────────────────
+  const totalReachablePaths = useMemo(() => {
+    if (!graph || sourceTeamIds.length === 0) return 0;
+    let count = 0;
+    for (const node of nodes) {
+      if (node.type !== "contact") continue;
+      for (const sid of sourceTeamIds) {
+        count += graph.findPaths(sid, node.id, 3, 3).length;
+      }
+    }
+    return count;
+  }, [graph, sourceTeamIds, nodes]);
+
+  // ── Default shortest path on mount ────────────────────────────────────────
+  useEffect(() => {
+    if (pathsSearched) return;
+    if (!graph || sourceTeamIds.length === 0) return;
+    const contactNodes = nodes.filter((n) => n.type === "contact");
+    let bestPaths: ComputedPath[] = [];
+    let bestWarmth = -1;
+    for (const node of contactNodes) {
+      for (const sid of sourceTeamIds) {
+        const paths = graph.findPaths(sid, node.id, 3, 1);
+        if (paths.length > 0 && paths[0].warmth > bestWarmth) {
+          bestWarmth = paths[0].warmth;
+          bestPaths = paths;
+        }
+      }
+    }
+    if (bestPaths.length > 0) {
+      applyPaths(bestPaths);
+    }
+  }, [graph, sourceTeamIds, nodes, pathsSearched, applyPaths]);
 
   const nodeCanvasObject = useCallback(
     (node: unknown, ctx: CanvasRenderingContext2D) => {
@@ -1094,14 +1130,14 @@ export default function RelationshipGraphPage() {
         name: string;
         id: string;
         type: string;
-        hasWarmPath?: boolean;
+        hasWarmBlue?: boolean;
       };
       const x = n.x ?? 0;
       const y = n.y ?? 0;
       const r = Math.sqrt(n.val) * 3.2;
       const isHighlighted = highlightedIds.has(n.id);
       const isYou = n.id === "user-1";
-      const isDimmed = coverageMode && n.type === "account" && !n.hasWarmPath && !isHighlighted;
+      const isDimmed = coverageMode && n.type === "account" && !n.hasWarmBlue && !isHighlighted;
       const alpha = isDimmed ? 0.2 : 1;
 
       ctx.save();
@@ -1374,7 +1410,7 @@ export default function RelationshipGraphPage() {
                 {[
                   { label: "Nodes", value: nodes.length },
                   { label: "Edges", value: links.length },
-                  { label: "Paths", value: computedPaths.length },
+                  { label: "Paths", value: totalReachablePaths },
                 ].map((s) => (
                   <div key={s.label} className="text-center">
                     <div className="text-base font-bold tabular-nums leading-none">{s.value}</div>
@@ -1408,6 +1444,7 @@ export default function RelationshipGraphPage() {
                 />
 
                 <ForceGraph2D
+                  ref={fgRef}
                   graphData={{ nodes, links }}
                   width={dimensions.width}
                   height={dimensions.height}
@@ -1424,15 +1461,30 @@ export default function RelationshipGraphPage() {
                     return `<div style="font-size:12px;padding:4px 8px;background:#1e1e2e;border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:white"><strong>${n.name}</strong><br/><span style="opacity:0.6;font-size:10px">${typeLabel}</span></div>`;
                   }}
                   nodeVal="val"
+                  nodeRelSize={6}
                   nodeColor="color"
                   linkColor={linkColor}
                   linkWidth={linkWidth}
                   onNodeClick={handleNodeClick}
                   nodeCanvasObject={nodeCanvasObject}
                   backgroundColor={CANVAS_BG}
-                  cooldownTicks={180}
-                  d3AlphaDecay={0.015}
-                  d3VelocityDecay={0.3}
+                  cooldownTicks={300}
+                  d3AlphaDecay={0.012}
+                  d3VelocityDecay={0.35}
+                  onEngineTick={() => {
+                    // Tune forces once the simulation starts so labels repel and don't overlap
+                    if (!fgRef.current) return;
+                    const charge = fgRef.current.d3Force?.("charge");
+                    if (charge && !charge.__warmpath_tuned) {
+                      charge.strength(-260).distanceMax(420);
+                      charge.__warmpath_tuned = true;
+                    }
+                    const link = fgRef.current.d3Force?.("link");
+                    if (link && !link.__warmpath_tuned) {
+                      link.distance(85);
+                      link.__warmpath_tuned = true;
+                    }
+                  }}
                   linkDirectionalParticles={2}
                   linkDirectionalParticleWidth={(link: unknown) => {
                     const l = link as { source: unknown; target: unknown };

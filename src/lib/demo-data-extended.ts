@@ -22,11 +22,11 @@ const daysAgo = (d: number) => ago(d * 24);
 
 export const DEMO_WORKSPACE: Workspace = {
   id: "ws-1",
-  name: "WarmPath",
-  domain: "warmpath.ai",
+  name: "WarmBlue",
+  domain: "warmblue.ai",
   industry: "AI / Sales Tech",
   company_size: "1–10",
-  website: "https://warmpath.ai",
+  website: "https://warmblue.ai",
   description:
     "AI-powered warm outbound sales agent that routes outreach through your team's relationship graph, surfaces buying signals, and generates fact-checked messages in your voice.",
   plan: "growth",
@@ -40,7 +40,7 @@ export const DEMO_WORKSPACE_MEMBERS: WorkspaceMember[] = [
     workspace_id: "ws-1",
     user_id: "user-1",
     name: "Adhik Agarwal",
-    email: "adhik@warmpath.ai",
+    email: "adhik@warmblue.ai",
     role: "owner",
     joined_at: daysAgo(110),
     title: "Founder & CEO",
@@ -52,7 +52,7 @@ export const DEMO_WORKSPACE_MEMBERS: WorkspaceMember[] = [
     workspace_id: "ws-1",
     user_id: "tm-2",
     name: "Sarah Chen",
-    email: "sarah@warmpath.ai",
+    email: "sarah@warmblue.ai",
     role: "admin",
     invited_by: "user-1",
     joined_at: daysAgo(90),
@@ -65,7 +65,7 @@ export const DEMO_WORKSPACE_MEMBERS: WorkspaceMember[] = [
     workspace_id: "ws-1",
     user_id: "tm-3",
     name: "Rohan Mehta",
-    email: "rohan@warmpath.ai",
+    email: "rohan@warmblue.ai",
     role: "sales_rep",
     invited_by: "user-1",
     joined_at: daysAgo(85),
@@ -78,7 +78,7 @@ export const DEMO_WORKSPACE_MEMBERS: WorkspaceMember[] = [
     workspace_id: "ws-1",
     user_id: "tm-4",
     name: "Maya Iyer",
-    email: "maya@warmpath.ai",
+    email: "maya@warmblue.ai",
     role: "sales_rep",
     invited_by: "user-1",
     joined_at: daysAgo(60),
@@ -108,10 +108,10 @@ export const DEMO_KB_ITEMS: KnowledgeBaseItem[] = [
   {
     id: "kb-1",
     workspace_id: "ws-1",
-    title: "WarmPath Product Overview",
+    title: "WarmBlue Product Overview",
     type: "product",
     content:
-      "WarmPath is an AI GTM sales agent that turns cold prospects into warm intros by mapping your team's full relationship graph, detecting buying signals in real time, and routing outreach through the warmest path. Unlike generic AI SDR tools, every message is grounded in your knowledge base and requires human approval before sending so no hallucinations, no brand risk.",
+      "WarmBlue is an AI GTM sales agent that turns cold prospects into warm intros by mapping your team's full relationship graph, detecting buying signals in real time, and routing outreach through the warmest path. Unlike generic AI SDR tools, every message is grounded in your knowledge base and requires human approval before sending so no hallucinations, no brand risk.",
     source: "Internal product team",
     tags: ["product", "overview", "pitch", "ai"],
     confidence_score: 98,
@@ -126,7 +126,7 @@ export const DEMO_KB_ITEMS: KnowledgeBaseItem[] = [
     title: "Core Value Proposition Warm Path ROI",
     type: "value_prop",
     content:
-      "Warm intros produce 5× higher reply rates and 3× higher close rates vs cold outbound (Gartner, 2025). WarmPath automates the warm-path discovery process finding the shortest relationship route between your team and any target prospect. Teams using WarmPath go live in under 5 minutes and see first meetings booked within 48 hours.",
+      "Warm intros produce 5× higher reply rates and 3× higher close rates vs cold outbound (Gartner, 2025). WarmBlue automates the warm-path discovery process finding the shortest relationship route between your team and any target prospect. Teams using WarmBlue go live in under 5 minutes and see first meetings booked within 48 hours.",
     source: "Sales team + Gartner research",
     tags: ["value-prop", "roi", "stats", "warm-path"],
     confidence_score: 95,
@@ -168,10 +168,10 @@ export const DEMO_KB_ITEMS: KnowledgeBaseItem[] = [
   {
     id: "kb-5",
     workspace_id: "ws-1",
-    title: "Competitor Battlecard Apollo vs WarmPath",
+    title: "Competitor Battlecard Apollo vs WarmBlue",
     type: "competitor",
     content:
-      "Apollo: Strong prospecting database, weak on relationship intelligence and warm routing. Apollo gives you emails; we give you warm intros. Key WarmPath advantages: relationship graph (Apollo has none), warm-path routing (manual in Apollo), knowledge-grounded messages (Apollo templates only), human approval loop (Apollo auto-sends), real-time signal detection (Apollo basic intent data). When prospect says 'we use Apollo': 'Apollo is great for discovery we complement it. Connect your Apollo lists to WarmPath and let us route outreach through warm paths instead of cold sequences.'",
+      "Apollo: Strong prospecting database, weak on relationship intelligence and warm routing. Apollo gives you emails; we give you warm intros. Key WarmBlue advantages: relationship graph (Apollo has none), warm-path routing (manual in Apollo), knowledge-grounded messages (Apollo templates only), human approval loop (Apollo auto-sends), real-time signal detection (Apollo basic intent data). When prospect says 'we use Apollo': 'Apollo is great for discovery we complement it. Connect your Apollo lists to WarmBlue and let us route outreach through warm paths instead of cold sequences.'",
     source: "Sales team competitive intelligence",
     tags: ["competitor", "apollo", "battlecard"],
     confidence_score: 88,
@@ -186,7 +186,7 @@ export const DEMO_KB_ITEMS: KnowledgeBaseItem[] = [
     title: "Objection: 'We already have an AI SDR tool'",
     type: "objection",
     content:
-      "Response: 'Most AI SDR tools are cold sequence automators they just send templated emails at scale. WarmPath is different: we map your team's relationship graph, find the warmest path to every prospect, and generate messages that reference those real relationships. Our messages are also grounded in your knowledge base and require your approval before sending so no hallucinations, no brand risk. The typical team using both says WarmPath handles the warm-path opportunities while their AI SDR handles cold fill-in.' Close: 'What's your current reply rate on cold sequences? Most teams see 3–5%. Our warm-path customers average 31%.'",
+      "Response: 'Most AI SDR tools are cold sequence automators they just send templated emails at scale. WarmBlue is different: we map your team's relationship graph, find the warmest path to every prospect, and generate messages that reference those real relationships. Our messages are also grounded in your knowledge base and require your approval before sending so no hallucinations, no brand risk. The typical team using both says WarmBlue handles the warm-path opportunities while their AI SDR handles cold fill-in.' Close: 'What's your current reply rate on cold sequences? Most teams see 3–5%. Our warm-path customers average 31%.'",
     source: "Sales call recordings",
     tags: ["objection", "ai-sdr", "response"],
     confidence_score: 90,
@@ -201,7 +201,7 @@ export const DEMO_KB_ITEMS: KnowledgeBaseItem[] = [
     title: "Case Study SeriesAI (anonymized)",
     type: "case_study",
     content:
-      "A Series A B2B SaaS company with 3 SDRs used WarmPath to increase outbound reply rates from 7% to 38% in 6 weeks. Key wins: (1) Found 14 warm paths through advisor network to target CROs; (2) Triggered by funding signal, booked 3 meetings within 72h of a competitor's raise; (3) SDRs saved ~4h/week on manual research. Quote: 'WarmPath found a warm path we had no idea existed our advisor was a former colleague of the CRO at our #1 target account.' CEO, SeriesAI (name withheld).",
+      "A Series A B2B SaaS company with 3 SDRs used WarmBlue to increase outbound reply rates from 7% to 38% in 6 weeks. Key wins: (1) Found 14 warm paths through advisor network to target CROs; (2) Triggered by funding signal, booked 3 meetings within 72h of a competitor's raise; (3) SDRs saved ~4h/week on manual research. Quote: 'WarmBlue found a warm path we had no idea existed our advisor was a former colleague of the CRO at our #1 target account.' CEO, SeriesAI (name withheld).",
     source: "Customer interview",
     tags: ["case-study", "roi", "series-a", "success-story"],
     confidence_score: 96,
@@ -216,7 +216,7 @@ export const DEMO_KB_ITEMS: KnowledgeBaseItem[] = [
     title: "Approved Claims Verified Statistics",
     type: "compliance",
     content:
-      "APPROVED TO USE IN MESSAGES: (1) Warm intros produce 5× higher reply rates vs cold email (Gartner, 2025). (2) 47% close rate on deals that started with a warm introduction (WarmPath customer data, n=400). (3) Setup takes under 5 minutes first warm lead identified before call ends. (4) Zero RevOps engineers required. (5) Human approval required before any message sends. These stats are verified and approved by legal for use in outreach.",
+      "APPROVED TO USE IN MESSAGES: (1) Warm intros produce 5× higher reply rates vs cold email (Gartner, 2025). (2) 47% close rate on deals that started with a warm introduction (WarmBlue customer data, n=400). (3) Setup takes under 5 minutes first warm lead identified before call ends. (4) Zero RevOps engineers required. (5) Human approval required before any message sends. These stats are verified and approved by legal for use in outreach.",
     source: "Legal + marketing review",
     tags: ["compliance", "approved-claims", "stats", "legal"],
     confidence_score: 100,
@@ -246,7 +246,7 @@ export const DEMO_KB_ITEMS: KnowledgeBaseItem[] = [
     title: "Sales Playbook Discovery Call Script",
     type: "playbook",
     content:
-      "DISCOVERY CALL FRAMEWORK (SPICED for WarmPath): Situation: 'Walk me through your current outbound motion how are reps finding and reaching out to prospects today?' Pain: 'What's your average reply rate? How much time do SDRs spend on research and personalization per prospect?' Impact: 'If reply rates doubled, what would that mean for pipeline? What does a meeting cost in SDR time right now?' Critical event: 'Are you hiring more SDRs soon? Any pipeline goals for Q3?' Decision: 'Who else would be involved in evaluating a tool like this?' Close: 'Based on what you've shared, I think we can [specific outcome]. Can I send you a 5-minute demo video built around your team's actual network?'",
+      "DISCOVERY CALL FRAMEWORK (SPICED for WarmBlue): Situation: 'Walk me through your current outbound motion how are reps finding and reaching out to prospects today?' Pain: 'What's your average reply rate? How much time do SDRs spend on research and personalization per prospect?' Impact: 'If reply rates doubled, what would that mean for pipeline? What does a meeting cost in SDR time right now?' Critical event: 'Are you hiring more SDRs soon? Any pipeline goals for Q3?' Decision: 'Who else would be involved in evaluating a tool like this?' Close: 'Based on what you've shared, I think we can [specific outcome]. Can I send you a 5-minute demo video built around your team's actual network?'",
     source: "Sales team",
     tags: ["playbook", "discovery", "spiced", "call-script"],
     confidence_score: 85,
@@ -1003,7 +1003,7 @@ export const DEMO_AUDIT_LOGS: AuditLog[] = [
     action: "workspace.created",
     entity_type: "workspace",
     entity_id: "ws-1",
-    entity_name: "WarmPath",
+    entity_name: "WarmBlue",
     created_at: daysAgo(110),
   },
   {
@@ -1055,7 +1055,7 @@ export const DEMO_AUDIT_LOGS: AuditLog[] = [
     action: "kb.item_added",
     entity_type: "kb_item",
     entity_id: "kb-1",
-    entity_name: "WarmPath Product Overview",
+    entity_name: "WarmBlue Product Overview",
     created_at: daysAgo(90),
   },
   {

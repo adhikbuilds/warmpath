@@ -529,6 +529,24 @@ export default function DiscoverPage() {
   // ── Visitors ────────────────────────────────────────────────────────────────
   const [visitors, setVisitors] = useState(DEMO_VISITORS);
   const [convertingId, setConvertingId] = useState<string | null>(null);
+  const [selectedVisitorIds, setSelectedVisitorIds] = useState<Set<string>>(new Set());
+  const [bulkConverting, setBulkConverting] = useState(false);
+
+  function toggleVisitorSelected(id: string) {
+    setSelectedVisitorIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function selectAllUnconverted() {
+    const unconverted = visitors.filter((v) => !v.converted).map((v) => v.id);
+    const allSelected =
+      unconverted.length > 0 && unconverted.every((id) => selectedVisitorIds.has(id));
+    setSelectedVisitorIds(allSelected ? new Set() : new Set(unconverted));
+  }
 
   const activeFiltersCount = [
     ...selectedIndustries,
@@ -699,10 +717,25 @@ export default function DiscoverPage() {
 
     setVisitors((prev) => prev.map((v) => (v.id === visitor.id ? { ...v, converted: true } : v)));
     setConvertingId(null);
+    // Auto-navigate to Warm Leads after 2s and the new lead is highlighted there
     toast.success(`${visitor.company} added as warm lead`, {
-      description: visitor.warm_path ? "Warm path ready — check Warm Leads" : "Added to pipeline",
-      action: { label: "View", onClick: () => router.push("/warm-leads") },
+      description: visitor.warm_path ? "Navigating to Warm Leads in 2 s…" : "Added to pipeline",
     });
+    setTimeout(() => {
+      router.push(`/warm-leads?highlight=${accountId}`);
+    }, 2000);
+  };
+
+  const handleBulkConvertVisitors = async () => {
+    const toConvert = visitors.filter((v) => selectedVisitorIds.has(v.id) && !v.converted);
+    if (!toConvert.length) return;
+    setBulkConverting(true);
+    for (const v of toConvert) {
+      await handleConvertVisitor(v);
+    }
+    setSelectedVisitorIds(new Set());
+    setBulkConverting(false);
+    toast.success(`${toConvert.length} visitors added to Warm Leads`);
   };
 
   const unimportedCount = leads.filter((_, i) => !importedIds.has(String(i))).length;
@@ -792,7 +825,7 @@ export default function DiscoverPage() {
               <div className="flex items-center gap-2 mb-1.5">
                 <Zap className="w-4 h-4 text-[#4edea3]" />
                 <span className="text-xs font-semibold text-[#4edea3] uppercase tracking-wider">
-                  WarmPath USP
+                  WarmBlue USP
                 </span>
               </div>
               <p className="text-lg font-bold leading-snug">
@@ -831,10 +864,27 @@ export default function DiscoverPage() {
                     Last 7 days
                   </Badge>
                 </CardTitle>
-                <p className="text-xs text-[#c7c4d7]">
-                  {visitors.filter((v) => v.converted).length} converted ·{" "}
-                  {visitors.filter((v) => !v.converted).length} pending
-                </p>
+                <div className="flex items-center gap-3">
+                  <p className="text-xs text-[#c7c4d7]">
+                    {visitors.filter((v) => v.converted).length} converted ·{" "}
+                    {visitors.filter((v) => !v.converted).length} pending
+                  </p>
+                  {selectedVisitorIds.size > 0 && (
+                    <Button
+                      size="sm"
+                      className="h-7 text-xs gap-1.5 bg-[#4edea3] text-black hover:bg-[#4edea3]/90"
+                      disabled={bulkConverting}
+                      onClick={handleBulkConvertVisitors}
+                    >
+                      {bulkConverting ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <Zap className="w-3 h-3" />
+                      )}
+                      Add {selectedVisitorIds.size} to Warm Leads
+                    </Button>
+                  )}
+                </div>
               </div>
             </CardHeader>
             <CardContent className="p-0">
@@ -842,6 +892,20 @@ export default function DiscoverPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-[#464554]/60">
+                      <th className="px-4 py-3 w-8">
+                        <input
+                          type="checkbox"
+                          aria-label="Select all unconverted visitors"
+                          checked={
+                            visitors.filter((v) => !v.converted).length > 0 &&
+                            visitors
+                              .filter((v) => !v.converted)
+                              .every((v) => selectedVisitorIds.has(v.id))
+                          }
+                          onChange={selectAllUnconverted}
+                          className="accent-[#4edea3]"
+                        />
+                      </th>
                       <th className="text-left text-xs font-semibold text-[#c7c4d7] px-5 py-3">
                         Company
                       </th>
@@ -866,8 +930,19 @@ export default function DiscoverPage() {
                         key={v.id}
                         className={`border-b border-[#464554]/40 last:border-0 transition-colors hover:bg-muted/20 ${
                           v.converted ? "opacity-50" : ""
-                        }`}
+                        } ${selectedVisitorIds.has(v.id) ? "bg-[#4edea3]/5" : ""}`}
                       >
+                        <td className="px-4 py-3.5">
+                          {!v.converted && (
+                            <input
+                              type="checkbox"
+                              aria-label={`Select ${v.company}`}
+                              checked={selectedVisitorIds.has(v.id)}
+                              onChange={() => toggleVisitorSelected(v.id)}
+                              className="accent-[#4edea3]"
+                            />
+                          )}
+                        </td>
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-2.5">
                             <div className="w-8 h-8 rounded-lg bg-[#8083ff]/10 flex items-center justify-center text-xs font-bold text-[#4edea3] flex-shrink-0">

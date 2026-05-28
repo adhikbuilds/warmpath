@@ -24,7 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuthStore } from "@/stores/authStore";
 
 const STEPS = [
-  { id: "welcome", title: "Welcome to WarmPath", icon: Sparkles },
+  { id: "welcome", title: "Welcome to WarmBlue", icon: Sparkles },
   { id: "company", title: "Your company", icon: Building2 },
   { id: "icp", title: "Define your ICP", icon: Target },
   { id: "persona", title: "Your writing voice", icon: Users },
@@ -92,7 +92,7 @@ export default function OnboardingPage() {
                 Welcome, {user?.name?.split(" ")[0] ?? "there"}
               </h2>
               <p className="text-muted-foreground mt-2 max-w-sm mx-auto text-sm leading-relaxed">
-                WarmPath turns your team's relationship graph into your biggest competitive
+                WarmBlue turns your team's relationship graph into your biggest competitive
                 advantage. Let's get you set up in under 5 minutes.
               </p>
             </div>
@@ -133,7 +133,7 @@ export default function OnboardingPage() {
             <div>
               <h2 className="text-xl font-bold">Tell us about your company</h2>
               <p className="text-sm text-muted-foreground mt-1">
-                This helps WarmPath craft relevant, personalized outreach.
+                This helps WarmBlue craft relevant, personalized outreach.
               </p>
             </div>
             <div>
@@ -175,7 +175,7 @@ export default function OnboardingPage() {
             <div>
               <h2 className="text-xl font-bold">Define your ideal customer</h2>
               <p className="text-sm text-muted-foreground mt-1">
-                WarmPath will score every account against this profile automatically.
+                WarmBlue will score every account against this profile automatically.
               </p>
             </div>
             <div>
@@ -234,7 +234,7 @@ export default function OnboardingPage() {
             <div>
               <h2 className="text-xl font-bold">Your AI writing voice</h2>
               <p className="text-sm text-muted-foreground mt-1">
-                WarmPath writes messages that sound exactly like you not a robot.
+                WarmBlue writes messages that sound exactly like you not a robot.
               </p>
             </div>
             <div>
@@ -279,7 +279,7 @@ export default function OnboardingPage() {
             <div>
               <h2 className="text-xl font-bold">Import your target accounts</h2>
               <p className="text-sm text-muted-foreground mt-1">
-                WarmPath will enrich, score, and find warm paths for every account.
+                WarmBlue will enrich, score, and find warm paths for every account.
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -482,7 +482,7 @@ export default function OnboardingPage() {
             <div>
               <h2 className="text-2xl font-bold">You're all set!</h2>
               <p className="text-muted-foreground mt-2 max-w-sm mx-auto text-sm leading-relaxed">
-                WarmPath has mapped your relationship graph, scored your accounts, and queued your
+                WarmBlue has mapped your relationship graph, scored your accounts, and queued your
                 first AI-generated outreach for approval.
               </p>
             </div>
@@ -503,7 +503,7 @@ export default function OnboardingPage() {
             </div>
             <div className="space-y-2 text-left max-w-xs mx-auto">
               <p className="text-xs font-semibold text-center mb-3">
-                Your first week with WarmPath:
+                Your first week with WarmBlue:
               </p>
               {[
                 { day: "Today", action: "Review 5 queued messages in the approval queue" },

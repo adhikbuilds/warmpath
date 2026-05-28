@@ -23,9 +23,9 @@ function SessionBridge() {
       const sessionUser = session.user as typeof session.user & { id?: string; role?: string };
       setUser({
         id: sessionUser.id ?? "session-user",
-        name: sessionUser.name ?? "WarmPath User",
+        name: sessionUser.name ?? "WarmBlue User",
         email: sessionUser.email ?? "",
-        company_name: "WarmPath",
+        company_name: "WarmBlue",
         role: sessionUser.role ?? "Member",
         plan: "growth",
         onboarding_completed: true,

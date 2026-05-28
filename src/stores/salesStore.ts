@@ -46,11 +46,11 @@ const DEFAULT_AI_SETTINGS: WorkspaceAISettings = {
 
 const DEFAULT_WORKSPACE: Workspace = {
   id: "",
-  name: "WarmPath",
-  domain: "warmpath.ai",
+  name: "WarmBlue",
+  domain: "warmblue.ai",
   industry: "AI / Sales Tech",
   company_size: "1–10",
-  website: "https://warmpath.ai",
+  website: "https://warmblue.ai",
   description: "",
   plan: "growth",
   onboarding_stage: "complete",
@@ -142,6 +142,8 @@ interface SalesState {
   createFollowUpTask: (task: Omit<FollowUpTask, "id" | "created_at" | "status">) => void;
   completeFollowUpTask: (id: string) => void;
   dismissFollowUpTask: (id: string) => void;
+  snoozeFollowUpTask: (id: string, hours: number) => void;
+  reassignFollowUpTask: (id: string, assigneeName: string) => void;
 
   // Actions WhatsApp (local only)
   approveWhatsApp: (id: string) => void;
@@ -640,7 +642,7 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
       const rawAccounts = val(accountsRes, []) as Record<string, unknown>[];
       const rawContacts = val(contactsRes, []) as Record<string, unknown>[];
       const rawSignals = val(signalsRes, []) as Record<string, unknown>[];
-      const rawWarmPaths = val(warmPathsRes, []) as Record<string, unknown>[];
+      const rawWarmBlues = val(warmPathsRes, []) as Record<string, unknown>[];
       const rawCampaigns = val(campaignsRes, []) as Record<string, unknown>[];
       const rawMessages = val(approvalsRes, []) as Record<string, unknown>[];
       const rawKB = val(kbRes, []) as Record<string, unknown>[];
@@ -683,7 +685,7 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
       const workspaceData: Workspace = rawWorkspace
         ? {
             id: rawWorkspace.id as string,
-            name: (rawWorkspace.name as string) ?? "WarmPath",
+            name: (rawWorkspace.name as string) ?? "WarmBlue",
             domain: (rawWorkspace.domain as string) ?? "",
             industry: (rawWorkspace.industry as string) ?? "",
             company_size: ((rawWorkspace.company_size ?? rawWorkspace.companySize) as string) ?? "",
@@ -702,7 +704,7 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
       const mappedContacts = rawContacts.map(mapContact);
       const mappedAccounts = rawAccounts.map(mapAccount);
       const mappedSignals = rawSignals.map(mapSignal);
-      const mappedWarmPaths = rawWarmPaths.map(mapWarmPath);
+      const mappedWarmPaths = rawWarmBlues.map(mapWarmPath);
       const mappedMessages = rawMessages.map(mapMessage).map((msg) => ({
         ...msg,
         contact: msg.contact ?? mappedContacts.find((c) => c.id === msg.contact_id),
@@ -988,6 +990,26 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: "dismissed" }),
     }).catch(() => {}); // fire-and-forget
+  },
+
+  snoozeFollowUpTask: (id, hours) => {
+    set((state) => ({
+      followUpTasks: state.followUpTasks.map((t) => {
+        if (t.id !== id) return t;
+        const base = new Date(t.due_date);
+        const reference = base < new Date() ? new Date() : base;
+        const newDue = new Date(reference.getTime() + hours * 60 * 60 * 1000).toISOString();
+        return { ...t, due_date: newDue };
+      }),
+    }));
+  },
+
+  reassignFollowUpTask: (id, assigneeName) => {
+    set((state) => ({
+      followUpTasks: state.followUpTasks.map((t) =>
+        t.id === id ? { ...t, assignee_name: assigneeName } : t,
+      ),
+    }));
   },
 
   // ─── Missions ─────────────────────────────────────────────────────────────

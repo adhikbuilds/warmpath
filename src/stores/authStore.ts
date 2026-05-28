@@ -9,8 +9,8 @@ import type { User } from "@/types";
 const DEMO_DISPLAY_USER: User = {
   id: "demo-user",
   name: "Adhik Agarwal",
-  email: "demo@warmpath.ai",
-  company_name: "WarmPath",
+  email: "demo@warmblue.ai",
+  company_name: "WarmBlue",
   role: "Founder & CEO",
   plan: "growth",
   onboarding_completed: true,
@@ -52,7 +52,7 @@ export const useAuthStore = create<AuthState>()(
         })),
     }),
     {
-      name: "warmpath-auth",
+      name: "warmblue-auth",
       partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
     },
   ),

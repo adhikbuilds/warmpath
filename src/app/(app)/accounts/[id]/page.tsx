@@ -92,7 +92,7 @@ const LIKELY_OBJECTIONS = [
   {
     objection: "We already use Apollo / Outreach",
     rebuttal:
-      "Apollo finds contacts. WarmPath finds your team's existing relationships to those contacts. They work together WarmPath is the intelligence layer, not a replacement.",
+      "Apollo finds contacts. WarmBlue finds your team's existing relationships to those contacts. They work together WarmBlue is the intelligence layer, not a replacement.",
   },
   {
     objection: "Our team is too small for this",
@@ -102,7 +102,7 @@ const LIKELY_OBJECTIONS = [
   {
     objection: "We're not sure the ROI is there",
     rebuttal:
-      "Your current warm outreach probably has a 34% reply rate vs ~3% cold. WarmPath finds 3–5× more warm paths you didn't know existed. ROI is structural, not speculative.",
+      "Your current warm outreach probably has a 34% reply rate vs ~3% cold. WarmBlue finds 3–5× more warm paths you didn't know existed. ROI is structural, not speculative.",
   },
 ];
 
@@ -142,12 +142,12 @@ export default function AccountDetailPage({ params }: { params: Promise<{ id: st
 
   const accountContacts = contacts.filter((c) => c.account_id === id);
   const accountSignals = signals.filter((s) => s.account_id === id);
-  const accountWarmPaths = warmPaths.filter((wp) => wp.account_id === id);
+  const accountWarmBlues = warmPaths.filter((wp) => wp.account_id === id);
   const accountMessages = messages.filter((m) => m.account_id === id);
 
   const topContact = accountContacts.sort((a, b) => b.warmth_score - a.warmth_score)[0];
   const topSignal = accountSignals.sort((a, b) => b.urgency_score - a.urgency_score)[0];
-  const topPath = accountWarmPaths.sort((a, b) => b.warmth_score - a.warmth_score)[0];
+  const topPath = accountWarmBlues.sort((a, b) => b.warmth_score - a.warmth_score)[0];
   const nba = topSignal
     ? {
         recommended_action: topPath
@@ -184,14 +184,14 @@ export default function AccountDetailPage({ params }: { params: Promise<{ id: st
       detail: `via ${s.source ?? s.type} · urgency ${s.urgency_score}`,
       occurred_at: s.detected_at,
     })),
-    ...accountWarmPaths.map((wp) => ({
+    ...accountWarmBlues.map((wp) => ({
       id: `wp-req-${wp.id}`,
       type: "intro_requested" as const,
       summary: `Intro requested via ${wp.recommended_intro_person}`,
       detail: `${wp.path_nodes.length}-hop path · warmth ${wp.warmth_score}`,
       occurred_at: accountSignals[0]?.detected_at ?? new Date().toISOString(),
     })),
-    ...accountWarmPaths
+    ...accountWarmBlues
       .filter((wp) => wp.status === "intro_accepted" || wp.status === "replied")
       .map((wp) => ({
         id: `wp-acc-${wp.id}`,
@@ -351,6 +351,49 @@ export default function AccountDetailPage({ params }: { params: Promise<{ id: st
         </div>
       </div>
 
+      {/* Agent recommendation (top-of-page — the killer feature) */}
+      {nba && (
+        <Card className="border-brand/40 bg-gradient-to-br from-brand/10 via-brand/5 to-transparent warm-glow">
+          <CardContent className="p-5">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-lg bg-brand/15 border border-brand/30 flex items-center justify-center flex-shrink-0">
+                <Sparkles className="w-4 h-4 text-brand" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-brand">
+                    Agent recommendation
+                  </p>
+                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-brand/15 text-brand border border-brand/25">
+                    {Math.round(nba.confidence * 100)}% confidence
+                  </span>
+                </div>
+                <p className="text-base font-semibold leading-snug">{nba.recommended_action}</p>
+                <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">{nba.reason}</p>
+                <div className="flex items-center gap-2 mt-3">
+                  <Button
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={() => toast.success("Message drafted!")}
+                  >
+                    <Sparkles className="w-3 h-3 mr-1.5" />
+                    Execute now
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 text-xs"
+                    onClick={() => toast.info("Saved for later")}
+                  >
+                    Save for later
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Score cards */}
       <div className="grid grid-cols-4 gap-3">
         {[
@@ -381,36 +424,6 @@ export default function AccountDetailPage({ params }: { params: Promise<{ id: st
         ))}
       </div>
 
-      {/* Next best action */}
-      {nba && (
-        <Card className="border-brand/30 bg-brand/5 warm-glow">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <Sparkles className="w-4 h-4 text-brand flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
-                  Agent recommendation
-                </p>
-                <p className="text-sm font-medium">{nba.recommended_action}</p>
-                <p className="text-xs text-muted-foreground mt-1">{nba.reason}</p>
-                <div className="flex items-center gap-2 mt-2">
-                  <Button
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => toast.success("Message drafted!")}
-                  >
-                    Execute
-                  </Button>
-                  <span className="text-[10px] text-muted-foreground">
-                    {Math.round(nba.confidence * 100)}% confidence
-                  </span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       <Tabs defaultValue="contacts">
         <TabsList className="h-8">
           <TabsTrigger value="contacts" className="text-xs h-7">
@@ -420,7 +433,7 @@ export default function AccountDetailPage({ params }: { params: Promise<{ id: st
             Signals ({accountSignals.length})
           </TabsTrigger>
           <TabsTrigger value="paths" className="text-xs h-7">
-            Warm Paths ({accountWarmPaths.length})
+            Warm Paths ({accountWarmBlues.length})
           </TabsTrigger>
           <TabsTrigger value="messages" className="text-xs h-7">
             Messages ({accountMessages.length})
@@ -517,12 +530,12 @@ export default function AccountDetailPage({ params }: { params: Promise<{ id: st
         </TabsContent>
 
         <TabsContent value="paths" className="mt-4 space-y-2">
-          {accountWarmPaths.length === 0 ? (
+          {accountWarmBlues.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground text-sm">
               No warm paths found yet
             </div>
           ) : (
-            accountWarmPaths.map((wp) => {
+            accountWarmBlues.map((wp) => {
               const contact = contacts.find((c) => c.id === wp.contact_id);
               return (
                 <Card key={wp.id} className="border-border/60 warm-glow">

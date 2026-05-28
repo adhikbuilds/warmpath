@@ -546,10 +546,20 @@ export default function SignalsPage() {
   const { signals, accounts, contacts, warmPaths } = useSalesStore();
 
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+  const [dismissReasons, setDismissReasons] = useState<Record<string, string>>({});
+  const [pendingDismissId, setPendingDismissId] = useState<string | null>(null);
   const [fundingChipActive, setFundingChipActive] = useState(false);
+  const [signalTypeFilter, setSignalTypeFilter] = useState<string>("all");
+  const [icpTierFilter, setIcpTierFilter] = useState<string>("all");
+  const [warmthFilter, setWarmthFilter] = useState<string>("all");
 
   // Check if any funding signals exist to conditionally show chip
   const hasFundingSignals = useMemo(() => signals.some((s) => s.type === "funding"), [signals]);
+
+  const availableSignalTypes = useMemo(
+    () => Array.from(new Set(signals.map((s) => s.type))),
+    [signals],
+  );
 
   // Enrich signals with account / path / contact data
   const enrichedSignals = useMemo(() => {
@@ -591,15 +601,52 @@ export default function SignalsPage() {
       });
   }, [signals, accounts, contacts, warmPaths, dismissedIds]);
 
-  // Apply funding filter chip
+  // Apply all filters
   const visibleSignals = useMemo(() => {
-    if (!fundingChipActive) return enrichedSignals;
-    return enrichedSignals.filter((e) => e.signal.type === "funding");
-  }, [enrichedSignals, fundingChipActive]);
+    return enrichedSignals.filter((e) => {
+      if (fundingChipActive && e.signal.type !== "funding") return false;
+      if (signalTypeFilter !== "all" && e.signal.type !== signalTypeFilter) return false;
+      if (icpTierFilter !== "all") {
+        const fit = e.account?.fit_score ?? 0;
+        if (icpTierFilter === "tier1" && fit < 80) return false;
+        if (icpTierFilter === "tier2" && (fit < 60 || fit >= 80)) return false;
+        if (icpTierFilter === "tier3" && fit >= 60) return false;
+      }
+      if (warmthFilter !== "all") {
+        const w = e.warmthScore ?? 0;
+        if (warmthFilter === "hot" && w < 80) return false;
+        if (warmthFilter === "warm" && (w < 50 || w >= 80)) return false;
+        if (warmthFilter === "cool" && w >= 50) return false;
+      }
+      return true;
+    });
+  }, [enrichedSignals, fundingChipActive, signalTypeFilter, icpTierFilter, warmthFilter]);
+
+  function commitDismiss(id: string, reason: string) {
+    setDismissedIds((prev) => new Set([...prev, id]));
+    setDismissReasons((prev) => ({ ...prev, [id]: reason }));
+    setPendingDismissId(null);
+    toast.success("Signal dismissed", {
+      description: `Reason: ${reason}. Used to retrain urgency scoring.`,
+      action: {
+        label: "Undo",
+        onClick: () => {
+          setDismissedIds((prev) => {
+            const next = new Set(prev);
+            next.delete(id);
+            return next;
+          });
+          setDismissReasons((prev) => {
+            const { [id]: _, ...rest } = prev;
+            return rest;
+          });
+        },
+      },
+    });
+  }
 
   function handleDismiss(id: string) {
-    setDismissedIds((prev) => new Set([...prev, id]));
-    toast.success("Signal dismissed");
+    setPendingDismissId(id);
   }
 
   function handleDraftIntro(companyName: string) {
@@ -730,9 +777,91 @@ export default function SignalsPage() {
             paddingBottom: 2,
           }}
         >
-          <FilterChip label="Signal Type" hasDropdown onClick={() => {}} />
-          <FilterChip label="ICP Tier" hasDropdown onClick={() => {}} />
-          <FilterChip label="Warmth Score" hasDropdown onClick={() => {}} />
+          <select
+            value={signalTypeFilter}
+            onChange={(e) => setSignalTypeFilter(e.target.value)}
+            style={{
+              height: 32,
+              padding: "0 28px 0 12px",
+              borderRadius: 9999,
+              border:
+                signalTypeFilter !== "all"
+                  ? `1px solid rgba(79,70,229,0.6)`
+                  : `1px solid ${T.border}`,
+              backgroundColor: signalTypeFilter !== "all" ? "rgba(79,70,229,0.12)" : "transparent",
+              color: signalTypeFilter !== "all" ? "#818cf8" : T.muted,
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: "pointer",
+              appearance: "none",
+              backgroundImage:
+                "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>\")",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "right 10px center",
+              flexShrink: 0,
+            }}
+          >
+            <option value="all">Signal type: All</option>
+            {availableSignalTypes.map((t) => (
+              <option key={t} value={t}>
+                Signal type: {t}
+              </option>
+            ))}
+          </select>
+          <select
+            value={icpTierFilter}
+            onChange={(e) => setIcpTierFilter(e.target.value)}
+            style={{
+              height: 32,
+              padding: "0 28px 0 12px",
+              borderRadius: 9999,
+              border:
+                icpTierFilter !== "all" ? `1px solid rgba(79,70,229,0.6)` : `1px solid ${T.border}`,
+              backgroundColor: icpTierFilter !== "all" ? "rgba(79,70,229,0.12)" : "transparent",
+              color: icpTierFilter !== "all" ? "#818cf8" : T.muted,
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: "pointer",
+              appearance: "none",
+              backgroundImage:
+                "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>\")",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "right 10px center",
+              flexShrink: 0,
+            }}
+          >
+            <option value="all">ICP tier: All</option>
+            <option value="tier1">ICP tier: 1 (fit ≥ 80)</option>
+            <option value="tier2">ICP tier: 2 (fit 60–79)</option>
+            <option value="tier3">ICP tier: 3 (fit &lt; 60)</option>
+          </select>
+          <select
+            value={warmthFilter}
+            onChange={(e) => setWarmthFilter(e.target.value)}
+            style={{
+              height: 32,
+              padding: "0 28px 0 12px",
+              borderRadius: 9999,
+              border:
+                warmthFilter !== "all" ? `1px solid rgba(79,70,229,0.6)` : `1px solid ${T.border}`,
+              backgroundColor: warmthFilter !== "all" ? "rgba(79,70,229,0.12)" : "transparent",
+              color: warmthFilter !== "all" ? "#818cf8" : T.muted,
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: "pointer",
+              appearance: "none",
+              backgroundImage:
+                "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>\")",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "right 10px center",
+              flexShrink: 0,
+            }}
+          >
+            <option value="all">Warmth: All</option>
+            <option value="hot">Warmth: Hot (80+)</option>
+            <option value="warm">Warmth: Warm (50–79)</option>
+            <option value="cool">Warmth: Cool (&lt; 50)</option>
+          </select>
 
           {/* Divider */}
           <div
@@ -871,6 +1000,94 @@ export default function SignalsPage() {
           </div>
         )}
       </div>
+
+      {/* Dismiss-reason modal */}
+      {pendingDismissId && (
+        // biome-ignore lint/a11y/useKeyWithClickEvents: lightweight modal backdrop
+        // biome-ignore lint/a11y/noStaticElementInteractions: dismiss reason modal backdrop
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(0,0,0,0.6)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 100,
+          }}
+          onClick={() => setPendingDismissId(null)}
+        >
+          <div
+            // biome-ignore lint/a11y/useKeyWithClickEvents: inner container stops propagation
+            // biome-ignore lint/a11y/noStaticElementInteractions: inner container stops propagation
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: 420,
+              maxWidth: "90vw",
+              backgroundColor: "#18181b",
+              border: `1px solid ${T.border}`,
+              borderRadius: 12,
+              padding: 20,
+            }}
+          >
+            <p
+              style={{ fontSize: 14, fontWeight: 600, color: T.white, margin: 0, marginBottom: 6 }}
+            >
+              Why are you dismissing this signal?
+            </p>
+            <p style={{ fontSize: 12, color: T.muted, margin: 0, marginBottom: 16 }}>
+              Your answer trains the urgency model so we surface fewer like it.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {[
+                "Not in ICP",
+                "Wrong contact / persona",
+                "Bad timing — revisit later",
+                "Already in pipeline",
+                "Low-confidence signal",
+              ].map((reason) => (
+                <button
+                  key={reason}
+                  type="button"
+                  onClick={() => commitDismiss(pendingDismissId, reason)}
+                  style={{
+                    textAlign: "left",
+                    padding: "8px 12px",
+                    fontSize: 13,
+                    color: T.white,
+                    backgroundColor: "transparent",
+                    border: `1px solid ${T.border}`,
+                    borderRadius: 8,
+                    cursor: "pointer",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.04)")
+                  }
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                >
+                  {reason}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => setPendingDismissId(null)}
+              style={{
+                marginTop: 12,
+                width: "100%",
+                padding: "6px 12px",
+                fontSize: 12,
+                color: T.muted,
+                backgroundColor: "transparent",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Pulse keyframe via style tag */}
       <style>{`
