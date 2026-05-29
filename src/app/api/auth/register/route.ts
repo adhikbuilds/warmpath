@@ -21,15 +21,37 @@ export async function POST(req: NextRequest) {
   const userId = randomUUID();
   const workspaceId = `ws-${userId}`;
 
-  const prismaUser = await prisma.user.create({
-    data: {
-      id: userId,
-      email,
-      name: name || null,
-      password: hashed,
-      role: "owner",
-    },
-  });
+  // Create the user, their workspace, and their owner membership atomically.
+  // Without the WorkspaceMember, getWorkspaceId() would fall back to "ws-1" and
+  // every request would read/write the wrong (shared) workspace.
+  const [prismaUser] = await prisma.$transaction([
+    prisma.user.create({
+      data: {
+        id: userId,
+        email,
+        name: name || null,
+        password: hashed,
+        role: "owner",
+      },
+    }),
+    prisma.workspace.create({
+      data: {
+        id: workspaceId,
+        name: companyName || (name ? `${name}'s workspace` : `${email}'s workspace`),
+        ownerId: userId,
+        plan: "free",
+        onboardingStage: "not_started",
+      },
+    }),
+    prisma.workspaceMember.create({
+      data: {
+        workspaceId,
+        userId,
+        role: "owner",
+        seatStatus: "active",
+      },
+    }),
+  ]);
 
   await fetch(`${INTEL_URL}/auth/register`, {
     method: "POST",
