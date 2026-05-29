@@ -1,7 +1,7 @@
 const BASE_URL = "https://api.happenstance.ai";
 const API_KEY = process.env.HAPPENSTANCE_API_KEY ?? "";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// ── Public types (consumed by routes + UI — keep stable) ───────────────────────
 
 export interface HappenstanceResult {
   id: string;
@@ -26,12 +26,78 @@ export interface HappenstanceProfile {
   bio?: string;
 }
 
-// ── Polling helper ────────────────────────────────────────────────────────────
+// ── Wire types (match the verified Happenstance OpenAPI v1 spec) ────────────────
+// Source: https://developer.happenstance.ai/openapi.json
 
-async function pollUntilComplete<T>(
+interface SocialsV1 {
+  happenstance_url?: string | null;
+  linkedin_url?: string | null;
+  twitter_url?: string | null;
+  instagram_url?: string | null;
+}
+
+interface SearchMutualV1 {
+  index: number;
+  id: string;
+  name: string;
+  happenstance_url: string;
+}
+
+interface SearchPersonV1 {
+  id: string;
+  name: string;
+  weighted_traits_score: number;
+  current_title?: string | null;
+  current_company?: string | null;
+  summary?: string | null;
+  socials: SocialsV1;
+  mutuals?: SearchMutualV1[] | null;
+}
+
+interface GetSearchResponseV1 {
+  id: string;
+  url: string;
+  status: "RUNNING" | "COMPLETED" | "FAILED";
+  results?: SearchPersonV1[] | null;
+  has_more?: boolean;
+}
+
+interface EmploymentV1 {
+  company_name?: string | null;
+  job_title?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  description?: string | null;
+}
+
+interface WritingV1 {
+  title?: string | null;
+  description?: string | null;
+  date?: string | null;
+}
+
+interface ProfileV1 {
+  person_metadata?: { full_name?: string | null; tagline?: string | null } | null;
+  employment?: EmploymentV1[] | null;
+  writings?: WritingV1[] | null;
+  summary?: { text?: string | null } | null;
+}
+
+interface GetResearchResponseV1 {
+  id: string;
+  status: "RUNNING" | "COMPLETED" | "FAILED" | "FAILED_AMBIGUOUS";
+  query: string;
+  profile?: ProfileV1 | null;
+}
+
+// ── Polling helper ──────────────────────────────────────────────────────────────
+// Happenstance is async: POST returns { id }, then GET /{endpoint}/{id} until
+// status === "COMPLETED". Status values are UPPERCASE per the spec.
+
+async function pollUntilComplete<T extends { status: string }>(
   id: string,
   endpoint: string,
-  maxAttempts = 20,
+  maxAttempts = 30,
   intervalMs = 2000,
 ): Promise<T> {
   for (let i = 0; i < maxAttempts; i++) {
@@ -39,15 +105,68 @@ async function pollUntilComplete<T>(
       headers: { Authorization: `Bearer ${API_KEY}` },
     });
     if (!res.ok) throw new Error(`Happenstance poll error: ${res.status}`);
-    const data = await res.json();
-    if (data.status === "complete" || data.status === "completed") return data as T;
-    if (data.status === "failed") throw new Error("Happenstance job failed");
+    const data = (await res.json()) as T;
+    if (data.status === "COMPLETED") return data;
+    if (data.status.startsWith("FAILED")) {
+      throw new Error(`Happenstance job ${data.status}`);
+    }
     await new Promise((r) => setTimeout(r, intervalMs));
   }
   throw new Error("Happenstance polling timeout");
 }
 
-// ── Mock data (used when no API key) ──────────────────────────────────────────
+// ── Mappers (wire shape → public shape) ──────────────────────────────────────────
+
+function mapPerson(p: SearchPersonV1): HappenstanceResult {
+  const warmPath = p.mutuals?.length
+    ? `${p.mutuals.map((m) => m.name).join(" → ")} → ${p.name}`
+    : undefined;
+  return {
+    id: p.id,
+    name: p.name,
+    title: p.current_title ?? undefined,
+    company: p.current_company ?? undefined,
+    summary: p.summary ?? undefined,
+    linkedin_url: p.socials?.linkedin_url ?? undefined,
+    happenstance_url: p.socials?.happenstance_url ?? undefined,
+    warm_path: warmPath,
+  };
+}
+
+function mapProfile(id: string, query: string, profile: ProfileV1): HappenstanceProfile {
+  const employment = profile.employment ?? [];
+  const writings = profile.writings ?? [];
+  const summaryText = profile.summary?.text ?? undefined;
+
+  // Derive personalization hooks from the summary tagline + recent writings.
+  const hooks: string[] = [];
+  if (profile.person_metadata?.tagline) hooks.push(profile.person_metadata.tagline);
+  for (const w of writings.slice(0, 3)) {
+    if (w.title) hooks.push(w.title);
+  }
+
+  return {
+    id,
+    name: profile.person_metadata?.full_name ?? query,
+    current_title: employment[0]?.job_title ?? undefined,
+    current_company: employment[0]?.company_name ?? undefined,
+    employment_history: employment.map((e) => ({
+      company: e.company_name ?? "",
+      title: e.job_title ?? "",
+      start: e.start_date ?? undefined,
+      end: e.end_date ?? undefined,
+    })),
+    recent_posts: writings.map((w) => ({
+      text: w.title ?? w.description ?? "",
+      date: w.date ?? "",
+      platform: "writing",
+    })),
+    hooks,
+    bio: summaryText,
+  };
+}
+
+// ── Mock data (used when no API key — keeps demo + dev working offline) ──────────
 
 const MOCK_SEARCH_RESULTS: HappenstanceResult[] = [
   {
@@ -151,12 +270,17 @@ export async function searchNetwork(
   const res = await fetch(`${BASE_URL}/v1/search`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${API_KEY}` },
-    body: JSON.stringify({ query: description, limit: options?.limit ?? 10 }),
+    body: JSON.stringify({
+      text: description,
+      include_my_connections: true,
+      include_friends_connections: true,
+    }),
   });
   if (!res.ok) throw new Error(`Happenstance search error: ${res.status}`);
-  const { id } = await res.json();
-  const result = await pollUntilComplete<{ results: HappenstanceResult[] }>(id, "/v1/search");
-  return result.results ?? [];
+  const { id } = (await res.json()) as { id: string };
+  const result = await pollUntilComplete<GetSearchResponseV1>(id, "/v1/search");
+  const people = result.results ?? [];
+  return people.slice(0, options?.limit ?? 10).map(mapPerson);
 }
 
 export async function researchPerson(person: {
@@ -172,16 +296,25 @@ export async function researchPerson(person: {
     };
   }
 
+  // Research takes a free-text description, not structured fields.
+  const description = [
+    person.name,
+    person.company ? `at ${person.company}` : "",
+    person.linkedinUrl ?? "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   const res = await fetch(`${BASE_URL}/v1/research`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${API_KEY}` },
-    body: JSON.stringify({
-      name: person.name,
-      company: person.company,
-      linkedin_url: person.linkedinUrl,
-    }),
+    body: JSON.stringify({ description }),
   });
   if (!res.ok) throw new Error(`Happenstance research error: ${res.status}`);
-  const { id } = await res.json();
-  return pollUntilComplete<HappenstanceProfile>(id, "/v1/research");
+  const { id } = (await res.json()) as { id: string };
+  const result = await pollUntilComplete<GetResearchResponseV1>(id, "/v1/research");
+  if (!result.profile) {
+    throw new Error(`Happenstance research returned no profile (status ${result.status})`);
+  }
+  return mapProfile(result.id, result.query, result.profile);
 }
