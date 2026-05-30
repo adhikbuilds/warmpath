@@ -1,0 +1,3 @@
+# Keeps the public/ directory present on fresh checkouts so the Docker build's
+# `COPY --from=build /app/public ./public` step succeeds. Next.js standalone
+# output requires public/ to be copied manually into the runtime image.
