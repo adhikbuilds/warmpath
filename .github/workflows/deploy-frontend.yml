@@ -68,6 +68,9 @@ jobs:
               --environment "$CONTAINER_ENV" \
               --image "$IMAGE:${{ github.sha }}" \
               --target-port 3000 \
-              --ingress external \
+              --ingress external
+            az containerapp update \
+              --name "$APP_NAME" \
+              --resource-group "$RESOURCE_GROUP" \
               --min-replicas 0 \
               --query properties.configuration.ingress.fqdn
