@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+.github
+intelligence-service
+*.md
+.env*
+prisma/dev.db
+pitch-deck*
+claude
+.claude
+npm-debug.log*
+Dockerfile
+.dockerignore
