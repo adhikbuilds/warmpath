@@ -626,26 +626,26 @@ function RelationshipsSpreadsheet() {
       {/* View controls bar */}
       <div
         className="flex justify-between items-center px-6 py-2.5 border-b flex-shrink-0"
-        style={{ borderColor: "#27272a", background: "#09090b" }}
+        style={{ borderColor: "var(--border)", background: "var(--background)" }}
       >
         <div className="flex items-center gap-3">
           <div
             className="flex items-center gap-2 border rounded px-2.5 h-8"
-            style={{ borderColor: "#27272a", background: "#18181b" }}
+            style={{ borderColor: "var(--border)", background: "var(--card)" }}
           >
-            <Search className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#71717a" }} />
+            <Search className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "var(--muted-foreground)" }} />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Filter relationships..."
               className="bg-transparent outline-none text-xs w-48"
-              style={{ color: "#e5e5e5" }}
+              style={{ color: "var(--foreground)" }}
             />
           </div>
           <button
             type="button"
             className="flex items-center gap-1.5 h-8 px-3 rounded border text-xs font-medium transition-colors hover:bg-white/5"
-            style={{ borderColor: "#27272a", color: "#a1a1aa" }}
+            style={{ borderColor: "var(--border)", color: "var(--muted-foreground)" }}
           >
             <Filter className="w-3 h-3" />
             Filter
@@ -653,23 +653,23 @@ function RelationshipsSpreadsheet() {
           <button
             type="button"
             className="flex items-center gap-1.5 h-8 px-3 rounded border text-xs font-medium transition-colors hover:bg-white/5"
-            style={{ borderColor: "#27272a", color: "#a1a1aa" }}
+            style={{ borderColor: "var(--border)", color: "var(--muted-foreground)" }}
           >
             <SlidersHorizontal className="w-3 h-3" />
             Sort
           </button>
         </div>
-        <span className="text-xs" style={{ color: "#71717a" }}>
+        <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>
           {filtered.length} Contact{filtered.length !== 1 ? "s" : ""}
         </span>
       </div>
 
       {/* Scrollable table */}
-      <div className="flex-1 overflow-auto" style={{ background: "#09090b" }}>
+      <div className="flex-1 overflow-auto" style={{ background: "var(--background)" }}>
         <table className="w-full border-collapse" style={{ minWidth: 1000, whiteSpace: "nowrap" }}>
           <thead
             className="sticky top-0 z-10"
-            style={{ background: "#18181b", borderBottom: "1px solid #27272a" }}
+            style={{ background: "var(--card)", borderBottom: "1px solid var(--border)" }}
           >
             <tr>
               {/* checkbox col */}
@@ -692,7 +692,7 @@ function RelationshipsSpreadsheet() {
                 <th
                   key={col.label}
                   className="text-left px-4 py-2.5 text-xs font-medium select-none"
-                  style={{ color: "#a1a1aa" }}
+                  style={{ color: "var(--muted-foreground)" }}
                 >
                   {col.label}
                   {col.sortable && (
@@ -723,11 +723,11 @@ function RelationshipsSpreadsheet() {
                   key={contact.id}
                   className="group transition-colors"
                   style={{
-                    borderBottom: "1px solid #27272a",
+                    borderBottom: "1px solid var(--border)",
                     background: isSelected ? "rgba(79,70,229,0.06)" : undefined,
                   }}
                   onMouseEnter={(e) => {
-                    if (!isSelected) (e.currentTarget as HTMLElement).style.background = "#18181b";
+                    if (!isSelected) (e.currentTarget as HTMLElement).style.background = "var(--card)";
                   }}
                   onMouseLeave={(e) => {
                     if (!isSelected) (e.currentTarget as HTMLElement).style.background = "";
@@ -749,18 +749,18 @@ function RelationshipsSpreadsheet() {
                     <div className="flex items-center gap-3">
                       <div
                         className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0"
-                        style={{ background: bg, color: "#e5e5e5" }}
+                        style={{ background: bg, color: "var(--foreground)" }}
                       >
                         {ini}
                       </div>
                       <div className="flex flex-col">
                         <span
                           className="text-sm font-medium leading-tight"
-                          style={{ color: "#e5e5e5" }}
+                          style={{ color: "var(--foreground)" }}
                         >
                           {contact.name}
                         </span>
-                        <span className="text-xs leading-tight mt-0.5" style={{ color: "#71717a" }}>
+                        <span className="text-xs leading-tight mt-0.5" style={{ color: "var(--muted-foreground)" }}>
                           {contact.title ?? "—"}
                         </span>
                       </div>
@@ -777,12 +777,12 @@ function RelationshipsSpreadsheet() {
                         >
                           {accountFirst}
                         </div>
-                        <span className="text-sm" style={{ color: "#e5e5e5" }}>
+                        <span className="text-sm" style={{ color: "var(--foreground)" }}>
                           {account.name}
                         </span>
                       </div>
                     ) : (
-                      <span style={{ color: "#71717a" }}>—</span>
+                      <span style={{ color: "var(--muted-foreground)" }}>—</span>
                     )}
                   </td>
 
@@ -796,12 +796,12 @@ function RelationshipsSpreadsheet() {
                         >
                           {initials(connector)}
                         </div>
-                        <span className="text-sm" style={{ color: "#e5e5e5" }}>
+                        <span className="text-sm" style={{ color: "var(--foreground)" }}>
                           {connector}
                         </span>
                       </div>
                     ) : (
-                      <span style={{ color: "#71717a" }}>—</span>
+                      <span style={{ color: "var(--muted-foreground)" }}>—</span>
                     )}
                   </td>
 
@@ -811,16 +811,16 @@ function RelationshipsSpreadsheet() {
                       <div
                         className="inline-block rounded px-2 py-1 text-xs truncate max-w-[220px]"
                         style={{
-                          background: "#18181b",
-                          border: "1px solid #27272a",
-                          color: "#a1a1aa",
+                          background: "var(--card)",
+                          border: "1px solid var(--border)",
+                          color: "var(--muted-foreground)",
                         }}
                         title={context}
                       >
                         {context}
                       </div>
                     ) : (
-                      <span className="text-xs" style={{ color: "#71717a" }}>
+                      <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>
                         No context
                       </span>
                     )}
@@ -834,7 +834,7 @@ function RelationshipsSpreadsheet() {
                       </span>
                       <div
                         className="flex-1 rounded-full overflow-hidden"
-                        style={{ height: 5, background: "#27272a", maxWidth: 64 }}
+                        style={{ height: 5, background: "var(--border)", maxWidth: 64 }}
                       >
                         <div
                           style={{
@@ -850,7 +850,7 @@ function RelationshipsSpreadsheet() {
 
                   {/* Last Synced */}
                   <td className="px-4 py-3">
-                    <span className="text-xs" style={{ color: "#71717a" }}>
+                    <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>
                       {formatRelativeTime(lastInteraction)}
                     </span>
                   </td>
@@ -860,7 +860,7 @@ function RelationshipsSpreadsheet() {
 
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={7} className="text-center py-16 text-sm" style={{ color: "#71717a" }}>
+                <td colSpan={7} className="text-center py-16 text-sm" style={{ color: "var(--muted-foreground)" }}>
                   No contacts match your filter.
                 </td>
               </tr>
@@ -872,7 +872,7 @@ function RelationshipsSpreadsheet() {
       {/* Status bar */}
       <div
         className="h-8 flex items-center px-4 justify-between text-xs flex-shrink-0"
-        style={{ borderTop: "1px solid #27272a", color: "#71717a" }}
+        style={{ borderTop: "1px solid var(--border)", color: "var(--muted-foreground)" }}
       >
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-1.5">
@@ -896,7 +896,7 @@ function ActivityTab() {
   return (
     <div
       className="flex-1 flex items-center justify-center"
-      style={{ height: `calc(100vh - ${HEADER_H * 2 + 1}px)`, background: "#09090b" }}
+      style={{ height: `calc(100vh - ${HEADER_H * 2 + 1}px)`, background: "var(--background)" }}
     >
       <EmptyState
         variant="empty"
@@ -1263,7 +1263,7 @@ export default function RelationshipGraphPage() {
           background: "none",
           border: "none",
           borderBottom: "2px solid transparent",
-          color: "#a1a1aa",
+          color: "var(--muted-foreground)",
           fontWeight: 400,
           paddingBottom: 0,
         };
@@ -1271,15 +1271,15 @@ export default function RelationshipGraphPage() {
   return (
     <div
       className="flex flex-col overflow-hidden"
-      style={{ height: `calc(100vh - ${HEADER_H}px)`, background: "#09090b" }}
+      style={{ height: `calc(100vh - ${HEADER_H}px)`, background: "var(--background)" }}
     >
       {/* Top App Bar with tab navigation */}
       <header
         className="flex justify-between items-center px-6 flex-shrink-0"
         style={{
           height: HEADER_H,
-          borderBottom: "1px solid #27272a",
-          background: "#09090b",
+          borderBottom: "1px solid var(--border)",
+          background: "var(--background)",
         }}
       >
         <nav className="flex h-full items-center gap-6">
@@ -1305,7 +1305,7 @@ export default function RelationshipGraphPage() {
           <button
             type="button"
             className="h-8 px-3 rounded border flex items-center gap-1.5 text-xs transition-colors hover:bg-white/5"
-            style={{ borderColor: "#27272a", color: "#a1a1aa" }}
+            style={{ borderColor: "var(--border)", color: "var(--muted-foreground)" }}
           >
             <Bell className="w-3.5 h-3.5" />
             Notifications
@@ -1313,16 +1313,16 @@ export default function RelationshipGraphPage() {
           <button
             type="button"
             className="h-8 px-3 rounded border flex items-center gap-1.5 text-xs transition-colors hover:bg-white/5"
-            style={{ borderColor: "#27272a", color: "#a1a1aa" }}
+            style={{ borderColor: "var(--border)", color: "var(--muted-foreground)" }}
           >
             <Clock className="w-3.5 h-3.5" />
             History
           </button>
-          <div className="w-px h-5" style={{ background: "#27272a" }} />
+          <div className="w-px h-5" style={{ background: "var(--border)" }} />
           <button
             type="button"
             className="h-8 px-3 rounded border flex items-center gap-1.5 text-xs transition-colors hover:bg-white/5"
-            style={{ borderColor: "#27272a", color: "#a1a1aa" }}
+            style={{ borderColor: "var(--border)", color: "var(--muted-foreground)" }}
             onClick={() => toast.success("Exported to clipboard")}
           >
             <Download className="w-3.5 h-3.5" />
@@ -1596,7 +1596,7 @@ export default function RelationshipGraphPage() {
                       }`}
                     >
                       <div
-                        className={`absolute top-0.5 w-3 h-3 rounded-full bg-[#e5e1e4] shadow transition-transform ${
+                        className={`absolute top-0.5 w-3 h-3 rounded-full bg-foreground shadow transition-transform ${
                           coverageMode ? "translate-x-3.5" : "translate-x-0.5"
                         }`}
                       />

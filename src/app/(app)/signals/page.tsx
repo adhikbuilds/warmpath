@@ -9,14 +9,14 @@ import { useSalesStore } from "@/stores/salesStore";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const T = {
-  bg: "#09090b",
-  card: "#18181b",
-  border: "#27272a",
+  bg: "var(--background)",
+  card: "var(--card)",
+  border: "var(--border)",
   primary: "#2563eb",
   emerald: "#10b981",
-  muted: "#a1a1aa",
-  veryMuted: "#71717a",
-  white: "#e5e5e5",
+  muted: "var(--muted-foreground)",
+  veryMuted: "var(--muted-foreground)",
+  white: "var(--foreground)",
   cardHoverBorder: "rgba(79,70,229,0.5)",
   dot: "radial-gradient(circle at 2px 2px, #3f3f46 1px, transparent 0)",
 } as const;
@@ -56,7 +56,7 @@ const SIGNAL_BADGE: Record<string, { bg: string; color: string }> = {
 };
 
 function signalBadgeStyle(type: string): { bg: string; color: string } {
-  return SIGNAL_BADGE[type] ?? { bg: "rgba(161,161,170,0.12)", color: "#a1a1aa" };
+  return SIGNAL_BADGE[type] ?? { bg: "rgba(161,161,170,0.12)", color: "var(--muted-foreground)" };
 }
 
 // ─── Filter chip component ────────────────────────────────────────────────────
@@ -1024,7 +1024,7 @@ export default function SignalsPage() {
             style={{
               width: 420,
               maxWidth: "90vw",
-              backgroundColor: "#18181b",
+              backgroundColor: "var(--card)",
               border: `1px solid ${T.border}`,
               borderRadius: 12,
               padding: 20,

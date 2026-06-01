@@ -32,11 +32,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${hankenGrotesk.variable} ${geist.variable} ${geistMono.variable} antialiased font-sans`}
       >
-        <ThemeProvider attribute="class" defaultTheme="dark" disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
           <AuthSessionProvider>
             <QueryProvider>{children}</QueryProvider>
             <Toaster
@@ -45,9 +45,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               position="bottom-right"
               toastOptions={{
                 style: {
-                  background: "#201f22",
-                  border: "1px solid #464554",
-                  color: "#e5e1e4",
+                  background: "#ffffff",
+                  border: "1px solid #e0e0e4",
+                  color: "#111113",
                 },
               }}
             />

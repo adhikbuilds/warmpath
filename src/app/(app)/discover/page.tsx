@@ -286,7 +286,7 @@ function FilterChip({
       className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-all whitespace-nowrap ${
         selected
           ? "bg-[#8083ff]/12 text-[#4edea3] border-brand/40"
-          : "bg-transparent text-[#c7c4d7] border-[#464554]/50 hover:border-brand/30 hover:text-[#e5e1e4]"
+          : "bg-transparent text-muted-foreground border-border/50 hover:border-brand/30 hover:text-foreground"
       }`}
     >
       {label}
@@ -303,7 +303,7 @@ function FitBar({ score }: { score: number }) {
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] text-[#c7c4d7] flex items-center gap-1">
+        <span className="text-[10px] text-muted-foreground flex items-center gap-1">
           <TrendingUp className="w-2.5 h-2.5" />
           AI Fit Score
         </span>
@@ -315,7 +315,7 @@ function FitBar({ score }: { score: number }) {
           style={{ width: `${score}%` }}
         />
       </div>
-      <p className="text-[10px] text-[#c7c4d7]">{label}</p>
+      <p className="text-[10px] text-muted-foreground">{label}</p>
     </div>
   );
 }
@@ -339,7 +339,7 @@ function LeadCard({
   const extraTechCount = (lead.technologies?.length ?? 0) - visibleTechs.length;
 
   return (
-    <Card className="border-[#464554]/60 hover:border-brand/30 transition-colors flex flex-col">
+    <Card className="border-border/60 hover:border-brand/30 transition-colors flex flex-col">
       <CardContent className="p-4 flex flex-col gap-3 flex-1">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
@@ -348,7 +348,7 @@ function LeadCard({
             </div>
             <div className="min-w-0">
               <p className="font-semibold text-sm leading-tight truncate">{lead.name}</p>
-              {lead.domain && <p className="text-[10px] text-[#c7c4d7] truncate">{lead.domain}</p>}
+              {lead.domain && <p className="text-[10px] text-muted-foreground truncate">{lead.domain}</p>}
             </div>
           </div>
           <Badge
@@ -362,7 +362,7 @@ function LeadCard({
 
         <div className="space-y-1">
           {(lead.industry || lead.city || lead.country) && (
-            <div className="flex items-center gap-1.5 text-xs text-[#c7c4d7]">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Building2 className="w-3 h-3 flex-shrink-0" />
               <span className="truncate">
                 {[lead.industry, lead.city, lead.country].filter(Boolean).join(" · ")}
@@ -370,19 +370,19 @@ function LeadCard({
             </div>
           )}
           {lead.employee_count_estimate && lead.employee_count_estimate > 0 ? (
-            <div className="flex items-center gap-1.5 text-xs text-[#c7c4d7]">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Users className="w-3 h-3 flex-shrink-0" />
               <span>~{lead.employee_count_estimate.toLocaleString()} employees</span>
             </div>
           ) : null}
           {lead.funding_stage && (
-            <div className="flex items-center gap-1.5 text-xs text-[#c7c4d7]">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Target className="w-3 h-3 flex-shrink-0" />
               <span>{lead.funding_stage}</span>
             </div>
           )}
           {lead.website && (
-            <div className="flex items-center gap-1.5 text-xs text-[#c7c4d7]">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Globe className="w-3 h-3 flex-shrink-0" />
               <a
                 href={lead.website.startsWith("http") ? lead.website : `https://${lead.website}`}
@@ -397,7 +397,7 @@ function LeadCard({
         </div>
 
         {lead.description && (
-          <p className="text-xs text-[#c7c4d7] line-clamp-2 leading-relaxed">{lead.description}</p>
+          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{lead.description}</p>
         )}
 
         {visibleTechs.length > 0 && (
@@ -405,13 +405,13 @@ function LeadCard({
             {visibleTechs.map((tech) => (
               <span
                 key={tech}
-                className="text-[10px] bg-muted text-[#c7c4d7] px-1.5 py-0.5 rounded"
+                className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded"
               >
                 {tech}
               </span>
             ))}
             {extraTechCount > 0 && (
-              <span className="text-[10px] bg-muted text-[#c7c4d7] px-1.5 py-0.5 rounded">
+              <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
                 +{extraTechCount} more
               </span>
             )}
@@ -450,7 +450,7 @@ function LeadCard({
 
 function SkeletonCard() {
   return (
-    <Card className="border-[#464554]/60">
+    <Card className="border-border/60">
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start gap-2">
           <div className="w-9 h-9 rounded-lg bg-muted animate-pulse flex-shrink-0" />
@@ -493,7 +493,7 @@ function IntentBadge({ score }: { score: number }) {
       </span>
     );
   return (
-    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#c7c4d7] bg-muted border border-[#464554]/50 px-2 py-0.5 rounded-full">
+    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-muted-foreground bg-muted border border-border/50 px-2 py-0.5 rounded-full">
       <Activity className="w-2.5 h-2.5" />
       Low
     </span>
@@ -744,7 +744,7 @@ export default function DiscoverPage() {
   return (
     <div
       className="p-6 space-y-5 max-w-[1400px] mx-auto"
-      style={{ backgroundColor: "#131315", color: "#e5e1e4" }}
+      style={{ backgroundColor: "var(--background)", color: "var(--foreground)" }}
     >
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-start justify-between flex-wrap gap-3">
@@ -753,7 +753,7 @@ export default function DiscoverPage() {
             <Compass className="w-5 h-5 text-[#4edea3]" />
             Lead Discovery
           </h1>
-          <p className="text-sm text-[#c7c4d7] mt-0.5">
+          <p className="text-sm text-muted-foreground mt-0.5">
             Find ICP prospects with Apollo-grade filters · identify anonymous website visitors
           </p>
         </div>
@@ -782,14 +782,14 @@ export default function DiscoverPage() {
       </div>
 
       {/* ── Tab switcher ───────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-1 p-1 rounded-lg bg-muted/60 border border-[#464554]/60 w-fit">
+      <div className="flex items-center gap-1 p-1 rounded-lg bg-muted/60 border border-border/60 w-fit">
         <button
           type="button"
           onClick={() => setActiveTab("visitors")}
           className={`flex items-center gap-2 px-3.5 py-1.5 rounded-md text-xs font-medium transition-all ${
             activeTab === "visitors"
-              ? "bg-background shadow-sm text-[#e5e1e4]"
-              : "text-[#c7c4d7] hover:text-[#e5e1e4]"
+              ? "bg-background shadow-sm text-foreground"
+              : "text-muted-foreground hover:text-foreground"
           }`}
         >
           <Eye className="w-3.5 h-3.5" />
@@ -805,8 +805,8 @@ export default function DiscoverPage() {
           onClick={() => setActiveTab("search")}
           className={`flex items-center gap-2 px-3.5 py-1.5 rounded-md text-xs font-medium transition-all ${
             activeTab === "search"
-              ? "bg-background shadow-sm text-[#e5e1e4]"
-              : "text-[#c7c4d7] hover:text-[#e5e1e4]"
+              ? "bg-background shadow-sm text-foreground"
+              : "text-muted-foreground hover:text-foreground"
           }`}
         >
           <Search className="w-3.5 h-3.5" />
@@ -831,41 +831,41 @@ export default function DiscoverPage() {
               <p className="text-lg font-bold leading-snug">
                 Turn anonymous website visitors into warm leads — before they leave
               </p>
-              <p className="text-sm text-[#c7c4d7] mt-1.5 max-w-xl">
+              <p className="text-sm text-muted-foreground mt-1.5 max-w-xl">
                 We deanonymize companies visiting your site, score their intent based on pages
                 viewed, and surface a warm intro path through your team's network — so your first
                 touch is always warm.
               </p>
             </div>
             <div className="flex gap-3 flex-shrink-0">
-              <div className="text-center px-4 py-2.5 rounded-xl bg-background border border-[#464554]/60">
+              <div className="text-center px-4 py-2.5 rounded-xl bg-background border border-border/60">
                 <p className="text-2xl font-bold text-[#4edea3]">
                   {visitors.filter((v) => !v.converted).length}
                 </p>
-                <p className="text-[11px] text-[#c7c4d7]">new visitors</p>
+                <p className="text-[11px] text-muted-foreground">new visitors</p>
               </div>
-              <div className="text-center px-4 py-2.5 rounded-xl bg-background border border-[#464554]/60">
+              <div className="text-center px-4 py-2.5 rounded-xl bg-background border border-border/60">
                 <p className="text-2xl font-bold text-emerald-500">
                   {visitors.filter((v) => v.warm_path && !v.converted).length}
                 </p>
-                <p className="text-[11px] text-[#c7c4d7]">have warm path</p>
+                <p className="text-[11px] text-muted-foreground">have warm path</p>
               </div>
             </div>
           </div>
 
           {/* Visitors table */}
-          <Card className="border-[#464554]/60">
-            <CardHeader className="pb-3 border-b border-[#464554]/60">
+          <Card className="border-border/60">
+            <CardHeader className="pb-3 border-b border-border/60">
               <div className="flex items-center justify-between flex-wrap gap-3">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
                   <Eye className="w-4 h-4 text-[#4edea3]" />
                   Identified Visitors
-                  <Badge variant="outline" className="text-[10px] bg-muted text-[#c7c4d7] ml-1">
+                  <Badge variant="outline" className="text-[10px] bg-muted text-muted-foreground ml-1">
                     Last 7 days
                   </Badge>
                 </CardTitle>
                 <div className="flex items-center gap-3">
-                  <p className="text-xs text-[#c7c4d7]">
+                  <p className="text-xs text-muted-foreground">
                     {visitors.filter((v) => v.converted).length} converted ·{" "}
                     {visitors.filter((v) => !v.converted).length} pending
                   </p>
@@ -891,7 +891,7 @@ export default function DiscoverPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-[#464554]/60">
+                    <tr className="border-b border-border/60">
                       <th className="px-4 py-3 w-8">
                         <input
                           type="checkbox"
@@ -906,19 +906,19 @@ export default function DiscoverPage() {
                           className="accent-[#4edea3]"
                         />
                       </th>
-                      <th className="text-left text-xs font-semibold text-[#c7c4d7] px-5 py-3">
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-5 py-3">
                         Company
                       </th>
-                      <th className="text-left text-xs font-semibold text-[#c7c4d7] px-4 py-3">
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">
                         Pages visited
                       </th>
-                      <th className="text-left text-xs font-semibold text-[#c7c4d7] px-4 py-3">
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">
                         Activity
                       </th>
-                      <th className="text-left text-xs font-semibold text-[#c7c4d7] px-4 py-3">
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3">
                         Intent
                       </th>
-                      <th className="text-left text-xs font-semibold text-[#c7c4d7] px-4 py-3 min-w-[200px]">
+                      <th className="text-left text-xs font-semibold text-muted-foreground px-4 py-3 min-w-[200px]">
                         Warm path
                       </th>
                       <th className="px-4 py-3" />
@@ -928,7 +928,7 @@ export default function DiscoverPage() {
                     {visitors.map((v) => (
                       <tr
                         key={v.id}
-                        className={`border-b border-[#464554]/40 last:border-0 transition-colors hover:bg-muted/20 ${
+                        className={`border-b border-border/40 last:border-0 transition-colors hover:bg-muted/20 ${
                           v.converted ? "opacity-50" : ""
                         } ${selectedVisitorIds.has(v.id) ? "bg-[#4edea3]/5" : ""}`}
                       >
@@ -951,11 +951,11 @@ export default function DiscoverPage() {
                             <div>
                               <p className="font-medium text-sm">{v.company}</p>
                               <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className="text-[10px] text-[#c7c4d7]">{v.domain}</span>
-                                <span className="text-[10px] text-[#c7c4d7]">·</span>
-                                <span className="text-[10px] text-[#c7c4d7]">{v.industry}</span>
-                                <span className="text-[10px] text-[#c7c4d7]">·</span>
-                                <span className="text-[10px] text-[#c7c4d7]">{v.size} emp</span>
+                                <span className="text-[10px] text-muted-foreground">{v.domain}</span>
+                                <span className="text-[10px] text-muted-foreground">·</span>
+                                <span className="text-[10px] text-muted-foreground">{v.industry}</span>
+                                <span className="text-[10px] text-muted-foreground">·</span>
+                                <span className="text-[10px] text-muted-foreground">{v.size} emp</span>
                               </div>
                             </div>
                           </div>
@@ -965,7 +965,7 @@ export default function DiscoverPage() {
                             {v.pages_visited.map((page) => (
                               <span
                                 key={page}
-                                className="text-[10px] bg-muted text-[#c7c4d7] px-1.5 py-0.5 rounded font-mono"
+                                className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded font-mono"
                               >
                                 {page}
                               </span>
@@ -976,7 +976,7 @@ export default function DiscoverPage() {
                           <p className="text-xs font-medium">
                             {v.visit_count} visit{v.visit_count !== 1 ? "s" : ""}
                           </p>
-                          <p className="text-[10px] text-[#c7c4d7] mt-0.5">
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
                             {v.session_duration} · {v.last_visit}
                           </p>
                         </td>
@@ -1012,12 +1012,12 @@ export default function DiscoverPage() {
                                   ? "Strong path"
                                   : "Moderate path"}
                               </div>
-                              <p className="text-[10px] text-[#c7c4d7] leading-snug">
+                              <p className="text-[10px] text-muted-foreground leading-snug">
                                 {v.warm_path.via}
                               </p>
                             </div>
                           ) : (
-                            <span className="text-[10px] text-[#c7c4d7]">No warm path found</span>
+                            <span className="text-[10px] text-muted-foreground">No warm path found</span>
                           )}
                         </td>
                         <td className="px-4 py-3.5">
@@ -1059,8 +1059,8 @@ export default function DiscoverPage() {
       {activeTab === "search" && (
         <>
           {/* Filter panel */}
-          <Card className="border-[#464554]/60">
-            <CardHeader className="pb-3 border-b border-[#464554]/60">
+          <Card className="border-border/60">
+            <CardHeader className="pb-3 border-b border-border/60">
               <div className="flex items-center justify-between flex-wrap gap-3">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <Search className="w-4 h-4 text-[#4edea3]" />
@@ -1070,7 +1070,7 @@ export default function DiscoverPage() {
                   <button
                     type="button"
                     onClick={clearFilters}
-                    className="flex items-center gap-1 text-xs text-[#c7c4d7] hover:text-[#e5e1e4] transition-colors"
+                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
                   >
                     <X className="w-3 h-3" />
                     Clear all ({activeFiltersCount})
@@ -1082,7 +1082,7 @@ export default function DiscoverPage() {
               {/* Row 1: Keyword + Location + Count + Search */}
               <div className="flex items-center gap-3 flex-wrap">
                 <div className="relative flex-1 min-w-[200px]">
-                  <Search className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-[#c7c4d7]" />
+                  <Search className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-muted-foreground" />
                   <Input
                     placeholder="Job title, company name, or keywords…"
                     value={keyword}
@@ -1130,7 +1130,7 @@ export default function DiscoverPage() {
 
               {/* Industry */}
               <div>
-                <p className="text-xs font-semibold text-[#c7c4d7] uppercase tracking-wide mb-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                   Industry
                 </p>
                 <div className="flex flex-wrap gap-1.5">
@@ -1148,7 +1148,7 @@ export default function DiscoverPage() {
               {/* Seniority + Company Size */}
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-xs font-semibold text-[#c7c4d7] uppercase tracking-wide mb-2">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                     Seniority
                   </p>
                   <div className="flex flex-wrap gap-1.5">
@@ -1163,7 +1163,7 @@ export default function DiscoverPage() {
                   </div>
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-[#c7c4d7] uppercase tracking-wide mb-2">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                     Company Size
                   </p>
                   <div className="flex flex-wrap gap-1.5">
@@ -1181,7 +1181,7 @@ export default function DiscoverPage() {
 
               {/* Funding Stage */}
               <div>
-                <p className="text-xs font-semibold text-[#c7c4d7] uppercase tracking-wide mb-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                   Funding Stage
                 </p>
                 <div className="flex flex-wrap gap-1.5">
@@ -1199,7 +1199,7 @@ export default function DiscoverPage() {
               {/* Technologies + Hiring signals */}
               <div className="grid sm:grid-cols-[1fr_auto] gap-4 items-start">
                 <div>
-                  <p className="text-xs font-semibold text-[#c7c4d7] uppercase tracking-wide mb-2">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                     Technologies Used
                   </p>
                   <div className="flex flex-wrap gap-1.5">
@@ -1220,7 +1220,7 @@ export default function DiscoverPage() {
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-all ${
                       hiringSignals
                         ? "bg-amber-500/10 text-amber-600 border-amber-500/30"
-                        : "border-[#464554]/60 text-[#c7c4d7] hover:border-brand/30 hover:text-[#e5e1e4]"
+                        : "border-border/60 text-muted-foreground hover:border-brand/30 hover:text-foreground"
                     }`}
                   >
                     <Zap className={`w-3.5 h-3.5 ${hiringSignals ? "text-amber-500" : ""}`} />
@@ -1245,7 +1245,7 @@ export default function DiscoverPage() {
           {/* Loading skeletons */}
           {searching && (
             <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm text-[#c7c4d7]">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Loader2 className="w-4 h-4 animate-spin text-[#4edea3]" />
                 Discovering companies matching your filters…
               </div>
@@ -1310,10 +1310,10 @@ export default function DiscoverPage() {
           {!searching && hasSearched && leads.length === 0 && (
             <div className="flex flex-col items-center justify-center py-20 text-center space-y-3">
               <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center">
-                <Search className="w-6 h-6 text-[#c7c4d7]/50" />
+                <Search className="w-6 h-6 text-muted-foreground/50" />
               </div>
               <p className="font-medium text-sm">No companies found</p>
-              <p className="text-xs text-[#c7c4d7] max-w-xs">
+              <p className="text-xs text-muted-foreground max-w-xs">
                 Try adjusting your filters or broadening your search terms.
               </p>
             </div>
@@ -1328,7 +1328,7 @@ export default function DiscoverPage() {
                 <p className="font-semibold text-base">
                   Set your filters above to find ICP companies
                 </p>
-                <p className="text-sm text-[#c7c4d7] max-w-sm">
+                <p className="text-sm text-muted-foreground max-w-sm">
                   Filter by industry, seniority, company size, funding stage, tech stack, and hiring
                   signals — then import directly into your pipeline.
                 </p>
@@ -1353,11 +1353,11 @@ export default function DiscoverPage() {
                 ].map((feat) => (
                   <div
                     key={feat.title}
-                    className="p-3 rounded-lg border border-[#464554]/50 bg-[#201f22] space-y-1"
+                    className="p-3 rounded-lg border border-border/50 bg-card space-y-1"
                   >
                     <feat.icon className="w-4 h-4 text-[#4edea3]" />
                     <p className="text-xs font-medium">{feat.title}</p>
-                    <p className="text-[11px] text-[#c7c4d7]">{feat.desc}</p>
+                    <p className="text-[11px] text-muted-foreground">{feat.desc}</p>
                   </div>
                 ))}
               </div>

@@ -50,7 +50,7 @@ function warmthLabel(score: number) {
 }
 
 function warmthLabelColor(score: number) {
-  return score >= 70 ? "text-emerald-500" : score >= 50 ? "text-[#4edea3]" : "text-[#c7c4d7]";
+  return score >= 70 ? "text-emerald-500" : score >= 50 ? "text-[#4edea3]" : "text-muted-foreground";
 }
 
 // ─── Re-engage Sheet ──────────────────────────────────────────────────────────
@@ -107,7 +107,7 @@ ${userName}`;
             <Link2Off className="w-4 h-4 text-[#4edea3]" />
             Re-engage {contactName}
           </SheetTitle>
-          <p className="text-xs text-[#c7c4d7]">
+          <p className="text-xs text-muted-foreground">
             Last interaction{" "}
             {Math.round((Date.now() - new Date(edge.last_interaction_at).getTime()) / 86_400_000)}d
             ago · warmth score {computeEdgeWarmth(edge)}
@@ -116,18 +116,18 @@ ${userName}`;
 
         <div className="px-6 space-y-4 pb-6">
           {/* Draft message */}
-          <div className="rounded-xl border border-[#464554] bg-muted/30 p-4 space-y-2">
-            <p className="text-[10px] font-semibold text-[#c7c4d7] uppercase tracking-wider">
+          <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-2">
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
               Pre-drafted check-in
             </p>
-            <p className="text-xs font-semibold text-[#e5e1e4]">Subject: {messageSubject}</p>
-            <div className="text-xs text-[#c7c4d7] leading-relaxed whitespace-pre-wrap">
+            <p className="text-xs font-semibold text-foreground">Subject: {messageSubject}</p>
+            <div className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
               {messageBody}
             </div>
           </div>
 
           {/* Note */}
-          <p className="text-[11px] text-[#c7c4d7] italic border-l-2 border-[#4edea3]/40 pl-3">
+          <p className="text-[11px] text-muted-foreground italic border-l-2 border-[#4edea3]/40 pl-3">
             This message doesn't mention WarmBlue or sales. Keep it authentic.
           </p>
 
@@ -227,23 +227,23 @@ ${userFirstName}`;
             <Trophy className="w-4 h-4 text-violet-500" />
             Reach out to {contactName}
           </SheetTitle>
-          <p className="text-xs text-[#c7c4d7]">
+          <p className="text-xs text-muted-foreground">
             {oldCo} → {newCo} · {newTitle}
           </p>
         </SheetHeader>
 
         <div className="px-6 space-y-4 pb-6">
           {/* Draft message */}
-          <div className="rounded-xl border border-[#464554] bg-muted/30 p-4 space-y-2">
-            <p className="text-[10px] font-semibold text-[#c7c4d7] uppercase tracking-wider">
+          <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-2">
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
               Pre-drafted message
             </p>
-            <p className="text-xs font-semibold text-[#e5e1e4]">Subject: {subject}</p>
-            <div className="text-xs text-[#c7c4d7] leading-relaxed whitespace-pre-wrap">{body}</div>
+            <p className="text-xs font-semibold text-foreground">Subject: {subject}</p>
+            <div className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">{body}</div>
           </div>
 
           {/* Note */}
-          <p className="text-[11px] text-[#c7c4d7] italic border-l-2 border-violet-500/40 pl-3">
+          <p className="text-[11px] text-muted-foreground italic border-l-2 border-violet-500/40 pl-3">
             This message references your existing relationship, not WarmBlue. Keep it authentic.
           </p>
 
@@ -413,7 +413,7 @@ export default function DashboardPage() {
   return (
     <div
       className="p-6 space-y-6 max-w-[1280px] mx-auto"
-      style={{ backgroundColor: "#131315", color: "#e5e1e4" }}
+      style={{ className: "bg-background text-foreground" }}
     >
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between gap-4">
@@ -421,7 +421,7 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold tracking-tight">
             {greeting}, {user?.name?.split(" ")[0] ?? "there"}
           </h1>
-          <p className="text-sm text-[#c7c4d7] mt-0.5">
+          <p className="text-sm text-muted-foreground mt-0.5">
             {plays.length > 0
               ? `${plays.length} warm ${plays.length === 1 ? "intro opportunity" : "intro opportunities"} ready`
               : "No urgent plays right now"}
@@ -459,7 +459,7 @@ export default function DashboardPage() {
             size="sm"
             variant="ghost"
             onClick={() => setTourOpen(true)}
-            className="gap-1.5 text-[#c7c4d7] hover:text-[#e5e1e4]"
+            className="gap-1.5 text-muted-foreground hover:text-foreground"
           >
             <HelpCircle className="w-3.5 h-3.5" />
             Tour
@@ -486,7 +486,7 @@ export default function DashboardPage() {
           </Link>
           <button
             type="button"
-            className="p-1 rounded text-[#4edea3] hover:text-[#e5e1e4] hover:bg-[#8083ff]/10 transition-colors flex-shrink-0"
+            className="p-1 rounded text-[#4edea3] hover:text-foreground hover:bg-[#8083ff]/10 transition-colors flex-shrink-0"
             onClick={() => setBannerDismissed(true)}
           >
             <X className="w-3.5 h-3.5" />
@@ -496,7 +496,7 @@ export default function DashboardPage() {
 
       {/* ── Hero action card (featured play) ─────────────────────────────── */}
       {topPlay && !dismissed.has(topPlay.signal.id) && (
-        <div className="relative rounded-2xl border border-[#464554] border-l-4 border-l-brand bg-gradient-to-r from-brand/8 to-transparent p-5">
+        <div className="relative rounded-2xl border border-border border-l-4 border-l-brand bg-gradient-to-r from-brand/8 to-transparent p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
@@ -508,15 +508,15 @@ export default function DashboardPage() {
               <h2 className="text-xl font-bold mb-1">
                 {topPlay.contact?.name ?? topPlay.account?.name ?? "Unknown"}
                 {topPlay.contact && topPlay.account && (
-                  <span className="text-[#c7c4d7] font-normal text-base">
+                  <span className="text-muted-foreground font-normal text-base">
                     {" "}
                     · {topPlay.contact.title} at {topPlay.account.name}
                   </span>
                 )}
               </h2>
               {topPlay.via && (
-                <p className="text-sm text-[#c7c4d7] mb-1">
-                  via <span className="font-semibold text-[#e5e1e4]">{topPlay.via}</span>
+                <p className="text-sm text-muted-foreground mb-1">
+                  via <span className="font-semibold text-foreground">{topPlay.via}</span>
                   {" · "}
                   <Badge
                     variant="outline"
@@ -526,7 +526,7 @@ export default function DashboardPage() {
                   </Badge>
                 </p>
               )}
-              <p className="text-sm text-[#c7c4d7] italic mb-4 leading-relaxed line-clamp-2">
+              <p className="text-sm text-muted-foreground italic mb-4 leading-relaxed line-clamp-2">
                 {topPlay.signal.description ?? topPlay.signal.title}
               </p>
               <div className="flex items-center gap-2 flex-wrap">
@@ -569,7 +569,7 @@ export default function DashboardPage() {
                   <Link href={`/accounts/${topPlay.signal.account_id}`}>View account</Link>
                 </Button>
                 {plays.length > 1 && (
-                  <span className="text-xs text-[#c7c4d7]">
+                  <span className="text-xs text-muted-foreground">
                     +{plays.length - 1} more plays below
                   </span>
                 )}
@@ -577,7 +577,7 @@ export default function DashboardPage() {
             </div>
             <button
               type="button"
-              className="p-1.5 rounded-lg text-[#c7c4d7] hover:text-[#e5e1e4] hover:bg-muted/50 transition-colors flex-shrink-0"
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors flex-shrink-0"
               onClick={() => setDismissed((prev) => new Set([...prev, topPlay.signal.id]))}
             >
               <X className="w-4 h-4" />
@@ -589,7 +589,7 @@ export default function DashboardPage() {
       {/* ── Today's tasks strip ───────────────────────────────────────────── */}
       {todayTasks.length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-[#c7c4d7] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
             <ListChecks className="w-3.5 h-3.5" />
             Due today
           </p>
@@ -597,7 +597,7 @@ export default function DashboardPage() {
             {todayTasks.map((task) => (
               <div
                 key={task.id}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-lg border border-[#464554] bg-[#201f22]/50 flex-shrink-0 min-w-[200px] max-w-[260px]"
+                className="flex items-center gap-2.5 px-3 py-2 rounded-lg border border-border bg-card/50 flex-shrink-0 min-w-[200px] max-w-[260px]"
               >
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium truncate">{task.title}</p>
@@ -625,11 +625,11 @@ export default function DashboardPage() {
         return (
           <div>
             <div className="flex items-baseline justify-between mb-2">
-              <p className="text-xs font-semibold text-[#c7c4d7] uppercase tracking-wider flex items-center gap-1.5">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                 <Activity className="w-3.5 h-3.5" />
                 Personalized drafts this week
               </p>
-              <div className="flex items-center gap-3 text-[10px] text-[#c7c4d7]">
+              <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
                 <span>{total} this week</span>
                 <span>Avg {avg.toFixed(1)}/day</span>
                 <span className="flex items-center gap-1">
@@ -640,7 +640,7 @@ export default function DashboardPage() {
             </div>
             <div className="relative flex items-end gap-1 h-20 pl-8 pr-1">
               {/* Y-axis ticks */}
-              <div className="absolute left-0 top-0 bottom-5 w-7 flex flex-col justify-between text-[9px] text-[#c7c4d7]/50 tabular-nums pr-1 text-right">
+              <div className="absolute left-0 top-0 bottom-5 w-7 flex flex-col justify-between text-[9px] text-muted-foreground/50 tabular-nums pr-1 text-right">
                 <span>{maxDayCount}</span>
                 <span>{Math.round(maxDayCount / 2)}</span>
                 <span>0</span>
@@ -668,12 +668,12 @@ export default function DashboardPage() {
                       />
                     </div>
                     <span
-                      className={`text-[9px] ${isToday ? "text-[#4edea3] font-semibold" : "text-[#c7c4d7]/60"}`}
+                      className={`text-[9px] ${isToday ? "text-[#4edea3] font-semibold" : "text-muted-foreground/60"}`}
                     >
                       {label}
                     </span>
                     {count > 0 && (
-                      <span className="text-[9px] text-[#c7c4d7] tabular-nums">{count}</span>
+                      <span className="text-[9px] text-muted-foreground tabular-nums">{count}</span>
                     )}
                   </div>
                 );
@@ -690,13 +690,13 @@ export default function DashboardPage() {
           {plays.length > 1 && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-semibold text-[#c7c4d7] uppercase tracking-wider flex items-center gap-1.5">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                   <Zap className="w-3.5 h-3.5" />
                   More warm plays
                 </p>
                 <Link
                   href="/warm-leads"
-                  className="text-[11px] text-[#c7c4d7] hover:text-[#e5e1e4] flex items-center gap-0.5"
+                  className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-0.5"
                 >
                   All accounts <ChevronRight className="w-3 h-3" />
                 </Link>
@@ -705,7 +705,7 @@ export default function DashboardPage() {
                 {plays.slice(1).map(({ signal, account, contact, via, urgency }) => (
                   <div
                     key={signal.id}
-                    className={`flex-shrink-0 w-56 snap-start rounded-xl border border-l-2 p-3 bg-[#201f22] ${URGENCY_RING[urgency]}`}
+                    className={`flex-shrink-0 w-56 snap-start rounded-xl border border-l-2 p-3 bg-card ${URGENCY_RING[urgency]}`}
                   >
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="text-xs font-semibold truncate">{account?.name}</span>
@@ -717,14 +717,14 @@ export default function DashboardPage() {
                       </Badge>
                     </div>
                     {contact && (
-                      <p className="text-[11px] text-[#c7c4d7] truncate mb-1">{contact.name}</p>
+                      <p className="text-[11px] text-muted-foreground truncate mb-1">{contact.name}</p>
                     )}
                     {via ? (
                       <p className="text-[11px] text-[#4edea3] font-medium truncate mb-2">
                         via {via}
                       </p>
                     ) : (
-                      <p className="text-[11px] text-[#c7c4d7] truncate mb-2">No warm path</p>
+                      <p className="text-[11px] text-muted-foreground truncate mb-2">No warm path</p>
                     )}
                     <Button
                       size="sm"
@@ -739,7 +739,7 @@ export default function DashboardPage() {
               {dismissed.size > 0 && (
                 <button
                   type="button"
-                  className="text-[11px] text-[#c7c4d7] hover:text-[#e5e1e4] w-full text-center py-1"
+                  className="text-[11px] text-muted-foreground hover:text-foreground w-full text-center py-1"
                   onClick={() => setDismissed(new Set())}
                 >
                   Restore {dismissed.size} dismissed
@@ -749,10 +749,10 @@ export default function DashboardPage() {
           )}
 
           {plays.length === 0 && (
-            <div className="rounded-xl border border-[#464554] bg-[#201f22]/50 p-8 text-center">
-              <Zap className="w-6 h-6 text-[#c7c4d7]/40 mx-auto mb-2" />
-              <p className="text-sm text-[#c7c4d7]">No high-urgency signals right now.</p>
-              <p className="text-xs text-[#c7c4d7]/70 mt-1">
+            <div className="rounded-xl border border-border bg-card/50 p-8 text-center">
+              <Zap className="w-6 h-6 text-muted-foreground/40 mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">No high-urgency signals right now.</p>
+              <p className="text-xs text-muted-foreground/70 mt-1">
                 Your agent is monitoring 50+ sources.
               </p>
             </div>
@@ -774,7 +774,7 @@ export default function DashboardPage() {
                     {championSignals.length}
                   </Badge>
                 </div>
-                <p className="text-[11px] text-[#c7c4d7] mb-3 leading-relaxed">
+                <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
                   Champions in your network changed jobs. Reach out now — your relationship gives
                   you a warm-path advantage at their new company.
                 </p>
@@ -797,13 +797,13 @@ export default function DashboardPage() {
                           {initials}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-[#e5e1e4] truncate">
+                          <p className="font-medium text-foreground truncate">
                             {contactName}
                             {newCo && (
-                              <span className="font-normal text-[#c7c4d7]"> → {newCo}</span>
+                              <span className="font-normal text-muted-foreground"> → {newCo}</span>
                             )}
                             {newTitle && (
-                              <span className="font-normal text-[#c7c4d7]"> as {newTitle}</span>
+                              <span className="font-normal text-muted-foreground"> as {newTitle}</span>
                             )}
                           </p>
                           <span className="text-[10px] text-violet-500">
@@ -836,11 +836,11 @@ export default function DashboardPage() {
         {/* ── Right column ─────────────────────────────────────────────────── */}
         <div className="space-y-4">
           {/* Pending approvals */}
-          <Card className="border-[#464554]">
+          <Card className="border-border">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs font-semibold flex items-center gap-1.5">
-                  <Bell className="w-3.5 h-3.5 text-[#c7c4d7]" />
+                  <Bell className="w-3.5 h-3.5 text-muted-foreground" />
                   Pending review
                 </p>
                 {totalPending > 0 && (
@@ -876,7 +876,7 @@ export default function DashboardPage() {
                             <p className="text-xs font-medium truncate">
                               {msg.subject ?? `${msg.channel.replace("_", " ")} message`}
                             </p>
-                            <p className="text-[10px] text-[#c7c4d7] truncate">
+                            <p className="text-[10px] text-muted-foreground truncate">
                               {msg.contact?.name ?? "Contact"} · {msg.account?.name ?? "Account"}
                             </p>
                           </div>
@@ -891,7 +891,7 @@ export default function DashboardPage() {
                       );
                     })}
                     {totalPending > 2 && (
-                      <p className="text-[11px] text-[#c7c4d7] pl-1">+{totalPending - 2} more</p>
+                      <p className="text-[11px] text-muted-foreground pl-1">+{totalPending - 2} more</p>
                     )}
                   </div>
                   <Button size="sm" className="w-full h-8 text-xs" asChild>
@@ -908,16 +908,16 @@ export default function DashboardPage() {
 
       {/* ── Horizontal cards (moved out of right rail) ───────────────────── */}
       {/* Warm paths · horizontal */}
-      <Card className="border-[#464554]">
+      <Card className="border-border">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs font-semibold flex items-center gap-1.5">
-              <GitFork className="w-3.5 h-3.5 text-[#c7c4d7]" />
+              <GitFork className="w-3.5 h-3.5 text-muted-foreground" />
               Warm paths
             </p>
             <Link
               href="/relationship-graph"
-              className="text-[11px] text-[#c7c4d7] hover:text-[#e5e1e4]"
+              className="text-[11px] text-muted-foreground hover:text-foreground"
             >
               View graph
             </Link>
@@ -931,14 +931,14 @@ export default function DashboardPage() {
                 <Link
                   key={wp.id}
                   href={`/accounts/${wp.account_id}`}
-                  className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-[#464554] bg-[#201f22]/40 hover:bg-[#201f22] transition-colors"
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-border bg-card/40 hover:bg-card transition-colors"
                 >
                   <div className="w-7 h-7 rounded-md bg-[#8083ff]/10 flex items-center justify-center text-[11px] font-bold text-[#4edea3] flex-shrink-0">
                     {acc?.name?.[0] ?? "?"}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium truncate">{acc?.name}</p>
-                    <p className="text-[10px] text-[#c7c4d7] truncate">
+                    <p className="text-[10px] text-muted-foreground truncate">
                       via {wp.recommended_intro_person ?? "—"}
                     </p>
                   </div>
@@ -956,16 +956,16 @@ export default function DashboardPage() {
       </Card>
 
       {/* Network health · horizontal */}
-      <Card className="border-[#464554]">
+      <Card className="border-border">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs font-semibold flex items-center gap-1.5">
-              <Network className="w-3.5 h-3.5 text-[#c7c4d7]" />
+              <Network className="w-3.5 h-3.5 text-muted-foreground" />
               Network health
             </p>
             <Link
               href="/relationship-graph?view=coverage"
-              className="text-[11px] text-[#c7c4d7] hover:text-[#e5e1e4]"
+              className="text-[11px] text-muted-foreground hover:text-foreground"
             >
               View full network
             </Link>
@@ -1011,7 +1011,7 @@ export default function DashboardPage() {
                   return (
                     <div
                       key={edge.id}
-                      className="flex items-center gap-2 text-xs px-2 py-1.5 rounded-md bg-[#201f22]/40 border border-[#464554]"
+                      className="flex items-center gap-2 text-xs px-2 py-1.5 rounded-md bg-card/40 border border-border"
                     >
                       <Link2Off className="w-3 h-3 text-[#4edea3] flex-shrink-0" />
                       <span className="flex-1 truncate font-medium">{name}</span>

@@ -224,7 +224,7 @@ function AddItemForm({ onSave, onCancel }: AddItemFormProps) {
             className={`relative w-9 h-5 rounded-full transition-colors ${approvedForAI ? "bg-primary" : "bg-muted"}`}
           >
             <div
-              className={`absolute top-0.5 w-4 h-4 rounded-full bg-[#e5e1e4] shadow transition-transform ${approvedForAI ? "left-4" : "left-0.5"}`}
+              className={`absolute top-0.5 w-4 h-4 rounded-full bg-foreground shadow transition-transform ${approvedForAI ? "left-4" : "left-0.5"}`}
             />
           </button>
           <span className="text-xs">Approved for AI use</span>

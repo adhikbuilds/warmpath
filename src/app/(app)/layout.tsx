@@ -1,6 +1,8 @@
 "use client";
 
+import { Moon, Sun } from "lucide-react";
 import Link from "next/link";
+import { useTheme } from "next-themes";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
@@ -30,6 +32,7 @@ const PAGE_TITLES: Record<string, string> = {
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore();
+  const { theme, setTheme } = useTheme();
   const {
     messages,
     signals,
@@ -96,7 +99,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (!isAuthenticated) return null;
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ backgroundColor: "#09090b" }}>
+    <div className="flex h-screen overflow-hidden bg-background">
       <StoreInitializer />
       <AppSidebar />
 
@@ -106,55 +109,31 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         style={{ marginLeft: sidebarCollapsed ? 56 : 240 }}
       >
         {/* Top bar */}
-        <header
-          className="h-12 shrink-0 flex items-center justify-between px-6"
-          style={{ backgroundColor: "#18181b", borderBottom: "1px solid #27272a" }}
-        >
+        <header className="h-12 shrink-0 flex items-center justify-between px-6 bg-card border-b border-border">
           <div className="flex items-center gap-2">
             {pageTitle && (
-              <h2 className="text-[14px] font-semibold text-white tracking-tight">{pageTitle}</h2>
+              <h2 className="text-[14px] font-semibold text-foreground tracking-tight">{pageTitle}</h2>
             )}
           </div>
 
           <div className="flex items-center gap-2">
             {pendingCount > 0 && (
               <Link href="/approval-queue">
-                <span
-                  className="text-[11px] font-semibold px-2 py-1 rounded-md transition-colors"
-                  style={{
-                    backgroundColor: "rgba(37,99,235,0.15)",
-                    color: "#60a5fa",
-                    border: "1px solid rgba(37,99,235,0.2)",
-                  }}
-                >
+                <span className="text-[11px] font-semibold px-2 py-1 rounded-md transition-colors bg-blue-500/10 text-blue-500 border border-blue-500/20">
                   {pendingCount} pending
                 </span>
               </Link>
             )}
             {urgentSignalCount > 0 && (
               <Link href="/signals">
-                <span
-                  className="text-[11px] font-semibold px-2 py-1 rounded-md transition-colors"
-                  style={{
-                    backgroundColor: "rgba(16,185,129,0.12)",
-                    color: "#10b981",
-                    border: "1px solid rgba(16,185,129,0.2)",
-                  }}
-                >
+                <span className="text-[11px] font-semibold px-2 py-1 rounded-md transition-colors bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
                   {urgentSignalCount} urgent
                 </span>
               </Link>
             )}
             {overdueTasks > 0 && (
               <Link href="/tasks">
-                <span
-                  className="text-[11px] font-semibold px-2 py-1 rounded-md transition-colors"
-                  style={{
-                    backgroundColor: "rgba(245,158,11,0.12)",
-                    color: "#f59e0b",
-                    border: "1px solid rgba(245,158,11,0.2)",
-                  }}
-                >
+                <span className="text-[11px] font-semibold px-2 py-1 rounded-md transition-colors bg-amber-500/10 text-amber-600 border border-amber-500/20">
                   {overdueTasks} overdue
                 </span>
               </Link>
@@ -162,10 +141,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               onClick={() => setCommandOpen(true)}
-              className="hidden sm:flex items-center gap-1.5 text-[11px] rounded-md px-2.5 py-1 transition-all font-mono"
-              style={{ color: "#71717a", border: "1px solid #27272a" }}
+              className="hidden sm:flex items-center gap-1.5 text-[11px] rounded-md px-2.5 py-1 transition-all font-mono text-muted-foreground border border-border hover:text-foreground"
             >
               ⌘K
+            </button>
+            {/* Theme toggle */}
+            <button
+              type="button"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="w-7 h-7 flex items-center justify-center rounded-md border border-border text-muted-foreground hover:text-foreground transition-colors"
+              title="Toggle theme"
+            >
+              {theme === "dark" ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
             </button>
           </div>
         </header>
