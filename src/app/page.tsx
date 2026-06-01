@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Check, Minus, Moon, Play, Sun } from "lucide-react";
+import { ArrowRight, Check, Minus, Play } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Logo } from "@/components/logo";
@@ -124,7 +124,6 @@ function DemoCard({
   muted,
   accent,
   primary,
-  isDark,
 }: {
   surface: string;
   border: string;
@@ -132,7 +131,6 @@ function DemoCard({
   muted: string;
   accent: string;
   primary: string;
-  isDark: boolean;
 }) {
   const [idx, setIdx] = useState(0);
   const [fade, setFade] = useState(true);
@@ -150,7 +148,7 @@ function DemoCard({
   return (
     <div
       className="rounded-2xl p-6"
-      style={{ background: isDark ? "#111113" : "#f0f0f2", border: `1px solid ${border}` }}
+      style={{ background: "#f0f0f2", border: `1px solid ${border}` }}
     >
       {/* Live badge */}
       <div className="flex items-center gap-2 mb-4">
@@ -193,7 +191,7 @@ function DemoCard({
         </div>
         <div
           className="rounded-lg px-3 py-2 mb-3 flex items-center gap-2"
-          style={{ backgroundColor: isDark ? "#1e1e21" : "#e8e8ea" }}
+          style={{ backgroundColor: "#e8e8ea" }}
         >
           <span style={{ color: accent, fontSize: 12 }}>→</span>
           <span className="text-[12px]" style={{ color: text }}>
@@ -369,7 +367,6 @@ function ROICalc({
   muted,
   primary,
   accent,
-  isDark,
 }: {
   surface: string;
   border: string;
@@ -377,7 +374,6 @@ function ROICalc({
   muted: string;
   primary: string;
   accent: string;
-  isDark: boolean;
 }) {
   const [persona, setPersona] = useState<Persona>("ae");
   const [aes, setAes] = useState(PERSONA_PRESETS.ae.aes);
@@ -459,7 +455,7 @@ function ROICalc({
                   borderRadius: 8,
                   cursor: "pointer",
                   transition: "all 0.2s",
-                  backgroundColor: active ? primary : isDark ? "#111113" : "#e8e8ea",
+                  backgroundColor: active ? primary : "#e8e8ea",
                   color: active ? "#fff" : text,
                   border: `1px solid ${active ? primary : border}`,
                 }}
@@ -532,7 +528,7 @@ function ROICalc({
               key={m.label}
               className="rounded-xl p-5 text-center"
               style={{
-                backgroundColor: isDark ? "#111113" : "#e8e8ea",
+                backgroundColor: "#e8e8ea",
                 border: `1px solid ${border}`,
               }}
             >
@@ -561,14 +557,13 @@ function ROICalc({
 
 // ─── Main ────────────────────────────────────────────────────────────────────
 export default function LandingPage() {
-  const [dark, setDark] = useState(true);
   const [activeCase, setActiveCase] = useState(0);
 
-  const bg = dark ? "#09090b" : "#fafafa";
-  const surface = dark ? "#111113" : "#f0f0f2";
-  const border = dark ? "#222225" : "#e0e0e3";
-  const text = dark ? "#f0eef3" : "#111111";
-  const muted = dark ? "#888" : "#666";
+  const bg = "#fafafa";
+  const surface = "#f0f0f2";
+  const border = "#e0e0e3";
+  const text = "#111111";
+  const muted = "#666";
   const primary = "#2563eb";
   const accent = "#10b981";
 
@@ -578,7 +573,6 @@ export default function LandingPage() {
         backgroundColor: bg,
         color: text,
         minHeight: "100vh",
-        transition: "background-color 0.3s, color 0.3s",
       }}
     >
       {/* ── NAV ─────────────────────────────────────────────────────────── */}
@@ -589,10 +583,9 @@ export default function LandingPage() {
           left: 0,
           right: 0,
           zIndex: 50,
-          backgroundColor: dark ? "rgba(9,9,11,0.88)" : "rgba(250,250,250,0.88)",
+          backgroundColor: "rgba(250,250,250,0.88)",
           backdropFilter: "blur(14px)",
           borderBottom: `1px solid ${border}`,
-          transition: "background-color 0.3s",
         }}
       >
         <div
@@ -643,21 +636,6 @@ export default function LandingPage() {
             ))}
           </div>
           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-            <button
-              onClick={() => setDark(!dark)}
-              style={{
-                padding: "6px 8px",
-                borderRadius: 8,
-                backgroundColor: surface,
-                border: `1px solid ${border}`,
-                color: text,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              {dark ? <Sun size={15} /> : <Moon size={15} />}
-            </button>
             <Link href="/login" style={{ fontSize: 13, color: muted, textDecoration: "none" }}>
               Sign in
             </Link>
@@ -814,7 +792,6 @@ export default function LandingPage() {
             muted={muted}
             accent={accent}
             primary={primary}
-            isDark={dark}
           />
         </div>
       </section>
@@ -1017,7 +994,7 @@ export default function LandingPage() {
               {CASES[activeCase].impact}
             </span>
           </div>
-          <div style={{ padding: 48, backgroundColor: dark ? "#0d0d10" : "#e8e8ea" }}>
+          <div style={{ padding: 48, backgroundColor: "#e8e8ea" }}>
             <p
               style={{
                 fontSize: 11,
@@ -1124,7 +1101,7 @@ export default function LandingPage() {
                   style={{
                     borderBottom: `1px solid ${border}`,
                     backgroundColor:
-                      ri % 2 === 0 ? "transparent" : dark ? "#0d0d0f08" : "#f5f5f708",
+                      ri % 2 === 0 ? "transparent" : "#f5f5f708",
                   }}
                 >
                   <td style={{ padding: "14px 24px", color: text }}>{feat}</td>
@@ -1153,7 +1130,7 @@ export default function LandingPage() {
                       ) : (
                         <Minus
                           size={16}
-                          style={{ margin: "0 auto", color: dark ? "#2a2a2e" : "#d0d0d4" }}
+                          style={{ margin: "0 auto", color: "#d0d0d4" }}
                         />
                       )}
                     </td>
@@ -1193,7 +1170,6 @@ export default function LandingPage() {
           muted={muted}
           primary={primary}
           accent={accent}
-          isDark={dark}
         />
       </section>
 

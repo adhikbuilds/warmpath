@@ -83,11 +83,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
-        style={{ backgroundColor: "#09090b" }}
+        style={{ backgroundColor: "#fafafa" }}
       >
         <div
-          className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin"
-          style={{ borderColor: "#2563eb", borderTopColor: "transparent" }}
+          className="w-5 h-5 border-2 rounded-full animate-spin"
+          style={{ borderColor: "#e0e0e4", borderTopColor: "#5456d4" }}
         />
       </div>
     );
