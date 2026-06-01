@@ -45,7 +45,9 @@ function NavItem({ href, icon: Icon, label, badge, collapsed }: NavItemProps) {
       className={cn(
         "flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-150",
         collapsed ? "justify-center px-2" : "",
-        isActive ? "text-white" : "text-[#a1a1aa] hover:text-white",
+        isActive
+          ? "text-white"
+          : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent",
       )}
       style={isActive ? { backgroundColor: "#2563eb" } : undefined}
     >
@@ -85,13 +87,11 @@ function NavSection({
   return (
     <div className="mb-4">
       {label && !collapsed && (
-        <p className="px-3 mb-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#52525b]">
+        <p className="px-3 mb-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground/60">
           {label}
         </p>
       )}
-      {label && collapsed && (
-        <div className="my-1 mx-2 border-t" style={{ borderColor: "#27272a" }} />
-      )}
+      {label && collapsed && <div className="my-1 mx-2 border-t border-sidebar-border" />}
       <div className="flex flex-col gap-0.5">{children}</div>
     </div>
   );
@@ -133,22 +133,15 @@ export function AppSidebar() {
   return (
     <nav
       data-sidebar="sidebar"
-      className="fixed left-0 top-0 h-full flex flex-col z-50 transition-all duration-200"
-      style={{
-        width,
-        backgroundColor: "#18181b",
-        borderRight: "1px solid #27272a",
-      }}
+      className="fixed left-0 top-0 h-full flex flex-col z-50 transition-all duration-200 bg-sidebar border-r border-sidebar-border"
+      style={{ width }}
     >
       {/* Logo + toggle */}
-      <div
-        className="flex items-center px-3 py-4 shrink-0"
-        style={{ borderBottom: "1px solid #27272a" }}
-      >
+      <div className="flex items-center px-3 py-4 shrink-0 border-b border-sidebar-border">
         {!collapsed ? (
           <Link
             href="/dashboard"
-            className="flex-1 flex items-center gap-2 pl-1 text-white"
+            className="flex-1 flex items-center gap-2 pl-1 text-sidebar-foreground"
             aria-label="WarmBlue"
           >
             <Logo size={22} />
@@ -157,7 +150,7 @@ export function AppSidebar() {
         ) : (
           <Link
             href="/dashboard"
-            className="flex-1 flex items-center justify-center text-white"
+            className="flex-1 flex items-center justify-center text-sidebar-foreground"
             aria-label="WarmBlue"
           >
             <Logo size={22} />
@@ -166,8 +159,7 @@ export function AppSidebar() {
         <button
           type="button"
           onClick={() => setSidebarCollapsed(!collapsed)}
-          className="w-7 h-7 flex items-center justify-center rounded-md transition-colors"
-          style={{ color: "#71717a" }}
+          className="w-7 h-7 flex items-center justify-center rounded-md transition-colors text-muted-foreground hover:text-sidebar-foreground"
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -179,8 +171,7 @@ export function AppSidebar() {
         <div className="px-4 py-3">
           <button
             type="button"
-            className="flex items-center gap-2 w-full px-3 py-1.5 rounded-md text-[13px] transition-all"
-            style={{ border: "1px solid #27272a", backgroundColor: "#09090b", color: "#71717a" }}
+            className="flex items-center gap-2 w-full px-3 py-1.5 rounded-md text-[13px] transition-all bg-background border border-sidebar-border text-muted-foreground hover:text-sidebar-foreground"
           >
             <svg
               className="w-3.5 h-3.5"
@@ -197,10 +188,7 @@ export function AppSidebar() {
               />
             </svg>
             <span className="flex-1 text-left">Quick search</span>
-            <span
-              className="text-[11px] px-1.5 py-0.5 rounded"
-              style={{ backgroundColor: "#27272a", color: "#71717a" }}
-            >
+            <span className="text-[11px] px-1.5 py-0.5 rounded bg-sidebar-accent text-muted-foreground">
               ⌘K
             </span>
           </button>
@@ -210,50 +198,16 @@ export function AppSidebar() {
       {/* Navigation */}
       <div className={cn("flex-1 overflow-y-auto py-2", collapsed ? "px-1.5" : "px-3")}>
         <NavSection collapsed={collapsed}>
-          <NavItem
-            href="/dashboard"
-            icon={LayoutDashboard}
-            label="Dashboard"
-            collapsed={collapsed}
-          />
-          <NavItem
-            href="/warm-leads"
-            icon={Zap}
-            label="Warm Leads"
-            badge={urgentSignalCount}
-            collapsed={collapsed}
-          />
-          <NavItem
-            href="/approval-queue"
-            icon={Bell}
-            label="Approval Queue"
-            badge={pendingCount}
-            collapsed={collapsed}
-          />
-          <NavItem
-            href="/tasks"
-            icon={ListChecks}
-            label="Tasks"
-            badge={overdueTaskCount}
-            collapsed={collapsed}
-          />
+          <NavItem href="/dashboard" icon={LayoutDashboard} label="Dashboard" collapsed={collapsed} />
+          <NavItem href="/warm-leads" icon={Zap} label="Warm Leads" badge={urgentSignalCount} collapsed={collapsed} />
+          <NavItem href="/approval-queue" icon={Bell} label="Approval Queue" badge={pendingCount} collapsed={collapsed} />
+          <NavItem href="/tasks" icon={ListChecks} label="Tasks" badge={overdueTaskCount} collapsed={collapsed} />
         </NavSection>
 
         <NavSection label="Workspace" collapsed={collapsed}>
           <NavItem href="/campaigns" icon={Megaphone} label="Campaigns" collapsed={collapsed} />
-          <NavItem
-            href="/signals"
-            icon={BarChart3}
-            label="Signals"
-            badge={urgentSignalCount}
-            collapsed={collapsed}
-          />
-          <NavItem
-            href="/relationship-graph"
-            icon={Network}
-            label="Relationships"
-            collapsed={collapsed}
-          />
+          <NavItem href="/signals" icon={BarChart3} label="Signals" badge={urgentSignalCount} collapsed={collapsed} />
+          <NavItem href="/relationship-graph" icon={Network} label="Relationships" collapsed={collapsed} />
           <NavItem href="/discover" icon={Compass} label="Discover" collapsed={collapsed} />
           <NavItem href="/accounts" icon={Building2} label="Accounts" collapsed={collapsed} />
           <NavItem href="/contacts" icon={Users} label="Contacts" collapsed={collapsed} />
@@ -261,12 +215,7 @@ export function AppSidebar() {
         </NavSection>
 
         <NavSection label="Tools" collapsed={collapsed}>
-          <NavItem
-            href="/knowledge-base"
-            icon={BookOpen}
-            label="Knowledge Base"
-            collapsed={collapsed}
-          />
+          <NavItem href="/knowledge-base" icon={BookOpen} label="Knowledge Base" collapsed={collapsed} />
           <NavItem href="/integrations" icon={Link2} label="Integrations" collapsed={collapsed} />
           <NavItem href="/team" icon={Users} label="Team" collapsed={collapsed} />
           <NavItem href="/settings" icon={Settings} label="Settings" collapsed={collapsed} />
@@ -275,15 +224,13 @@ export function AppSidebar() {
 
       {/* Footer – User */}
       <div
-        className={cn("py-3 shrink-0", collapsed ? "px-1.5" : "px-4")}
-        style={{ borderTop: "1px solid #27272a" }}
+        className={cn("py-3 shrink-0 border-t border-sidebar-border", collapsed ? "px-1.5" : "px-4")}
       >
         {collapsed ? (
           <button
             type="button"
             onClick={handleLogout}
-            className="w-full flex items-center justify-center p-2 rounded-md transition-all"
-            style={{ color: "#71717a" }}
+            className="w-full flex items-center justify-center p-2 rounded-md transition-all text-muted-foreground hover:text-sidebar-foreground"
             title="Sign out"
           >
             <LogOut className="w-3.5 h-3.5" />
@@ -291,19 +238,16 @@ export function AppSidebar() {
         ) : (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 min-w-0">
-              <div
-                className="w-7 h-7 rounded-md flex items-center justify-center shrink-0"
-                style={{ backgroundColor: "rgba(79,70,229,0.2)" }}
-              >
-                <span className="text-[11px] font-semibold" style={{ color: "#818cf8" }}>
+              <div className="w-7 h-7 rounded-md flex items-center justify-center shrink-0 bg-primary/20">
+                <span className="text-[11px] font-semibold text-primary">
                   {user?.name ? getInitials(user.name) : "U"}
                 </span>
               </div>
               <div className="min-w-0">
-                <p className="text-[13px] font-medium text-white truncate leading-tight">
+                <p className="text-[13px] font-medium text-sidebar-foreground truncate leading-tight">
                   {user?.name ?? "Demo User"}
                 </p>
-                <p className="text-[11px] truncate capitalize" style={{ color: "#71717a" }}>
+                <p className="text-[11px] truncate capitalize text-muted-foreground">
                   {user?.plan ?? "growth"} plan
                 </p>
               </div>
@@ -311,8 +255,7 @@ export function AppSidebar() {
             <button
               type="button"
               onClick={handleLogout}
-              className="p-1.5 rounded-md transition-all"
-              style={{ color: "#71717a" }}
+              className="p-1.5 rounded-md transition-all text-muted-foreground hover:text-sidebar-foreground"
               title="Sign out"
             >
               <LogOut className="w-3.5 h-3.5" />

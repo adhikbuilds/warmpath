@@ -1076,7 +1076,7 @@ Thanks,
       {/* ── PIPELINE VIEW ─────────────────────────────────────────────────────── */}
       {view === "pipeline" && (
         <>
-          <div className="animate-fade-up delay-1 rounded-md border border-[#464554] bg-[#201f22] overflow-hidden">
+          <div className="animate-fade-up delay-1 rounded-md border border-border bg-card overflow-hidden">
             <div className="border-b border-border/60 bg-muted/15 px-5 py-4">
               <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                 <div>
@@ -1166,7 +1166,7 @@ Thanks,
                     >
                       <div
                         className={cn(
-                          "rounded-md border bg-[#1c1b1d] p-3 transition-colors",
+                          "rounded-md border bg-input p-3 transition-colors",
                           theme.border,
                           dragOverStage === stage && draggingId && "ring-2 ring-brand/20",
                         )}
@@ -1231,7 +1231,7 @@ Thanks,
                                   setDragOverStage(null);
                                 }}
                                 className={cn(
-                                  "cursor-grab rounded-md border border-[#464554] bg-[#201f22] p-3 text-left transition-all active:cursor-grabbing",
+                                  "cursor-grab rounded-md border border-border bg-card p-3 text-left transition-all active:cursor-grabbing",
                                   theme.cardBorder,
                                   "border-l-[3px]",
                                   isDragging
@@ -1256,7 +1256,7 @@ Thanks,
                                         ? "bg-emerald-100 text-emerald-700"
                                         : item.warmth >= 65
                                           ? "bg-amber-100 text-amber-700"
-                                          : "bg-[#353437] text-[#c7c4d7]",
+                                          : "bg-[#353437] text-muted-foreground",
                                     )}
                                   >
                                     {item.warmth}

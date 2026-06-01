@@ -101,17 +101,17 @@ function QualityScorer({ message }: { message: GeneratedMessage }) {
   return (
     <div
       className="rounded-lg border flex flex-col gap-3 p-4"
-      style={{ backgroundColor: "#09090b", borderColor: "#27272a" }}
+      style={{ backgroundColor: "var(--background)", borderColor: "var(--border)" }}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <TrendingUp className="w-3.5 h-3.5" style={{ color: "#10b981" }} />
-          <span className="text-sm font-semibold" style={{ color: "#e5e5e5" }}>
+          <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
             Message Quality
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs" style={{ color: "#a1a1aa" }}>
+          <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>
             {q.wordCount} words
           </span>
           <span
@@ -126,7 +126,7 @@ function QualityScorer({ message }: { message: GeneratedMessage }) {
         {dimensions.map((dim) => (
           <div key={dim.label}>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[11px]" style={{ color: "#a1a1aa" }}>
+              <span className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
                 {dim.label}
               </span>
               <span
@@ -138,7 +138,7 @@ function QualityScorer({ message }: { message: GeneratedMessage }) {
             </div>
             <div
               className="h-1.5 rounded-full overflow-hidden"
-              style={{ backgroundColor: "#27272a" }}
+              style={{ backgroundColor: "var(--border)" }}
             >
               <div
                 className="h-full rounded-full transition-all duration-700"
@@ -156,8 +156,8 @@ function QualityScorer({ message }: { message: GeneratedMessage }) {
         >
           <div className="flex items-start gap-1.5">
             <AlertTriangle className="w-3 h-3 text-amber-500 flex-shrink-0 mt-0.5" />
-            <p className="text-[11px] leading-relaxed" style={{ color: "#a1a1aa" }}>
-              <span className="font-semibold" style={{ color: "#e5e5e5" }}>
+            <p className="text-[11px] leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+              <span className="font-semibold" style={{ color: "var(--foreground)" }}>
                 Tip ({weakest.label}):{" "}
               </span>
               {tips[weakest.label]}
@@ -179,11 +179,11 @@ function ResearchCard({ message }: { message: GeneratedMessage }) {
   return (
     <div
       className="rounded-lg border flex flex-col gap-3 p-4"
-      style={{ backgroundColor: "#09090b", borderColor: "#27272a" }}
+      style={{ backgroundColor: "var(--background)", borderColor: "var(--border)" }}
     >
       <div className="flex items-center gap-1.5">
         <Sparkles className="w-3.5 h-3.5" style={{ color: "#10b981" }} />
-        <span className="text-sm font-semibold" style={{ color: "#e5e5e5" }}>
+        <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
           Personalization Hooks
         </span>
         <span
@@ -199,7 +199,7 @@ function ResearchCard({ message }: { message: GeneratedMessage }) {
       </div>
 
       {!hasContent ? (
-        <p className="text-[11px] italic" style={{ color: "#a1a1aa" }}>
+        <p className="text-[11px] italic" style={{ color: "var(--muted-foreground)" }}>
           No research hooks — add specifics to increase reply rate.
         </p>
       ) : (
@@ -223,11 +223,11 @@ function ResearchCard({ message }: { message: GeneratedMessage }) {
             <div
               key={claim}
               className="flex items-start gap-2 rounded-lg border p-3"
-              style={{ borderColor: "#27272a", backgroundColor: "#18181b" }}
+              style={{ borderColor: "var(--border)", backgroundColor: "var(--card)" }}
             >
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
-                <p className="text-[11px] leading-relaxed" style={{ color: "#e5e5e5" }}>
+                <p className="text-[11px] leading-relaxed" style={{ color: "var(--foreground)" }}>
                   {claim}
                 </p>
                 <span className="text-[10px] text-emerald-500 font-medium">Verified</span>
@@ -241,7 +241,7 @@ function ResearchCard({ message }: { message: GeneratedMessage }) {
                 <span
                   key={source}
                   className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px]"
-                  style={{ borderColor: "#27272a", backgroundColor: "#09090b", color: "#a1a1aa" }}
+                  style={{ borderColor: "var(--border)", backgroundColor: "var(--background)", color: "var(--muted-foreground)" }}
                 >
                   <ExternalLink className="w-2.5 h-2.5" />
                   {source}
@@ -252,7 +252,7 @@ function ResearchCard({ message }: { message: GeneratedMessage }) {
         </div>
       )}
 
-      <p className="text-[10px] border-t pt-2" style={{ borderColor: "#27272a", color: "#71717a" }}>
+      <p className="text-[10px] border-t pt-2" style={{ borderColor: "var(--border)", color: "var(--muted-foreground)" }}>
         Messages with 2+ specific hooks get 2.4× more replies
       </p>
     </div>
@@ -447,27 +447,27 @@ export default function ApprovalQueuePage() {
   const warmthScore = selectedMessage ? getWarmthScore(selectedMessage) : 0;
 
   return (
-    <main className="flex-1 flex h-full relative" style={{ backgroundColor: "#09090b" }}>
+    <main className="flex-1 flex h-full relative" style={{ backgroundColor: "var(--background)" }}>
       {/* ── Left Pane: Queue List (35%, max 400px) ── */}
       <div
         className="w-[35%] min-w-[320px] max-w-[400px] border-r flex flex-col"
-        style={{ borderColor: "#27272a", backgroundColor: "#09090b" }}
+        style={{ borderColor: "var(--border)", backgroundColor: "var(--background)" }}
       >
         {/* Queue Header */}
-        <div className="border-b shrink-0" style={{ borderColor: "#27272a" }}>
+        <div className="border-b shrink-0" style={{ borderColor: "var(--border)" }}>
           <div className="h-12 flex items-center justify-between px-4">
-            <h2 className="text-sm font-semibold" style={{ color: "#e5e5e5" }}>
+            <h2 className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
               Pending Intros
-              <span className="ml-2 text-xs font-normal" style={{ color: "#71717a" }}>
+              <span className="ml-2 text-xs font-normal" style={{ color: "var(--muted-foreground)" }}>
                 {pendingMessages.length} of {allPending.length}
               </span>
             </h2>
             <button
               type="button"
               className="p-1.5 rounded transition-colors"
-              style={{ color: "#a1a1aa" }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#e5e5e5")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "#a1a1aa")}
+              style={{ color: "var(--muted-foreground)" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "var(--foreground)")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "var(--muted-foreground)")}
               aria-label="More options"
             >
               <MoreVertical className="w-4 h-4" />
@@ -480,7 +480,7 @@ export default function ApprovalQueuePage() {
               value={filterRep}
               onChange={(e) => setFilterRep(e.target.value)}
               className="flex-1 h-7 rounded px-2 text-[11px] border bg-transparent outline-none"
-              style={{ borderColor: "#27272a", color: "#e5e5e5", backgroundColor: "#09090b" }}
+              style={{ borderColor: "var(--border)", color: "var(--foreground)", backgroundColor: "var(--background)" }}
               title="Filter by rep / connector"
             >
               <option value="all">All reps</option>
@@ -494,7 +494,7 @@ export default function ApprovalQueuePage() {
               value={filterAccount}
               onChange={(e) => setFilterAccount(e.target.value)}
               className="flex-1 h-7 rounded px-2 text-[11px] border bg-transparent outline-none"
-              style={{ borderColor: "#27272a", color: "#e5e5e5", backgroundColor: "#09090b" }}
+              style={{ borderColor: "var(--border)", color: "var(--foreground)", backgroundColor: "var(--background)" }}
               title="Filter by account"
             >
               <option value="all">All accounts</option>
@@ -508,7 +508,7 @@ export default function ApprovalQueuePage() {
               value={filterChannel}
               onChange={(e) => setFilterChannel(e.target.value)}
               className="w-24 h-7 rounded px-2 text-[11px] border bg-transparent outline-none"
-              style={{ borderColor: "#27272a", color: "#e5e5e5", backgroundColor: "#09090b" }}
+              style={{ borderColor: "var(--border)", color: "var(--foreground)", backgroundColor: "var(--background)" }}
               title="Filter by channel"
             >
               <option value="all">Channel</option>
@@ -530,7 +530,7 @@ export default function ApprovalQueuePage() {
               }}
             >
               <Info className="w-3 h-3 text-blue-400 flex-shrink-0 mt-0.5" />
-              <p className="text-[10.5px] leading-relaxed flex-1" style={{ color: "#a1a1aa" }}>
+              <p className="text-[10.5px] leading-relaxed flex-1" style={{ color: "var(--muted-foreground)" }}>
                 The queue populates automatically once signal detection runs — every entry has been
                 AI-drafted from a verified buying signal and a warm relationship path.
               </p>
@@ -562,9 +562,9 @@ export default function ApprovalQueuePage() {
                 {/* Group Header (sticky) */}
                 <div
                   className="px-4 py-2 border-b sticky top-0 z-10"
-                  style={{ borderColor: "#27272a", backgroundColor: "#0e0e10" }}
+                  style={{ borderColor: "var(--border)", backgroundColor: "var(--background)" }}
                 >
-                  <span className="text-xs uppercase tracking-wider" style={{ color: "#71717a" }}>
+                  <span className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
                     Via {connectorName} ({groupMessages.length})
                   </span>
                 </div>
@@ -589,15 +589,15 @@ export default function ApprovalQueuePage() {
                         "w-full text-left p-4 border-b cursor-pointer transition-colors border-l-2",
                         isSelected
                           ? "border-l-[#2563eb]"
-                          : "border-l-transparent hover:border-l-[#71717a]",
+                          : "border-l-transparent hover:border-l-muted-foreground",
                       )}
                       style={{
-                        borderBottomColor: "#27272a",
-                        backgroundColor: isSelected ? "#18181b" : "transparent",
+                        borderBottomColor: "var(--border)",
+                        backgroundColor: isSelected ? "var(--card)" : "transparent",
                       }}
                       onMouseEnter={(e) => {
                         if (!isSelected) {
-                          e.currentTarget.style.backgroundColor = "#18181b";
+                          e.currentTarget.style.backgroundColor = "var(--card)";
                         }
                       }}
                       onMouseLeave={(e) => {
@@ -607,7 +607,7 @@ export default function ApprovalQueuePage() {
                       }}
                     >
                       <div className="flex justify-between items-start mb-2 gap-2">
-                        <h3 className="font-semibold text-sm" style={{ color: "#e5e5e5" }}>
+                        <h3 className="font-semibold text-sm" style={{ color: "var(--foreground)" }}>
                           {msg.contact?.name ?? "Unknown Contact"}
                         </h3>
                         <span
@@ -622,7 +622,7 @@ export default function ApprovalQueuePage() {
                           {sla.label}
                         </span>
                       </div>
-                      <p className="text-xs mb-2" style={{ color: "#a1a1aa" }}>
+                      <p className="text-xs mb-2" style={{ color: "var(--muted-foreground)" }}>
                         {msg.contact?.title ?? "Prospect"}
                         {msg.account?.name ? ` at ${msg.account.name}` : ""}
                       </p>
@@ -641,14 +641,14 @@ export default function ApprovalQueuePage() {
                         )}
                         <span
                           className="px-1.5 py-0.5 rounded text-[10px] capitalize"
-                          style={{ backgroundColor: "#27272a", color: "#a1a1aa" }}
+                          style={{ backgroundColor: "var(--border)", color: "var(--muted-foreground)" }}
                         >
                           {msg.channel.replace("_", " ")}
                         </span>
                         {contextTag && (
                           <span
                             className="px-2 py-0.5 rounded text-xs"
-                            style={{ backgroundColor: "#27272a", color: "#a1a1aa" }}
+                            style={{ backgroundColor: "var(--border)", color: "var(--muted-foreground)" }}
                           >
                             {contextTag}
                           </span>
@@ -664,27 +664,27 @@ export default function ApprovalQueuePage() {
       </div>
 
       {/* ── Right Pane: Review Dashboard (flex-1) ── */}
-      <div className="flex-1 flex flex-col overflow-y-auto" style={{ backgroundColor: "#09090b" }}>
+      <div className="flex-1 flex flex-col overflow-y-auto" style={{ backgroundColor: "var(--background)" }}>
         {/* Sticky TopAppBar */}
         <div
           className="h-12 border-b flex items-center justify-between px-6 sticky top-0 z-20"
-          style={{ borderColor: "#27272a", backgroundColor: "#09090b" }}
+          style={{ borderColor: "var(--border)", backgroundColor: "var(--background)" }}
         >
           <div className="flex items-center gap-4">
             {selectedMessage ? (
               <>
-                <h2 className="text-sm font-semibold" style={{ color: "#e5e5e5" }}>
+                <h2 className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                   Review Request: {selectedMessage.contact?.name}
                 </h2>
                 <span
                   className="border px-2 py-0.5 rounded text-xs"
-                  style={{ borderColor: "#27272a", color: "#a1a1aa" }}
+                  style={{ borderColor: "var(--border)", color: "var(--muted-foreground)" }}
                 >
                   ID: REQ-{selectedMessage.id.slice(0, 6).toUpperCase()}
                 </span>
               </>
             ) : (
-              <h2 className="text-sm font-semibold" style={{ color: "#71717a" }}>
+              <h2 className="text-sm font-semibold" style={{ color: "var(--muted-foreground)" }}>
                 Select a draft to review
               </h2>
             )}
@@ -695,8 +695,8 @@ export default function ApprovalQueuePage() {
                 type="button"
                 onClick={() => setShowHistory(!showHistory)}
                 className="h-8 px-3 border rounded text-xs flex items-center gap-1.5 transition-colors"
-                style={{ borderColor: "#27272a", color: "#e5e5e5" }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#18181b")}
+                style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--card)")}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
               >
                 <HistoryIcon className="w-3.5 h-3.5" />
@@ -705,8 +705,8 @@ export default function ApprovalQueuePage() {
               <button
                 type="button"
                 className="h-8 w-8 border rounded flex items-center justify-center transition-colors"
-                style={{ borderColor: "#27272a", color: "#e5e5e5" }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#18181b")}
+                style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--card)")}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                 aria-label="More options"
               >
@@ -724,16 +724,16 @@ export default function ApprovalQueuePage() {
               {/* Target Card (col-span-2) */}
               <div
                 className="col-span-2 border rounded-lg p-4 flex flex-col justify-between"
-                style={{ backgroundColor: "#18181b", borderColor: "#27272a" }}
+                style={{ backgroundColor: "var(--card)", borderColor: "var(--border)" }}
               >
                 <div>
-                  <span className="text-xs uppercase tracking-wider" style={{ color: "#71717a" }}>
+                  <span className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
                     Target Node
                   </span>
-                  <h3 className="text-lg font-semibold mt-1" style={{ color: "#e5e5e5" }}>
+                  <h3 className="text-lg font-semibold mt-1" style={{ color: "var(--foreground)" }}>
                     {selectedMessage.contact?.name}
                   </h3>
-                  <p className="text-sm mt-1" style={{ color: "#a1a1aa" }}>
+                  <p className="text-sm mt-1" style={{ color: "var(--muted-foreground)" }}>
                     {selectedMessage.contact?.title}
                     {selectedMessage.account?.name ? ` at ${selectedMessage.account.name}` : ""}
                   </p>
@@ -757,14 +757,14 @@ export default function ApprovalQueuePage() {
               {/* Path Connector Card (col-span-1) */}
               <div
                 className="col-span-1 border rounded-lg p-4 flex flex-col justify-between relative overflow-hidden"
-                style={{ backgroundColor: "#18181b", borderColor: "#27272a" }}
+                style={{ backgroundColor: "var(--card)", borderColor: "var(--border)" }}
               >
                 {/* Decorative background icon */}
                 <div className="absolute top-2 right-2 opacity-5 pointer-events-none" aria-hidden>
-                  <GitFork className="w-16 h-16" style={{ color: "#e5e5e5" }} />
+                  <GitFork className="w-16 h-16" style={{ color: "var(--foreground)" }} />
                 </div>
                 <div>
-                  <span className="text-xs uppercase tracking-wider" style={{ color: "#71717a" }}>
+                  <span className="text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
                     Strongest Path
                   </span>
                   {connector && (
@@ -779,7 +779,7 @@ export default function ApprovalQueuePage() {
                       >
                         {getInitials(connector).slice(0, 1)}
                       </div>
-                      <span className="font-medium text-sm truncate" style={{ color: "#e5e5e5" }}>
+                      <span className="font-medium text-sm truncate" style={{ color: "var(--foreground)" }}>
                         {connector}
                       </span>
                     </div>
@@ -796,7 +796,7 @@ export default function ApprovalQueuePage() {
                     <Flame className="w-3 h-3" />
                     {warmthScore} Warmth
                   </span>
-                  <p className="text-xs mt-1" style={{ color: "#a1a1aa" }}>
+                  <p className="text-xs mt-1" style={{ color: "var(--muted-foreground)" }}>
                     {selectedMessage.warm_path?.path_explanation ?? "Strong path available"}
                   </p>
                 </div>
@@ -808,28 +808,28 @@ export default function ApprovalQueuePage() {
               <div className="flex justify-between items-end">
                 <h3
                   className="text-sm font-semibold flex items-center gap-2"
-                  style={{ color: "#e5e5e5" }}
+                  style={{ color: "var(--foreground)" }}
                 >
                   <Sparkles className="w-4 h-4" style={{ color: "#2563eb" }} />
                   AI Draft Generation
                 </h3>
-                <span className="text-xs" style={{ color: "#a1a1aa" }}>
+                <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>
                   Editing as {connector}
                 </span>
               </div>
               <div
                 className="border rounded-lg overflow-hidden flex flex-col"
-                style={{ backgroundColor: "#18181b", borderColor: "#27272a" }}
+                style={{ backgroundColor: "var(--card)", borderColor: "var(--border)" }}
               >
                 {/* Formatting Toolbar */}
                 <div
                   className="h-10 border-b flex items-center px-2 gap-1"
-                  style={{ borderColor: "#27272a", backgroundColor: "#201f22" }}
+                  style={{ borderColor: "var(--border)", backgroundColor: "var(--card)" }}
                 >
                   <ToolbarButton label="B" title="Bold" />
                   <ToolbarButton label="I" title="Italic" italic />
                   <ToolbarButton icon={<ExternalLink className="w-3.5 h-3.5" />} title="Link" />
-                  <div className="w-px h-4 mx-1" style={{ backgroundColor: "#27272a" }} />
+                  <div className="w-px h-4 mx-1" style={{ backgroundColor: "var(--border)" }} />
                   <ToolbarButton label="•" title="Bullet list" />
                   <ToolbarButton label="1." title="Numbered list" />
                 </div>
@@ -837,9 +837,9 @@ export default function ApprovalQueuePage() {
                 {/* Subject Line */}
                 <div
                   className="border-b px-4 py-2 flex items-center gap-2"
-                  style={{ borderColor: "#27272a", backgroundColor: "#0e0e10" }}
+                  style={{ borderColor: "var(--border)", backgroundColor: "var(--background)" }}
                 >
-                  <span className="text-xs shrink-0" style={{ color: "#71717a" }}>
+                  <span className="text-xs shrink-0" style={{ color: "var(--muted-foreground)" }}>
                     Subject:
                   </span>
                   <input
@@ -847,18 +847,18 @@ export default function ApprovalQueuePage() {
                     value={editedSubject}
                     onChange={(e) => setEditedSubject(e.target.value)}
                     className="flex-1 bg-transparent border-none p-0 text-sm outline-none"
-                    style={{ color: "#e5e5e5" }}
+                    style={{ color: "var(--foreground)" }}
                   />
                 </div>
 
                 {/* Body Textarea */}
-                <div className="p-4 min-h-[240px]" style={{ backgroundColor: "#0e0e10" }}>
+                <div className="p-4 min-h-[240px]" style={{ backgroundColor: "var(--background)" }}>
                   <textarea
                     rows={10}
                     value={editedBody}
                     onChange={(e) => setEditedBody(e.target.value)}
                     className="w-full bg-transparent border-none p-0 text-sm outline-none resize-none leading-relaxed"
-                    style={{ color: "#e5e5e5" }}
+                    style={{ color: "var(--foreground)" }}
                     placeholder="Draft message here..."
                   />
                 </div>
@@ -866,14 +866,14 @@ export default function ApprovalQueuePage() {
                 {/* AI Footer */}
                 <div
                   className="px-4 py-2 flex items-center justify-between border-t"
-                  style={{ borderColor: "#27272a", backgroundColor: "#18181b" }}
+                  style={{ borderColor: "var(--border)", backgroundColor: "var(--card)" }}
                 >
                   <div className="flex items-center gap-2">
                     <span
                       className="w-2 h-2 rounded-full animate-pulse"
                       style={{ backgroundColor: "#10b981" }}
                     />
-                    <span className="text-xs" style={{ color: "#a1a1aa" }}>
+                    <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>
                       Draft optimized for high response rate
                     </span>
                   </div>
@@ -907,15 +907,15 @@ export default function ApprovalQueuePage() {
             {/* ── Action Console ── */}
             <div
               className="flex items-center justify-between pt-4 border-t"
-              style={{ borderColor: "#27272a" }}
+              style={{ borderColor: "var(--border)" }}
             >
               <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={handleReroute}
                   className="h-8 px-4 border rounded text-xs transition-colors"
-                  style={{ borderColor: "#27272a", color: "#a1a1aa" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#18181b")}
+                  style={{ borderColor: "var(--border)", color: "var(--muted-foreground)" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--card)")}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                 >
                   Re-route Path
@@ -924,7 +924,7 @@ export default function ApprovalQueuePage() {
                   type="button"
                   onClick={handleDiscard}
                   className="h-8 px-4 border rounded text-xs transition-colors"
-                  style={{ borderColor: "#27272a", color: "#a1a1aa" }}
+                  style={{ borderColor: "var(--border)", color: "var(--muted-foreground)" }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = "rgba(239,68,68,0.08)";
                     e.currentTarget.style.borderColor = "rgba(239,68,68,0.3)";
@@ -932,8 +932,8 @@ export default function ApprovalQueuePage() {
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor = "transparent";
-                    e.currentTarget.style.borderColor = "#27272a";
-                    e.currentTarget.style.color = "#a1a1aa";
+                    e.currentTarget.style.borderColor = "var(--border)";
+                    e.currentTarget.style.color = "var(--muted-foreground)";
                   }}
                 >
                   <X className="w-3 h-3 inline mr-1" />
@@ -987,13 +987,13 @@ function ToolbarButton({
   return (
     <button
       className="w-7 h-7 flex items-center justify-center rounded text-xs transition-colors"
-      style={{ color: "#a1a1aa" }}
+      style={{ color: "var(--muted-foreground)" }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.color = "#e5e5e5";
-        e.currentTarget.style.backgroundColor = "#27272a";
+        e.currentTarget.style.color = "var(--foreground)";
+        e.currentTarget.style.backgroundColor = "var(--border)";
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.color = "#a1a1aa";
+        e.currentTarget.style.color = "var(--muted-foreground)";
         e.currentTarget.style.backgroundColor = "transparent";
       }}
       title={title}
