@@ -75,9 +75,9 @@ export default function CampaignsPage() {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Header */}
-      <div className="border-b border-border/60 px-6 pt-5 pb-4 flex-shrink-0">
+      <div className="border-b border-border/60 px-5 pt-4 pb-3 flex-shrink-0">
         <div className="max-w-[1100px] mx-auto">
-          <div className="flex items-start justify-between mb-4">
+          <div className="flex items-start justify-between mb-3">
             <div>
               <h1 className="text-[18px] font-bold tracking-tight">Sequences</h1>
               <p className="text-[12px] text-muted-foreground mt-0.5">
@@ -139,8 +139,8 @@ export default function CampaignsPage() {
       </div>
 
       {/* Scrollable body */}
-      <div className="flex-1 overflow-y-auto px-6 py-4">
-        <div className="max-w-[1100px] mx-auto space-y-4">
+      <div className="flex-1 overflow-y-auto px-5 py-3">
+        <div className="max-w-[1100px] mx-auto space-y-3">
           {/* AI Recommendation */}
           {topRec && (
             <div className="rounded-xl border border-border/60 bg-muted/30 p-4 flex items-center gap-3 animate-fade-up">
@@ -217,8 +217,8 @@ export default function CampaignsPage() {
                   key={campaign.id}
                   className={`border-border/60 hover:border-border transition-all animate-fade-up delay-${(idx % 4) + 1}`}
                 >
-                  <CardContent className="p-5">
-                    <div className="flex items-start gap-5">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-4">
                       {/* Main area */}
                       <div className="flex-1 min-w-0 space-y-3.5">
                         {/* Title + status */}
@@ -430,7 +430,7 @@ export default function CampaignsPage() {
             {/* Add new sequence */}
             <Link href="/campaigns/new">
               <Card className="border-dashed border-border/50 hover:border-brand/40 transition-all cursor-pointer group">
-                <CardContent className="p-5 flex items-center gap-4">
+                <CardContent className="p-4 flex items-center gap-4">
                   <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center border border-border/60 group-hover:bg-brand/10 group-hover:border-brand/20 transition-colors">
                     <Plus className="w-4 h-4 text-muted-foreground group-hover:text-brand transition-colors" />
                   </div>

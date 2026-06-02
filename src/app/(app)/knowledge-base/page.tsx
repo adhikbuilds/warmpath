@@ -434,7 +434,7 @@ export default function KnowledgeBasePage() {
   const totalUsed = kbItems.reduce((s, i) => s + i.used_in_messages, 0);
 
   return (
-    <div className="p-6 space-y-5 max-w-[1000px] mx-auto">
+    <div className="p-4 space-y-4 max-w-[1000px] mx-auto">
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-xl font-semibold flex items-center gap-2">

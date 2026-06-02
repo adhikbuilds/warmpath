@@ -2,7 +2,7 @@
 
 import { ArrowRight, Loader2, Zap } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -12,7 +12,10 @@ import { useAuthStore } from "@/stores/authStore";
 export default function LoginPage() {
   const { isAuthenticated } = useAuthStore();
   const router = useRouter();
-  const [tab, setTab] = useState<"signin" | "signup">("signin");
+  const searchParams = useSearchParams();
+  const [tab, setTab] = useState<"signin" | "signup">(
+    searchParams.get("tab") === "signup" ? "signup" : "signin",
+  );
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -74,7 +77,7 @@ export default function LoginPage() {
     const result = await signIn("credentials", { email, password, redirect: false });
     if (result?.ok) {
       toast.success("Account created!");
-      router.push("/workspace-select");
+      router.push("/onboarding");
     } else {
       toast.error("Account created — please sign in.");
       setTab("signin");
@@ -101,19 +104,32 @@ export default function LoginPage() {
         className="hidden lg:flex flex-col justify-between w-[420px] shrink-0 p-10"
         style={{ backgroundColor: "#ffffff", borderRight: "1px solid #e0e0e4" }}
       >
-        <Link href="/" className="inline-flex items-center gap-2" style={{ color: "#111113", textDecoration: "none" }}>
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2"
+          style={{ color: "#111113", textDecoration: "none" }}
+        >
           <Logo size={26} />
           <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-0.5px" }}>WarmBlue</span>
         </Link>
 
         <div className="space-y-8">
           <div>
-            <h2 style={{ fontSize: 30, fontWeight: 700, color: "#111113", lineHeight: 1.2, marginBottom: 12 }}>
+            <h2
+              style={{
+                fontSize: 30,
+                fontWeight: 700,
+                color: "#111113",
+                lineHeight: 1.2,
+                marginBottom: 12,
+              }}
+            >
               Warm outbound wins deals.{" "}
               <span style={{ color: "#059669" }}>Cold outbound fills CRMs.</span>
             </h2>
             <p style={{ fontSize: 14, color: "#666670", lineHeight: 1.7 }}>
-              WarmBlue maps your team's real relationships and finds the shortest path to every buyer before you send a single message.
+              WarmBlue maps your team's real relationships and finds the shortest path to every
+              buyer before you send a single message.
             </p>
           </div>
 
@@ -142,7 +158,11 @@ export default function LoginPage() {
               "Detects LinkedIn engagement signals first",
               "AI drafts personalized outreach per contact",
             ].map((feat) => (
-              <div key={feat} className="flex items-center gap-2.5" style={{ fontSize: 13, color: "#444448" }}>
+              <div
+                key={feat}
+                className="flex items-center gap-2.5"
+                style={{ fontSize: 13, color: "#444448" }}
+              >
                 <Zap size={13} style={{ color: "#059669", flexShrink: 0 }} />
                 {feat}
               </div>
@@ -159,7 +179,10 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full" style={{ maxWidth: 360 }}>
           {/* Mobile logo */}
-          <div className="flex lg:hidden items-center justify-center gap-2 mb-8" style={{ color: "#111113" }}>
+          <div
+            className="flex lg:hidden items-center justify-center gap-2 mb-8"
+            style={{ color: "#111113" }}
+          >
             <Logo size={24} />
             <span style={{ fontSize: 20, fontWeight: 700 }}>WarmBlue</span>
           </div>
@@ -195,10 +218,22 @@ export default function LoginPage() {
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
                 <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true">
-                  <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8.7 12 .7 7.4.7 3.5 3.3 1.6 7.1l3.6 2.8C6.1 7 8.8 5 12 5z" />
-                  <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h6.5c-.3 1.5-1.1 2.7-2.4 3.6l3.7 2.9c2.2-2 3.7-5 3.7-8.6z" />
-                  <path fill="#FBBC05" d="M5.2 14.3a7.3 7.3 0 0 1 0-4.6L1.6 6.9a12 12 0 0 0 0 10.2l3.6-2.8z" />
-                  <path fill="#34A853" d="M12 23.3c3.2 0 5.9-1.1 7.9-2.9l-3.7-2.9c-1 .7-2.4 1.2-4.2 1.2-3.2 0-6-2.1-6.9-5l-3.6 2.8C3.5 20.7 7.4 23.3 12 23.3z" />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8.7 12 .7 7.4.7 3.5 3.3 1.6 7.1l3.6 2.8C6.1 7 8.8 5 12 5z"
+                  />
+                  <path
+                    fill="#4285F4"
+                    d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h6.5c-.3 1.5-1.1 2.7-2.4 3.6l3.7 2.9c2.2-2 3.7-5 3.7-8.6z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.2 14.3a7.3 7.3 0 0 1 0-4.6L1.6 6.9a12 12 0 0 0 0 10.2l3.6-2.8z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23.3c3.2 0 5.9-1.1 7.9-2.9l-3.7-2.9c-1 .7-2.4 1.2-4.2 1.2-3.2 0-6-2.1-6.9-5l-3.6 2.8C3.5 20.7 7.4 23.3 12 23.3z"
+                  />
                 </svg>
               )}
               Google
@@ -221,7 +256,10 @@ export default function LoginPage() {
               ) : (
                 <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true">
                   <rect width="24" height="24" rx="3" fill="#0A66C2" />
-                  <path fill="#fff" d="M6.5 9h2.6v8H6.5zm1.3-3.7a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM10.6 9h2.5v1.1h.03c.35-.66 1.2-1.36 2.47-1.36 2.65 0 3.14 1.74 3.14 4V17h-2.6v-3.6c0-.86-.02-1.97-1.2-1.97-1.2 0-1.39.94-1.39 1.9V17h-2.6V9z" />
+                  <path
+                    fill="#fff"
+                    d="M6.5 9h2.6v8H6.5zm1.3-3.7a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM10.6 9h2.5v1.1h.03c.35-.66 1.2-1.36 2.47-1.36 2.65 0 3.14 1.74 3.14 4V17h-2.6v-3.6c0-.86-.02-1.97-1.2-1.97-1.2 0-1.39.94-1.39 1.9V17h-2.6V9z"
+                  />
                 </svg>
               )}
               LinkedIn
@@ -234,7 +272,10 @@ export default function LoginPage() {
               <div className="w-full" style={{ borderTop: "1px solid #e0e0e4" }} />
             </div>
             <div className="relative flex justify-center">
-              <span className="px-3 text-[12px]" style={{ backgroundColor: "#fafafa", color: "#9090a0" }}>
+              <span
+                className="px-3 text-[12px]"
+                style={{ backgroundColor: "#fafafa", color: "#9090a0" }}
+              >
                 or continue with email
               </span>
             </div>
@@ -266,7 +307,12 @@ export default function LoginPage() {
           {tab === "signin" ? (
             <form onSubmit={handleSignIn} className="space-y-3">
               <div className="space-y-1.5">
-                <label htmlFor="email" style={{ fontSize: 12, fontWeight: 500, color: "#444448", display: "block" }}>Email</label>
+                <label
+                  htmlFor="email"
+                  style={{ fontSize: 12, fontWeight: 500, color: "#444448", display: "block" }}
+                >
+                  Email
+                </label>
                 <input
                   id="email"
                   type="email"
@@ -279,7 +325,12 @@ export default function LoginPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <label htmlFor="password" style={{ fontSize: 12, fontWeight: 500, color: "#444448", display: "block" }}>Password</label>
+                <label
+                  htmlFor="password"
+                  style={{ fontSize: 12, fontWeight: 500, color: "#444448", display: "block" }}
+                >
+                  Password
+                </label>
                 <input
                   id="password"
                   type="password"
@@ -294,7 +345,13 @@ export default function LoginPage() {
               <button
                 type="submit"
                 className="w-full h-10 rounded-lg font-medium flex items-center justify-center gap-2 disabled:opacity-60 transition-colors"
-                style={{ backgroundColor: "#111113", color: "#ffffff", fontSize: 14, border: "none", cursor: "pointer" }}
+                style={{
+                  backgroundColor: "#111113",
+                  color: "#ffffff",
+                  fontSize: 14,
+                  border: "none",
+                  cursor: "pointer",
+                }}
                 disabled={isLoading}
               >
                 {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -304,7 +361,12 @@ export default function LoginPage() {
           ) : (
             <form onSubmit={handleSignUp} className="space-y-3">
               <div className="space-y-1.5">
-                <label htmlFor="reg-name" style={{ fontSize: 12, fontWeight: 500, color: "#444448", display: "block" }}>Full name</label>
+                <label
+                  htmlFor="reg-name"
+                  style={{ fontSize: 12, fontWeight: 500, color: "#444448", display: "block" }}
+                >
+                  Full name
+                </label>
                 <input
                   id="reg-name"
                   type="text"
@@ -317,7 +379,12 @@ export default function LoginPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <label htmlFor="reg-email" style={{ fontSize: 12, fontWeight: 500, color: "#444448", display: "block" }}>Work email</label>
+                <label
+                  htmlFor="reg-email"
+                  style={{ fontSize: 12, fontWeight: 500, color: "#444448", display: "block" }}
+                >
+                  Work email
+                </label>
                 <input
                   id="reg-email"
                   type="email"
@@ -330,7 +397,12 @@ export default function LoginPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <label htmlFor="reg-password" style={{ fontSize: 12, fontWeight: 500, color: "#444448", display: "block" }}>Password</label>
+                <label
+                  htmlFor="reg-password"
+                  style={{ fontSize: 12, fontWeight: 500, color: "#444448", display: "block" }}
+                >
+                  Password
+                </label>
                 <input
                   id="reg-password"
                   type="password"
@@ -345,7 +417,12 @@ export default function LoginPage() {
               <button
                 type="submit"
                 className="w-full h-10 rounded-lg font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-60"
-                style={{ backgroundColor: "#2563eb", fontSize: 14, border: "none", cursor: "pointer" }}
+                style={{
+                  backgroundColor: "#2563eb",
+                  fontSize: 14,
+                  border: "none",
+                  cursor: "pointer",
+                }}
                 disabled={isLoading}
               >
                 {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}

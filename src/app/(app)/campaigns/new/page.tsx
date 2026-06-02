@@ -2,16 +2,15 @@
 
 import {
   ArrowLeft,
-  Bot,
   Building2,
   ChevronRight,
   GitFork,
   GripVertical,
   Loader2,
+  MessageSquare,
+  Play,
   Plus,
-  Rocket,
   Send,
-  Sparkles,
   Target,
   Trash2,
   Users,
@@ -110,11 +109,11 @@ const STEP_ORDER: WizardStep[] = [
 ];
 
 const CHANNEL_OPTIONS = [
-  { id: "warm_intro", label: "Warm intro", icon: "🤝", desc: "Route through your network" },
-  { id: "email", label: "Email", icon: "✉️", desc: "Personalized warm-path email" },
-  { id: "linkedin", label: "LinkedIn DM", icon: "💼", desc: "Connection + DM" },
-  { id: "phone", label: "Phone call script", icon: "📞", desc: "AI-generated call script" },
-  { id: "whatsapp", label: "WhatsApp", icon: "💬", desc: "WhatsApp message" },
+  { id: "warm_intro", label: "Warm intro", icon: "intro", desc: "Route through your network" },
+  { id: "email", label: "Email", icon: "email", desc: "Personalized warm-path email" },
+  { id: "linkedin", label: "LinkedIn DM", icon: "linkedin", desc: "Connection + DM" },
+  { id: "phone", label: "Phone", icon: "phone", desc: "Call script" },
+  { id: "whatsapp", label: "WhatsApp", icon: "whatsapp", desc: "WhatsApp message" },
 ];
 
 function stepIndex(step: WizardStep) {
@@ -344,7 +343,7 @@ export default function CampaignBuilderPage() {
           </Link>
         </Button>
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-blue-500" />
+          <Zap className="w-4 h-4 text-blue-500" />
           <span className="font-semibold text-sm">New Campaign</span>
         </div>
         {config.name && (
@@ -394,7 +393,7 @@ export default function CampaignBuilderPage() {
               >
                 {msg.role === "assistant" && (
                   <div className="w-7 h-7 rounded-full bg-blue-500/15 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Bot className="w-3.5 h-3.5 text-blue-500" />
+                    <MessageSquare className="w-3.5 h-3.5 text-blue-500" />
                   </div>
                 )}
                 <div
@@ -563,7 +562,7 @@ export default function CampaignBuilderPage() {
 
                 {/* AI suggestion */}
                 <div className="flex items-start gap-2 px-3 py-2 rounded-xl border border-violet-500/20 bg-violet-500/5 text-xs">
-                  <Bot className="w-3.5 h-3.5 text-violet-500 flex-shrink-0 mt-0.5" />
+                  <MessageSquare className="w-3.5 h-3.5 text-violet-500 flex-shrink-0 mt-0.5" />
                   <p className="text-violet-600 dark:text-violet-400 text-[11px]">
                     Tip: Accounts in B2B SaaS reply best to multi-touch (3+ steps). Add a phone call
                     on day 10 to lift reply rates by ~18%.
@@ -894,12 +893,12 @@ export default function CampaignBuilderPage() {
                     </>
                   ) : config.launched ? (
                     <>
-                      <Rocket className="w-4 h-4" />
+                      <Play className="w-4 h-4" />
                       Launched redirecting…
                     </>
                   ) : (
                     <>
-                      <Rocket className="w-4 h-4" />
+                      <Play className="w-4 h-4" />
                       Launch campaign
                     </>
                   )}

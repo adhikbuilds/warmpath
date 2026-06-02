@@ -27,6 +27,7 @@ model User {
   campaigns        Campaign[]
   tasks            Task[]
   subscriptions    Subscription[]
+  preference       UserPreference?
 }
 
 model Account {
@@ -104,6 +105,9 @@ model Workspace {
   consentRecords         ConsentRecord[]
   deliverabilityProfiles DeliverabilityProfile[]
   aiCache                AIGenerationCache[]
+  abTests                ABTest[]
+  signalDismissals       SignalDismissal[]
+  warmthScoreLogs        WarmthScoreLog[]
 }
 
 model WorkspaceMember {
@@ -176,14 +180,15 @@ model Contact {
   updatedAt       DateTime @updatedAt
 
   workspace      Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  account        BizAccount?     @relation(fields: [accountId], references: [id])
-  signals        Signal[]
-  warmPaths      WarmPath[]
-  messages       Message[]
-  campaignAssets CampaignAsset[]
-  tasks          Task[]
-  conversations  Conversation[]
-  consentRecords ConsentRecord[]
+  account         BizAccount?     @relation(fields: [accountId], references: [id])
+  signals         Signal[]
+  warmPaths       WarmPath[]
+  messages        Message[]
+  campaignAssets  CampaignAsset[]
+  tasks           Task[]
+  conversations   Conversation[]
+  consentRecords  ConsentRecord[]
+  warmthScoreLogs WarmthScoreLog[]
 }
 
 model RelationshipEdge {
@@ -266,6 +271,7 @@ model Campaign {
   messages        Message[]
   tasks           Task[]
   pipelineMetrics PipelineMetric[]
+  abTests         ABTest[]
 }
 
 model CampaignStep {
@@ -591,4 +597,79 @@ model PipelineMetric {
   workspace Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   campaign  Campaign?   @relation(fields: [campaignId], references: [id])
   account   BizAccount? @relation(fields: [accountId], references: [id])
+}
+
+// ── A/B Testing ───────────────────────────────────────────────────────────────
+
+model ABTest {
+  id               String    @id @default(cuid())
+  workspaceId      String
+  campaignId       String
+  name             String    @default("Subject line test")
+  variantASubject  String
+  variantBSubject  String
+  variantABody     String
+  variantBBody     String
+  splitPercent     Int       @default(50)
+  variantASent     Int       @default(0)
+  variantBSent     Int       @default(0)
+  variantAOpens    Int       @default(0)
+  variantBOpens    Int       @default(0)
+  variantAReplies  Int       @default(0)
+  variantBReplies  Int       @default(0)
+  winnerVariant    String?
+  status           String    @default("running")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  campaign  Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+}
+
+// ── User Preferences (digest, briefing) ──────────────────────────────────────
+
+model UserPreference {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  dailyEmailDigest  Boolean  @default(true)
+  slackDigest       Boolean  @default(true)
+  briefingTimeHour  Int      @default(8)
+  slackWebhookUrl   String?
+  onboardingGoal    String?
+  tourCompleted     Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ── Warmth Score Breakdown ────────────────────────────────────────────────────
+
+model WarmthScoreLog {
+  id              String   @id @default(cuid())
+  workspaceId     String
+  contactId       String
+  score           Int
+  pathStrength    Int      @default(0)
+  recencyScore    Int      @default(0)
+  icpFitScore     Int      @default(0)
+  signalBoost     Int      @default(0)
+  breakdown       String
+  computedAt      DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  contact   Contact   @relation(fields: [contactId], references: [id], onDelete: Cascade)
+}
+
+// ── Signal Dismissal ──────────────────────────────────────────────────────────
+
+model SignalDismissal {
+  id          String   @id @default(cuid())
+  workspaceId String
+  signalId    String
+  userId      String
+  reason      String?
+  dismissedAt DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }

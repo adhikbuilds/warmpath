@@ -633,7 +633,10 @@ function RelationshipsSpreadsheet() {
             className="flex items-center gap-2 border rounded px-2.5 h-8"
             style={{ borderColor: "var(--border)", background: "var(--card)" }}
           >
-            <Search className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "var(--muted-foreground)" }} />
+            <Search
+              className="w-3.5 h-3.5 flex-shrink-0"
+              style={{ color: "var(--muted-foreground)" }}
+            />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -727,7 +730,8 @@ function RelationshipsSpreadsheet() {
                     background: isSelected ? "rgba(79,70,229,0.06)" : undefined,
                   }}
                   onMouseEnter={(e) => {
-                    if (!isSelected) (e.currentTarget as HTMLElement).style.background = "var(--card)";
+                    if (!isSelected)
+                      (e.currentTarget as HTMLElement).style.background = "var(--card)";
                   }}
                   onMouseLeave={(e) => {
                     if (!isSelected) (e.currentTarget as HTMLElement).style.background = "";
@@ -760,7 +764,10 @@ function RelationshipsSpreadsheet() {
                         >
                           {contact.name}
                         </span>
-                        <span className="text-xs leading-tight mt-0.5" style={{ color: "var(--muted-foreground)" }}>
+                        <span
+                          className="text-xs leading-tight mt-0.5"
+                          style={{ color: "var(--muted-foreground)" }}
+                        >
                           {contact.title ?? "—"}
                         </span>
                       </div>
@@ -860,7 +867,11 @@ function RelationshipsSpreadsheet() {
 
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={7} className="text-center py-16 text-sm" style={{ color: "var(--muted-foreground)" }}>
+                <td
+                  colSpan={7}
+                  className="text-center py-16 text-sm"
+                  style={{ color: "var(--muted-foreground)" }}
+                >
                   No contacts match your filter.
                 </td>
               </tr>

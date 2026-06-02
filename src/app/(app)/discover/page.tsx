@@ -348,7 +348,9 @@ function LeadCard({
             </div>
             <div className="min-w-0">
               <p className="font-semibold text-sm leading-tight truncate">{lead.name}</p>
-              {lead.domain && <p className="text-[10px] text-muted-foreground truncate">{lead.domain}</p>}
+              {lead.domain && (
+                <p className="text-[10px] text-muted-foreground truncate">{lead.domain}</p>
+              )}
             </div>
           </div>
           <Badge
@@ -397,7 +399,9 @@ function LeadCard({
         </div>
 
         {lead.description && (
-          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{lead.description}</p>
+          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+            {lead.description}
+          </p>
         )}
 
         {visibleTechs.length > 0 && (
@@ -860,7 +864,10 @@ export default function DiscoverPage() {
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
                   <Eye className="w-4 h-4 text-[#4edea3]" />
                   Identified Visitors
-                  <Badge variant="outline" className="text-[10px] bg-muted text-muted-foreground ml-1">
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] bg-muted text-muted-foreground ml-1"
+                  >
                     Last 7 days
                   </Badge>
                 </CardTitle>
@@ -951,11 +958,17 @@ export default function DiscoverPage() {
                             <div>
                               <p className="font-medium text-sm">{v.company}</p>
                               <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className="text-[10px] text-muted-foreground">{v.domain}</span>
+                                <span className="text-[10px] text-muted-foreground">
+                                  {v.domain}
+                                </span>
                                 <span className="text-[10px] text-muted-foreground">·</span>
-                                <span className="text-[10px] text-muted-foreground">{v.industry}</span>
+                                <span className="text-[10px] text-muted-foreground">
+                                  {v.industry}
+                                </span>
                                 <span className="text-[10px] text-muted-foreground">·</span>
-                                <span className="text-[10px] text-muted-foreground">{v.size} emp</span>
+                                <span className="text-[10px] text-muted-foreground">
+                                  {v.size} emp
+                                </span>
                               </div>
                             </div>
                           </div>
@@ -1017,7 +1030,9 @@ export default function DiscoverPage() {
                               </p>
                             </div>
                           ) : (
-                            <span className="text-[10px] text-muted-foreground">No warm path found</span>
+                            <span className="text-[10px] text-muted-foreground">
+                              No warm path found
+                            </span>
                           )}
                         </td>
                         <td className="px-4 py-3.5">

@@ -2,8 +2,8 @@
 
 import { Moon, Sun } from "lucide-react";
 import Link from "next/link";
-import { useTheme } from "next-themes";
 import { usePathname, useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { CommandBar } from "@/components/command-bar";
@@ -19,7 +19,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/tasks": "Tasks",
   "/campaigns": "Campaigns",
   "/signals": "Signals",
-  "/relationship-graph": "Relationships",
+  "/relationship-graph": "Your Network",
   "/accounts": "Accounts",
   "/contacts": "Contacts",
   "/discover": "Discover",
@@ -101,7 +101,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <StoreInitializer />
-      <AppSidebar />
+      <AppSidebar onSearchOpen={() => setCommandOpen(true)} />
 
       {/* Main area */}
       <div
@@ -112,7 +112,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <header className="h-12 shrink-0 flex items-center justify-between px-6 bg-card border-b border-border">
           <div className="flex items-center gap-2">
             {pageTitle && (
-              <h2 className="text-[14px] font-semibold text-foreground tracking-tight">{pageTitle}</h2>
+              <h2 className="text-[14px] font-semibold text-foreground tracking-tight">
+                {pageTitle}
+              </h2>
             )}
           </div>
 
@@ -152,7 +154,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               className="w-7 h-7 flex items-center justify-center rounded-md border border-border text-muted-foreground hover:text-foreground transition-colors"
               title="Toggle theme"
             >
-              {theme === "dark" ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+              {theme === "dark" ? (
+                <Sun className="w-3.5 h-3.5" />
+              ) : (
+                <Moon className="w-3.5 h-3.5" />
+              )}
             </button>
           </div>
         </header>

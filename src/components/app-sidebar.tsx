@@ -97,7 +97,7 @@ function NavSection({
   );
 }
 
-export function AppSidebar() {
+export function AppSidebar({ onSearchOpen }: { onSearchOpen?: () => void }) {
   const { user, logout } = useAuthStore();
   const {
     messages,
@@ -171,6 +171,7 @@ export function AppSidebar() {
         <div className="px-4 py-3">
           <button
             type="button"
+            onClick={onSearchOpen}
             className="flex items-center gap-2 w-full px-3 py-1.5 rounded-md text-[13px] transition-all bg-background border border-sidebar-border text-muted-foreground hover:text-sidebar-foreground"
           >
             <svg
@@ -198,24 +199,63 @@ export function AppSidebar() {
       {/* Navigation */}
       <div className={cn("flex-1 overflow-y-auto py-2", collapsed ? "px-1.5" : "px-3")}>
         <NavSection collapsed={collapsed}>
-          <NavItem href="/dashboard" icon={LayoutDashboard} label="Dashboard" collapsed={collapsed} />
-          <NavItem href="/warm-leads" icon={Zap} label="Warm Leads" badge={urgentSignalCount} collapsed={collapsed} />
-          <NavItem href="/approval-queue" icon={Bell} label="Approval Queue" badge={pendingCount} collapsed={collapsed} />
-          <NavItem href="/tasks" icon={ListChecks} label="Tasks" badge={overdueTaskCount} collapsed={collapsed} />
+          <NavItem
+            href="/dashboard"
+            icon={LayoutDashboard}
+            label="Dashboard"
+            collapsed={collapsed}
+          />
+          <NavItem
+            href="/warm-leads"
+            icon={Zap}
+            label="Warm Leads"
+            badge={urgentSignalCount}
+            collapsed={collapsed}
+          />
+          <NavItem
+            href="/approval-queue"
+            icon={Bell}
+            label="Approval Queue"
+            badge={pendingCount}
+            collapsed={collapsed}
+          />
+          <NavItem
+            href="/tasks"
+            icon={ListChecks}
+            label="Tasks"
+            badge={overdueTaskCount}
+            collapsed={collapsed}
+          />
         </NavSection>
 
         <NavSection label="Workspace" collapsed={collapsed}>
           <NavItem href="/campaigns" icon={Megaphone} label="Campaigns" collapsed={collapsed} />
-          <NavItem href="/signals" icon={BarChart3} label="Signals" badge={urgentSignalCount} collapsed={collapsed} />
-          <NavItem href="/relationship-graph" icon={Network} label="Relationships" collapsed={collapsed} />
+          <NavItem
+            href="/signals"
+            icon={BarChart3}
+            label="Signals"
+            badge={urgentSignalCount}
+            collapsed={collapsed}
+          />
           <NavItem href="/discover" icon={Compass} label="Discover" collapsed={collapsed} />
+          <NavItem
+            href="/relationship-graph"
+            icon={Network}
+            label="Your Network"
+            collapsed={collapsed}
+          />
           <NavItem href="/accounts" icon={Building2} label="Accounts" collapsed={collapsed} />
           <NavItem href="/contacts" icon={Users} label="Contacts" collapsed={collapsed} />
           <NavItem href="/analytics" icon={TrendingUp} label="Analytics" collapsed={collapsed} />
         </NavSection>
 
         <NavSection label="Tools" collapsed={collapsed}>
-          <NavItem href="/knowledge-base" icon={BookOpen} label="Knowledge Base" collapsed={collapsed} />
+          <NavItem
+            href="/knowledge-base"
+            icon={BookOpen}
+            label="Knowledge Base"
+            collapsed={collapsed}
+          />
           <NavItem href="/integrations" icon={Link2} label="Integrations" collapsed={collapsed} />
           <NavItem href="/team" icon={Users} label="Team" collapsed={collapsed} />
           <NavItem href="/settings" icon={Settings} label="Settings" collapsed={collapsed} />
@@ -224,7 +264,10 @@ export function AppSidebar() {
 
       {/* Footer – User */}
       <div
-        className={cn("py-3 shrink-0 border-t border-sidebar-border", collapsed ? "px-1.5" : "px-4")}
+        className={cn(
+          "py-3 shrink-0 border-t border-sidebar-border",
+          collapsed ? "px-1.5" : "px-4",
+        )}
       >
         {collapsed ? (
           <button
