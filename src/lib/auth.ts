@@ -56,10 +56,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           });
           if (!existing) {
             const workspaceId = `ws-${user.id}`;
-            const wsName =
-              user.name
-                ? `${user.name}'s workspace`
-                : `${user.email?.split("@")[0] ?? "My"} workspace`;
+            const wsName = user.name
+              ? `${user.name}'s workspace`
+              : `${user.email?.split("@")[0] ?? "My"} workspace`;
             await prisma.$transaction([
               prisma.workspace.create({
                 data: { id: workspaceId, name: wsName, ownerId: user.id, plan: "free" },

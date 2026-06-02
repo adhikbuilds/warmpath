@@ -229,7 +229,10 @@ export default function WorkspaceSelectPage() {
 
                   {/* Arrow */}
                   {entering === ws.id ? (
-                    <Loader2 className="w-4 h-4 animate-spin shrink-0" style={{ color: "#5456d4" }} />
+                    <Loader2
+                      className="w-4 h-4 animate-spin shrink-0"
+                      style={{ color: "#5456d4" }}
+                    />
                   ) : (
                     <ArrowRight size={16} className="shrink-0" style={{ color: "#9090a0" }} />
                   )}
@@ -241,10 +244,7 @@ export default function WorkspaceSelectPage() {
 
         {/* Divider */}
         {workspaces.length > 0 && (
-          <div
-            className="flex items-center gap-3 my-4"
-            style={{ color: "#9090a0", fontSize: 12 }}
-          >
+          <div className="flex items-center gap-3 my-4" style={{ color: "#9090a0", fontSize: 12 }}>
             <div style={{ flex: 1, height: 1, backgroundColor: "#e0e0e4" }} />
             or
             <div style={{ flex: 1, height: 1, backgroundColor: "#e0e0e4" }} />
@@ -272,7 +272,13 @@ export default function WorkspaceSelectPage() {
             <div>
               <label
                 htmlFor="ws-name"
-                style={{ fontSize: 12, fontWeight: 500, color: "#666670", display: "block", marginBottom: 6 }}
+                style={{
+                  fontSize: 12,
+                  fontWeight: 500,
+                  color: "#666670",
+                  display: "block",
+                  marginBottom: 6,
+                }}
               >
                 Workspace name
               </label>

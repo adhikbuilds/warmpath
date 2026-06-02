@@ -5,6 +5,7 @@ import {
   AlertTriangle,
   ArrowRight,
   Bell,
+  BookOpen,
   CheckCircle,
   ChevronRight,
   Flame,
@@ -50,7 +51,11 @@ function warmthLabel(score: number) {
 }
 
 function warmthLabelColor(score: number) {
-  return score >= 70 ? "text-emerald-500" : score >= 50 ? "text-[#4edea3]" : "text-muted-foreground";
+  return score >= 70
+    ? "text-emerald-500"
+    : score >= 50
+      ? "text-[#4edea3]"
+      : "text-muted-foreground";
 }
 
 // ─── Re-engage Sheet ──────────────────────────────────────────────────────────
@@ -239,7 +244,9 @@ ${userFirstName}`;
               Pre-drafted message
             </p>
             <p className="text-xs font-semibold text-foreground">Subject: {subject}</p>
-            <div className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">{body}</div>
+            <div className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
+              {body}
+            </div>
           </div>
 
           {/* Note */}
@@ -303,6 +310,7 @@ export default function DashboardPage() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [champSheetSignal, setChampSheetSignal] = useState<(typeof signals)[0] | null>(null);
   const [champSheetOpen, setChampSheetOpen] = useState(false);
+  const [briefingOpen, setBriefingOpen] = useState(false);
 
   // ── Derived counts ────────────────────────────────────────────────────────
   const pendingMessages = messages.filter((m) => m.approval_status === "pending");
@@ -411,10 +419,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div
-      className="p-6 space-y-6 max-w-[1280px] mx-auto"
-      style={{ className: "bg-background text-foreground" }}
-    >
+    <div className="p-6 space-y-6 max-w-[1280px] mx-auto bg-background text-foreground">
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between gap-4">
         <div>
@@ -454,6 +459,15 @@ export default function DashboardPage() {
               <ArrowRight className="w-3.5 h-3.5 mr-1" />
               New campaign
             </Link>
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setBriefingOpen(true)}
+            className="gap-1.5 text-muted-foreground hover:text-foreground"
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            Briefing
           </Button>
           <Button
             size="sm"
@@ -717,14 +731,18 @@ export default function DashboardPage() {
                       </Badge>
                     </div>
                     {contact && (
-                      <p className="text-[11px] text-muted-foreground truncate mb-1">{contact.name}</p>
+                      <p className="text-[11px] text-muted-foreground truncate mb-1">
+                        {contact.name}
+                      </p>
                     )}
                     {via ? (
                       <p className="text-[11px] text-[#4edea3] font-medium truncate mb-2">
                         via {via}
                       </p>
                     ) : (
-                      <p className="text-[11px] text-muted-foreground truncate mb-2">No warm path</p>
+                      <p className="text-[11px] text-muted-foreground truncate mb-2">
+                        No warm path
+                      </p>
                     )}
                     <Button
                       size="sm"
@@ -803,7 +821,10 @@ export default function DashboardPage() {
                               <span className="font-normal text-muted-foreground"> → {newCo}</span>
                             )}
                             {newTitle && (
-                              <span className="font-normal text-muted-foreground"> as {newTitle}</span>
+                              <span className="font-normal text-muted-foreground">
+                                {" "}
+                                as {newTitle}
+                              </span>
                             )}
                           </p>
                           <span className="text-[10px] text-violet-500">
@@ -891,7 +912,9 @@ export default function DashboardPage() {
                       );
                     })}
                     {totalPending > 2 && (
-                      <p className="text-[11px] text-muted-foreground pl-1">+{totalPending - 2} more</p>
+                      <p className="text-[11px] text-muted-foreground pl-1">
+                        +{totalPending - 2} more
+                      </p>
                     )}
                   </div>
                   <Button size="sm" className="w-full h-8 text-xs" asChild>
@@ -1050,6 +1073,133 @@ export default function DashboardPage() {
         onOpenChange={setChampSheetOpen}
         userName={user?.name ?? "You"}
       />
+
+      {/* ── Daily Briefing Sheet ─────────────────────────────────────────── */}
+      <Sheet open={briefingOpen} onOpenChange={setBriefingOpen}>
+        <SheetContent className="w-[420px] sm:w-[420px] overflow-y-auto">
+          <SheetHeader className="pb-4 border-b">
+            <SheetTitle className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4" style={{ color: "#8083ff" }} />
+              Daily Briefing
+            </SheetTitle>
+            <p className="text-xs text-muted-foreground">
+              {greeting}, {user?.name?.split(" ")[0]}. Here's your warm path summary for today.
+            </p>
+          </SheetHeader>
+
+          <div className="py-5 flex flex-col gap-5">
+            {/* Top warm plays */}
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                Top warm plays
+              </p>
+              {plays.slice(0, 3).length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">No urgent plays today.</p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {plays.slice(0, 3).map((p) => (
+                    <div
+                      key={p.signal.id}
+                      className="flex items-center gap-3 rounded-lg border p-3"
+                      style={{ borderColor: "var(--border)", backgroundColor: "var(--card)" }}
+                    >
+                      <div
+                        className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold"
+                        style={{ backgroundColor: "rgba(128,131,255,0.15)", color: "#8083ff" }}
+                      >
+                        {p.account?.name?.[0] ?? "?"}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {p.account?.name ?? "Unknown"}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground truncate">
+                          {p.signal.title}
+                        </p>
+                      </div>
+                      <span
+                        className="text-[11px] font-bold px-1.5 py-0.5 rounded"
+                        style={{ backgroundColor: "rgba(78,222,163,0.1)", color: "#4edea3" }}
+                      >
+                        {p.signal.urgency_score}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Pending approvals */}
+            <div
+              className="rounded-lg border p-4 flex items-center justify-between"
+              style={{
+                borderColor: totalPending > 0 ? "rgba(128,131,255,0.3)" : "var(--border)",
+                backgroundColor: totalPending > 0 ? "rgba(128,131,255,0.06)" : "var(--card)",
+              }}
+            >
+              <div>
+                <p className="text-sm font-semibold">{totalPending} pending approvals</p>
+                <p className="text-xs text-muted-foreground">Messages awaiting your review</p>
+              </div>
+              <Link
+                href="/approval-queue"
+                onClick={() => setBriefingOpen(false)}
+                className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                style={{ backgroundColor: "#8083ff", color: "#fff" }}
+              >
+                Review
+              </Link>
+            </div>
+
+            {/* Overdue tasks */}
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                Overdue tasks ({todayTasks.length})
+              </p>
+              {todayTasks.slice(0, 3).length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">
+                  All clear — no overdue tasks.
+                </p>
+              ) : (
+                <div className="flex flex-col gap-1.5">
+                  {todayTasks.slice(0, 3).map((t) => (
+                    <div key={t.id} className="flex items-center gap-2 py-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+                      <p className="text-sm flex-1 truncate">{t.title}</p>
+                    </div>
+                  ))}
+                  {todayTasks.length > 3 && (
+                    <p className="text-xs text-muted-foreground pl-3.5">
+                      + {todayTasks.length - 3} more
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Email briefing CTA */}
+            <div
+              className="rounded-lg border border-dashed p-4 text-center"
+              style={{ borderColor: "var(--border)" }}
+            >
+              <p className="text-xs text-muted-foreground mb-2">
+                Get this briefing in your inbox every morning at 8 AM
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  toast.success("Email briefing enabled — check your inbox tomorrow morning!");
+                  setBriefingOpen(false);
+                }}
+                className="text-xs font-semibold px-4 py-2 rounded-lg border transition-colors"
+                style={{ borderColor: "rgba(128,131,255,0.4)", color: "#8083ff" }}
+              >
+                Enable email briefing
+              </button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

@@ -5,9 +5,11 @@ import {
   CheckCircle,
   Clock,
   Edit2,
+  FlaskConical,
   Mail,
   MessageSquare,
   Play,
+  Trophy,
   Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -20,6 +22,19 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import { useSalesStore } from "@/stores/salesStore";
+
+type ABTestResult = {
+  sent: number;
+  opens: number;
+  replies: number;
+};
+
+type ABTest = {
+  variantA: string;
+  variantB: string;
+  status: "idle" | "running" | "complete";
+  results: { a: ABTestResult; b: ABTestResult } | null;
+};
 
 const STATUS_COLORS: Record<string, string> = {
   active: "bg-[#5db872]/10 text-[#3a8f4e] border-[#5db872]/20",
@@ -42,6 +57,10 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
   const [editingStepId, setEditingStepId] = useState<string | null>(null);
   const [editDelayDays, setEditDelayDays] = useState<number>(0);
   const [editTemplateHint, setEditTemplateHint] = useState<string>("");
+
+  const [abTest, setAbTest] = useState<ABTest | null>(null);
+  const [abVariantA, setAbVariantA] = useState<string>("");
+  const [abVariantB, setAbVariantB] = useState<string>("");
 
   const campaign = campaigns.find((c) => c.id === id);
   if (!campaign)
@@ -159,6 +178,254 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
           </CardContent>
         </Card>
       )}
+
+      {/* A/B Test */}
+      <Card className="border-border/60">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <FlaskConical className="w-4 h-4" />
+            A/B Test
+            {abTest?.status === "running" && (
+              <Badge
+                variant="outline"
+                className="text-[10px] bg-amber-400/10 text-amber-500 border-amber-400/20 ml-1"
+              >
+                Running
+              </Badge>
+            )}
+            {abTest?.status === "complete" &&
+              (() => {
+                const aRate = abTest.results ? abTest.results.a.replies / abTest.results.a.sent : 0;
+                const bRate = abTest.results ? abTest.results.b.replies / abTest.results.b.sent : 0;
+                if (aRate > bRate)
+                  return (
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] bg-emerald-500/10 text-emerald-500 border-emerald-500/20 ml-1"
+                    >
+                      Variant A winning
+                    </Badge>
+                  );
+                if (bRate > aRate)
+                  return (
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] bg-brand/10 text-brand border-brand/20 ml-1"
+                    >
+                      Variant B winning
+                    </Badge>
+                  );
+                return (
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] bg-muted text-muted-foreground ml-1"
+                  >
+                    Complete
+                  </Badge>
+                );
+              })()}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {(!abTest || abTest.status === "idle") && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="ab-variant-a"
+                    className="text-xs font-medium text-muted-foreground uppercase tracking-wide"
+                  >
+                    Variant A
+                  </label>
+                  <Textarea
+                    id="ab-variant-a"
+                    value={abVariantA}
+                    onChange={(e) => setAbVariantA(e.target.value)}
+                    placeholder="Hi {{first_name}}, I noticed your team is scaling fast…"
+                    className="text-xs min-h-[96px] resize-none"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="ab-variant-b"
+                    className="text-xs font-medium text-muted-foreground uppercase tracking-wide"
+                  >
+                    Variant B
+                  </label>
+                  <Textarea
+                    id="ab-variant-b"
+                    value={abVariantB}
+                    onChange={(e) => setAbVariantB(e.target.value)}
+                    placeholder="{{first_name}}, quick question about your outbound strategy…"
+                    className="text-xs min-h-[96px] resize-none"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-2 pt-1">
+                <Button
+                  size="sm"
+                  className="h-7 text-xs px-3"
+                  disabled={!abVariantA.trim() || !abVariantB.trim()}
+                  onClick={() => {
+                    setAbTest({
+                      variantA: abVariantA,
+                      variantB: abVariantB,
+                      status: "running",
+                      results: null,
+                    });
+                    toast.success("A/B test launched — simulating results…");
+                    setTimeout(() => {
+                      setAbTest((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              status: "complete",
+                              results: {
+                                a: { sent: 47, opens: 22, replies: 12 },
+                                b: { sent: 47, opens: 19, replies: 8 },
+                              },
+                            }
+                          : prev,
+                      );
+                      toast.success("A/B test complete — Variant A wins!");
+                    }, 1500);
+                  }}
+                >
+                  <FlaskConical className="w-3 h-3 mr-1.5" />
+                  Launch test
+                </Button>
+                <p className="text-[11px] text-muted-foreground">
+                  Each variant will be sent to a 50/50 split of your prospect list
+                </p>
+              </div>
+            </div>
+          )}
+
+          {abTest && abTest.status !== "idle" && (
+            <div className="space-y-4">
+              {/* Variant cards */}
+              <div className="grid grid-cols-2 gap-3">
+                {(["a", "b"] as const).map((key) => {
+                  const label = key === "a" ? "Variant A" : "Variant B";
+                  const content = key === "a" ? abTest.variantA : abTest.variantB;
+                  const result = abTest.results?.[key];
+                  const otherResult = abTest.results?.[key === "a" ? "b" : "a"];
+                  const replyRateVal = result ? (result.replies / result.sent) * 100 : null;
+                  const otherReplyRate = otherResult
+                    ? (otherResult.replies / otherResult.sent) * 100
+                    : null;
+                  const isWinner =
+                    abTest.status === "complete" &&
+                    replyRateVal !== null &&
+                    otherReplyRate !== null &&
+                    replyRateVal > otherReplyRate;
+                  const variantColor =
+                    key === "a"
+                      ? "border-emerald-500/30 bg-emerald-500/5"
+                      : "border-brand/30 bg-brand/5";
+                  const labelColor = key === "a" ? "text-emerald-500" : "text-brand";
+
+                  return (
+                    <div
+                      key={key}
+                      className={`rounded-lg border p-3 space-y-3 relative ${variantColor}`}
+                    >
+                      {isWinner && (
+                        <div className="absolute -top-2.5 right-3">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-emerald-500 text-white rounded-full px-2 py-0.5">
+                            <Trophy className="w-2.5 h-2.5" />
+                            Winner
+                          </span>
+                        </div>
+                      )}
+                      <p
+                        className={`text-[11px] font-semibold uppercase tracking-wide ${labelColor}`}
+                      >
+                        {label}
+                      </p>
+                      <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed">
+                        {content}
+                      </p>
+                      {result ? (
+                        <div className="grid grid-cols-3 gap-2 pt-1">
+                          {[
+                            { label: "Sent", value: result.sent },
+                            {
+                              label: "Open rate",
+                              value: `${((result.opens / result.sent) * 100).toFixed(0)}%`,
+                            },
+                            {
+                              label: "Reply rate",
+                              value: `${((result.replies / result.sent) * 100).toFixed(0)}%`,
+                            },
+                          ].map((stat) => (
+                            <div key={stat.label} className="text-center">
+                              <div className="text-sm font-bold">{stat.value}</div>
+                              <div className="text-[10px] text-muted-foreground">{stat.label}</div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5 pt-1">
+                          <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                          <span className="text-[11px] text-muted-foreground">
+                            Collecting data…
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Split bar */}
+              {abTest.results && (
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-[10px] text-muted-foreground">
+                    <span>Variant A — {abTest.results.a.sent} sent</span>
+                    <span>Variant B — {abTest.results.b.sent} sent</span>
+                  </div>
+                  <div className="flex h-2 rounded-full overflow-hidden gap-px">
+                    <div
+                      className="bg-emerald-500 transition-all duration-700"
+                      style={{
+                        width: `${(abTest.results.a.sent / (abTest.results.a.sent + abTest.results.b.sent)) * 100}%`,
+                      }}
+                    />
+                    <div
+                      className="bg-brand transition-all duration-700"
+                      style={{
+                        width: `${(abTest.results.b.sent / (abTest.results.a.sent + abTest.results.b.sent)) * 100}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between pt-1">
+                <p className="text-[11px] text-muted-foreground">
+                  {abTest.status === "running"
+                    ? "Test is live — results will update as data comes in"
+                    : "Test complete. Apply the winning variant to your full prospect list."}
+                </p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-xs px-3"
+                  onClick={() => {
+                    setAbTest(null);
+                    setAbVariantA("");
+                    setAbVariantB("");
+                    toast.info("A/B test cleared");
+                  }}
+                >
+                  Reset
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Sequence */}
       <Card className="border-border/60">

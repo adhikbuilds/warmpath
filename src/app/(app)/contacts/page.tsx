@@ -40,6 +40,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { computeWarmthFromDemoData } from "@/lib/scoring/warmth";
 import { scoreBgColor } from "@/lib/utils";
 import { useSalesStore } from "@/stores/salesStore";
 import type { Contact } from "@/types";
@@ -564,7 +565,8 @@ export default function ContactsPage() {
                   </div>
 
                   <div
-                    className={`text-xs font-bold px-2 py-1 rounded border ${scoreBgColor(contact.warmth_score)}`}
+                    className={`text-xs font-bold px-2 py-1 rounded border cursor-help ${scoreBgColor(contact.warmth_score)}`}
+                    title={computeWarmthFromDemoData({ contact }).breakdown}
                   >
                     {contact.warmth_score}
                   </div>

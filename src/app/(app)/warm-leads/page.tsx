@@ -1145,6 +1145,34 @@ Thanks,
               </div>
             </div>
 
+            {/* Pipeline stage color legend */}
+            <div className="flex items-center gap-1 px-4 py-2 bg-[#0d0d10] border-b border-border/20 overflow-x-auto">
+              <span className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider mr-2 shrink-0">Stage:</span>
+              {STAGE_ORDER.map((stage, i) => {
+                const theme = STAGE_THEME[stage];
+                return (
+                  <div key={stage} className="flex items-center gap-1.5 shrink-0">
+                    {i > 0 && <span className="text-muted-foreground/30 text-xs">·</span>}
+                    <span className={`w-2 h-2 rounded-full ${theme.band}`} />
+                    <span className="text-[10px] text-muted-foreground/70">{STAGE_LABELS[stage]}</span>
+                  </div>
+                );
+              })}
+              <div className="ml-4 flex items-center gap-3 shrink-0 border-l border-border/30 pl-4">
+                <span className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-wider">Warmth:</span>
+                {[
+                  { label: "Strong (80+)", color: "#f59e0b" },
+                  { label: "Warm (60–79)", color: "#3b82f6" },
+                  { label: "Cool (<60)", color: "#64748b" },
+                ].map((w) => (
+                  <div key={w.label} className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full" style={{ background: w.color }} />
+                    <span className="text-[10px] text-muted-foreground/70">{w.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <div className="overflow-x-auto bg-[#0d0d10] pb-5 pt-4 animate-fade-up delay-2">
               <div className="flex min-w-max gap-3 px-4">
                 {STAGE_ORDER.map((stage) => {

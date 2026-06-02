@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Filter, X } from "lucide-react";
+import { ChevronDown, Filter, UserCircle, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -458,10 +458,9 @@ function SignalCard({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: 16,
               }}
             >
-              🎯
+              <UserCircle size={18} color={T.primary} />
             </div>
             <div style={{ textAlign: "center" }}>
               <div style={{ fontSize: 11, color: T.white, fontWeight: 500 }}>

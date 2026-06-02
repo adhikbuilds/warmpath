@@ -91,7 +91,7 @@ export default function IntegrationsPage() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-[1200px] mx-auto">
+    <div className="p-4 space-y-4 max-w-[1200px] mx-auto">
       {/* Header */}
       <div className="flex items-start justify-between animate-fade-up">
         <div>
@@ -103,15 +103,15 @@ export default function IntegrationsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 animate-fade-up delay-1">
+      <div className="grid grid-cols-3 gap-3 animate-fade-up delay-1">
         {[
           { label: "Active channels", value: liveCount, color: "text-emerald-500" },
           { label: "Demo active", value: demoCount, color: "text-brand" },
           { label: "Avg health", value: `${avgHealth}%`, color: "text-foreground" },
         ].map((s) => (
           <Card key={s.label} className="border-border/60">
-            <CardContent className="p-4 text-center">
-              <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
+            <CardContent className="p-3 text-center">
+              <div className={`text-xl font-bold ${s.color}`}>{s.value}</div>
               <div className="text-xs text-muted-foreground mt-0.5">{s.label}</div>
             </CardContent>
           </Card>
@@ -133,7 +133,7 @@ export default function IntegrationsPage() {
       </div>
 
       {/* Integration groups */}
-      <div className="space-y-8">
+      <div className="space-y-5">
         {GROUP_ORDER.map((groupKey) => {
           const groupIntegrations = groups[groupKey];
           if (!groupIntegrations || groupIntegrations.length === 0) return null;
@@ -141,7 +141,7 @@ export default function IntegrationsPage() {
 
           return (
             <div key={groupKey} className="animate-fade-up delay-2">
-              <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-2 mb-3">
                 <h2 className="font-semibold text-sm">
                   {CHANNEL_GROUP_LABELS[groupKey] ?? groupKey}
                 </h2>
@@ -157,7 +157,7 @@ export default function IntegrationsPage() {
                 <div className="flex-1 h-px bg-border/60" />
               </div>
 
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {groupIntegrations.map((integration) => {
                   const iconCfg = PROVIDER_ICON[integration.provider] ?? {
                     text: integration.provider[0].toUpperCase(),
@@ -168,8 +168,8 @@ export default function IntegrationsPage() {
                   if (isComingSoon) {
                     return (
                       <Card key={integration.id} className="border-border/40 opacity-60">
-                        <CardContent className="p-5">
-                          <div className="flex items-start gap-3 mb-3">
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-3 mb-2.5">
                             <div
                               className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-sm grayscale"
                               style={{ backgroundColor: iconCfg.bg, color: iconCfg.fg }}
@@ -187,7 +187,7 @@ export default function IntegrationsPage() {
                               </Badge>
                             </div>
                           </div>
-                          <p className="text-xs text-muted-foreground leading-relaxed mb-4">
+                          <p className="text-xs text-muted-foreground leading-relaxed mb-3">
                             {integration.description}
                           </p>
                           <Button
@@ -215,8 +215,8 @@ export default function IntegrationsPage() {
                       key={integration.id}
                       className={`border-border/60 transition-all ${isActive ? "" : "opacity-70"}`}
                     >
-                      <CardContent className="p-5">
-                        <div className="flex items-start justify-between mb-4">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center gap-3">
                             <div
                               className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-sm"
@@ -253,11 +253,11 @@ export default function IntegrationsPage() {
                           )}
                         </div>
 
-                        <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                        <p className="text-xs text-muted-foreground leading-relaxed mb-2.5">
                           {integration.description}
                         </p>
 
-                        <div className="flex flex-wrap gap-1 mb-4">
+                        <div className="flex flex-wrap gap-1 mb-3">
                           {integration.capabilities.slice(0, 3).map((cap) => (
                             <span
                               key={cap}
@@ -274,7 +274,7 @@ export default function IntegrationsPage() {
                         </div>
 
                         {integration.last_sync_at && (
-                          <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-3">
+                          <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-2.5">
                             <Clock className="w-3 h-3" />
                             Synced {formatRelativeTime(integration.last_sync_at)}
                           </div>
@@ -345,14 +345,14 @@ export default function IntegrationsPage() {
 
       {/* Security note */}
       <Card className="border-border/60 animate-fade-up">
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-2 pt-3 px-4">
           <CardTitle className="text-sm flex items-center gap-2">
             <Shield className="w-4 h-4 text-emerald-500" />
             Security & compliance
           </CardTitle>
         </CardHeader>
-        <CardContent className="pb-4">
-          <div className="grid sm:grid-cols-3 gap-4">
+        <CardContent className="pb-3 px-4">
+          <div className="grid sm:grid-cols-3 gap-3">
             {[
               {
                 icon: Shield,

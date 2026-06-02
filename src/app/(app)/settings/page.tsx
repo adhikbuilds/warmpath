@@ -1,6 +1,14 @@
 "use client";
 
-import { Building2, Settings, Sparkles, Target, Users } from "lucide-react";
+import {
+  Bell,
+  Building2,
+  Settings,
+  SlidersHorizontal,
+  Sparkles,
+  Target,
+  Users,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -88,6 +96,27 @@ export default function SettingsPage() {
     Object.fromEntries(SIGNAL_TYPES.map((s) => [s.id, s.enabled])),
   );
 
+  // Preferences state
+  const [prefs, setPrefs] = useState({
+    emailDigests: true,
+    slackNotifications: false,
+    autoApprovePaths: false,
+    signalAlerts: true,
+    aiPersonalization: true,
+    weeklyRoiReport: false,
+  });
+
+  const togglePref = (key: keyof typeof prefs) => {
+    setPrefs((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      try {
+        localStorage.setItem("warmblue-preferences", JSON.stringify(next));
+      } catch {}
+      toast.success("Preference saved");
+      return next;
+    });
+  };
+
   // Workspace / company info state
   const [workspaceName, setWorkspaceName] = useState("WarmBlue");
   const [workspaceWebsite, setWorkspaceWebsite] = useState("warmblue.ai");
@@ -133,6 +162,13 @@ export default function SettingsPage() {
         if (d.name) setWorkspaceName(d.name);
         if (d.website) setWorkspaceWebsite(d.website);
         if (d.description) setWorkspaceDescription(d.description);
+      }
+    } catch {}
+    try {
+      const saved = localStorage.getItem("warmblue-preferences");
+      if (saved) {
+        const d = JSON.parse(saved);
+        setPrefs((prev) => ({ ...prev, ...d }));
       }
     } catch {}
   }, []);
@@ -223,6 +259,9 @@ export default function SettingsPage() {
           </TabsTrigger>
           <TabsTrigger value="team" className="text-xs h-7">
             Team
+          </TabsTrigger>
+          <TabsTrigger value="preferences" className="text-xs h-7">
+            Preferences
           </TabsTrigger>
         </TabsList>
 
@@ -623,7 +662,101 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </TabsContent>
+        {/* Preferences */}
+        <TabsContent value="preferences" className="mt-4 space-y-4">
+          <Card className="border-border/60">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Bell className="w-4 h-4 text-brand" />
+                Notifications
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1">
+              <PreferenceRow
+                title="Email digests"
+                description="Receive daily email digest of warm paths and signals"
+                checked={prefs.emailDigests}
+                onToggle={() => togglePref("emailDigests")}
+              />
+              <PreferenceRow
+                title="Slack notifications"
+                description="Send approval requests to Slack"
+                checked={prefs.slackNotifications}
+                onToggle={() => togglePref("slackNotifications")}
+              />
+              <PreferenceRow
+                title="Signal alerts"
+                description="Get notified when a tracked contact changes jobs or gets funded"
+                checked={prefs.signalAlerts}
+                onToggle={() => togglePref("signalAlerts")}
+              />
+              <PreferenceRow
+                title="Weekly ROI report"
+                description="Receive weekly network ROI summary"
+                checked={prefs.weeklyRoiReport}
+                onToggle={() => togglePref("weeklyRoiReport")}
+              />
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/60">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <SlidersHorizontal className="w-4 h-4 text-brand" />
+                Automation &amp; AI
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1">
+              <PreferenceRow
+                title="Auto-approve low-risk paths"
+                description="Automatically approve intros with warmth score > 85"
+                checked={prefs.autoApprovePaths}
+                onToggle={() => togglePref("autoApprovePaths")}
+              />
+              <PreferenceRow
+                title="AI personalization"
+                description="Allow AI to personalize outreach using public profile data"
+                checked={prefs.aiPersonalization}
+                onToggle={() => togglePref("aiPersonalization")}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+interface PreferenceRowProps {
+  title: string;
+  description: string;
+  checked: boolean;
+  onToggle: () => void;
+}
+
+function PreferenceRow({ title, description, checked, onToggle }: PreferenceRowProps) {
+  return (
+    <div className="flex items-center justify-between gap-4 px-1 py-3 border-b border-border/40 last:border-0">
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium leading-snug">{title}</p>
+        <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{description}</p>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={onToggle}
+        className={`relative flex-shrink-0 w-9 h-5 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
+          checked ? "bg-brand" : "bg-muted"
+        }`}
+      >
+        <span
+          className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${
+            checked ? "translate-x-4" : "translate-x-0.5"
+          }`}
+        />
+        <span className="sr-only">{checked ? "On" : "Off"}</span>
+      </button>
     </div>
   );
 }
