@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import {
   AlertTriangle,
   Bell,
@@ -18,7 +20,7 @@ import {
   TrendingUp,
   Zap,
 } from "lucide-react";
-import dynamic from "next/dynamic";
+import dynamicImport from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -47,7 +49,7 @@ function buildCoverageTrend(currentPct: number): { week: string; pct: number }[]
   });
 }
 
-const ForceGraph2D = dynamic(() => import("react-force-graph-2d"), { ssr: false });
+const ForceGraph2D = dynamicImport(() => import("react-force-graph-2d"), { ssr: false });
 
 const HEADER_H = 48;
 const CANVAS_BG = "#06060e";
