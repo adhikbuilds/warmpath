@@ -30,17 +30,19 @@ function LoginPageContent() {
   const handleDemo = async () => {
     setIsLoading(true);
     try {
+      // Ensure demo user + workspace exist in DB
+      await fetch("/api/demo/seed", { method: "POST" });
       const result = await signIn("credentials", { demo: "true", redirect: false });
       if (result?.ok) {
+        setAuthenticated(true);
         toast.success("Welcome to WarmBlue!");
-        router.push("/workspace-select");
+        router.push("/dashboard");
         return;
       }
-    } catch {}
-    // Fallback: bypass NextAuth and use local demo session (works without DB)
-    setAuthenticated(true);
-    toast.success("Welcome to WarmBlue!");
-    router.push("/dashboard");
+      toast.error("Demo login failed — please try again.");
+    } catch {
+      toast.error("Something went wrong.");
+    }
     setIsLoading(false);
   };
 
@@ -50,6 +52,7 @@ function LoginPageContent() {
     setIsLoading(true);
     const result = await signIn("credentials", { email, password, redirect: false });
     if (result?.ok) {
+      setAuthenticated(true);
       toast.success("Signed in.");
       router.push("/workspace-select");
     } else {

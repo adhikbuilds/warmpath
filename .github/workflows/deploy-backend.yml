@@ -58,8 +58,10 @@ jobs:
               --image "$IMAGE:${{ github.sha }}" \
               --target-port 8001 \
               --ingress external \
-              --min-replicas 0 \
-              --query properties.configuration.ingress.fqdn
+              --min-replicas 1 \
+              --registry-server ghcr.io \
+              --registry-username ${{ github.actor }} \
+              --registry-password ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set backend environment variables
         uses: azure/cli@v2
@@ -70,7 +72,9 @@ jobs:
               --name "$APP_NAME" \
               --resource-group "$RESOURCE_GROUP" \
               --set-env-vars \
-                "DATABASE_URL=${{ secrets.DATABASE_URL }}" \
                 "SERVICE_SECRET=${{ secrets.INTELLIGENCE_SERVICE_SECRET }}" \
                 "ALLOWED_ORIGINS=${{ secrets.NEXTAUTH_URL }},http://localhost:3000" \
-                "ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}"
+                "AI_PROVIDER=azure_openai" \
+                "AZURE_OPENAI_ENDPOINT=${{ secrets.AZURE_OPENAI_ENDPOINT }}" \
+                "AZURE_OPENAI_API_KEY=${{ secrets.AZURE_OPENAI_API_KEY }}" \
+                "AZURE_OPENAI_DEPLOYMENT=gpt-4.1-nano"
