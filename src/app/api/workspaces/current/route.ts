@@ -1,25 +1,41 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/db/client";
-import { getWorkspaceId } from "@/lib/db/workspace";
-import { DEMO_WORKSPACE } from "@/lib/demo-data-extended";
+import { getAuthContext } from "@/lib/db/auth-helpers";
+import { prisma } from "@/lib/db/client";
 
 export async function GET() {
   try {
-    const workspaceId = await getWorkspaceId();
-    const workspace = await prisma.workspace.findUnique({
-      where: { id: workspaceId },
+    const ctx = await getAuthContext();
+    if (!ctx) return NextResponse.json({}, { status: 401 });
+
+    let workspace = await prisma.workspace.findFirst({
+      where: { members: { some: { userId: ctx.userId } } },
       include: {
         members: {
           include: { user: { select: { name: true, email: true, image: true } } },
         },
       },
     });
+
     if (!workspace) {
-      return NextResponse.json(DEMO_WORKSPACE);
+      workspace = await prisma.workspace.create({
+        data: {
+          name: "My Workspace",
+          ownerId: ctx.userId,
+          onboardingStage: "not_started",
+          members: { create: { userId: ctx.userId, role: "owner" } },
+        },
+        include: {
+          members: {
+            include: { user: { select: { name: true, email: true, image: true } } },
+          },
+        },
+      });
     }
+
     return NextResponse.json(workspace);
-  } catch {
-    return NextResponse.json(DEMO_WORKSPACE);
+  } catch (err) {
+    console.error("[workspaces/current]", err);
+    return NextResponse.json({}, { status: 500 });
   }
 }
 

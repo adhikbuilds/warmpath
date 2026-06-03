@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Logo } from "@/components/logo";
+import { useSession } from "next-auth/react";
 import { useAuthStore } from "@/stores/authStore";
 
 type Workspace = {
@@ -35,7 +36,8 @@ const PLAN_COLORS: Record<string, { bg: string; text: string; border: string }> 
 
 export default function WorkspaceSelectPage() {
   const router = useRouter();
-  const { isAuthenticated, user, setWorkspace } = useAuthStore();
+  const { data: session, status } = useSession();
+  const { user, setWorkspace, setAuthenticated } = useAuthStore();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [loading, setLoading] = useState(true);
   const [entering, setEntering] = useState<string | null>(null);
@@ -44,12 +46,17 @@ export default function WorkspaceSelectPage() {
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (status === "loading") return;
+    if (status === "unauthenticated") {
       router.replace("/login");
       return;
     }
-    loadWorkspaces();
-  }, [isAuthenticated]);
+    // Sync NextAuth session → Zustand so app layout guard stays happy
+    if (status === "authenticated") {
+      setAuthenticated(true);
+      loadWorkspaces();
+    }
+  }, [status]);
 
   async function loadWorkspaces() {
     setLoading(true);
@@ -98,7 +105,7 @@ export default function WorkspaceSelectPage() {
     }
   }
 
-  if (loading || (workspaces.length === 1 && entering)) {
+  if (status === "loading" || loading || (workspaces.length === 1 && entering)) {
     return (
       <div
         className="min-h-screen flex items-center justify-center"

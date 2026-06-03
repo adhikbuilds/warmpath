@@ -41,8 +41,6 @@ next-env.d.ts
 *.swp
 *.swo
 
-# Python (backend lives in its own repo)
-intelligence-service/
 
 # Misc
 .vercel
