@@ -344,6 +344,21 @@ export default function ApprovalQueuePage() {
   const [aiPromptOpen, setAiPromptOpen] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
+  // Re-route modal
+  const [reroutePreview, setReroutePreview] = useState<{
+    path: string;
+    warmth: number;
+    replyRate: string;
+  } | null>(null);
+  // Account stage + persona tier filters
+  const [filterAccountStage, setFilterAccountStage] = useState<string>("all");
+  const [filterPersonaTier, setFilterPersonaTier] = useState<string>("all");
+  // Undo state
+  const [undoStack, setUndoStack] = useState<{
+    id: string;
+    action: "approved" | "rejected";
+    body: string;
+  } | null>(null);
 
   const allPending = useMemo(
     () => messages.filter((m) => m.approval_status === "pending"),
@@ -386,13 +401,30 @@ export default function ApprovalQueuePage() {
           if (filterSlaHours === "24") return h <= 24;
           return true;
         })
+        .filter(
+          (m) => filterAccountStage === "all" || (m.account as any)?.stage === filterAccountStage,
+        )
+        .filter((m) => {
+          if (filterPersonaTier === "all") return true;
+          const s = m.contact?.seniority ?? (m.contact as any)?.seniority;
+          return s === filterPersonaTier;
+        })
         .sort((a, b) => {
           const ha = expiresInHours(a.id);
           const hb = expiresInHours(b.id);
           if (ha !== hb) return ha - hb;
           return getWarmthScore(b) - getWarmthScore(a);
         }),
-    [allPending, filterRep, filterAccount, filterChannel, filterWarmthMin, filterSlaHours],
+    [
+      allPending,
+      filterRep,
+      filterAccount,
+      filterChannel,
+      filterWarmthMin,
+      filterSlaHours,
+      filterAccountStage,
+      filterPersonaTier,
+    ],
   );
 
   const selectedMessage =

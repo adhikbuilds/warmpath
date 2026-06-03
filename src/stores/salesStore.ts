@@ -1185,10 +1185,24 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
   },
 
   addAccount: (acc) => {
-    const id = `acc-new-${Date.now()}`;
+    const tempId = `acc-new-${Date.now()}`;
     set((state) => ({
-      accounts: [{ ...acc, id, created_at: new Date().toISOString() }, ...state.accounts],
+      accounts: [{ ...acc, id: tempId, created_at: new Date().toISOString() }, ...state.accounts],
     }));
+    fetch("/api/accounts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(acc),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((saved) => {
+        if (saved?.id) {
+          set((state) => ({
+            accounts: state.accounts.map((a) => (a.id === tempId ? { ...a, id: saved.id } : a)),
+          }));
+        }
+      })
+      .catch(() => {});
   },
 
   updateAccount: (id, updates) => {
@@ -1198,8 +1212,24 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
   },
 
   addContact: (c) => {
-    const id = `con-new-${Date.now()}`;
-    set((state) => ({ contacts: [{ ...c, id }, ...state.contacts] }));
+    const tempId = `con-new-${Date.now()}`;
+    set((state) => ({ contacts: [{ ...c, id: tempId }, ...state.contacts] }));
+    fetch("/api/contacts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(c),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((saved) => {
+        if (saved?.id) {
+          set((state) => ({
+            contacts: state.contacts.map((con) =>
+              con.id === tempId ? { ...con, id: saved.id } : con,
+            ),
+          }));
+        }
+      })
+      .catch(() => {});
   },
 
   updateContact: (id, updates) => {

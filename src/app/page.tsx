@@ -628,10 +628,7 @@ function PersonaSection() {
               backgroundColor: active === p.id ? p.color : "#fff",
               color: active === p.id ? "#fff" : muted,
               border: `1.5px solid ${active === p.id ? p.color : border}`,
-              boxShadow:
-                active === p.id
-                  ? `0 4px 14px ${p.color}35`
-                  : "0 1px 3px rgba(0,0,0,0.05)",
+              boxShadow: active === p.id ? `0 4px 14px ${p.color}35` : "0 1px 3px rgba(0,0,0,0.05)",
             }}
           >
             <span>{p.icon}</span>
@@ -729,9 +726,7 @@ function PersonaSection() {
                 }}
               >
                 <div>
-                  <p
-                    style={{ fontSize: 12, fontWeight: 600, color: muted, marginBottom: 2 }}
-                  >
+                  <p style={{ fontSize: 12, fontWeight: 600, color: muted, marginBottom: 2 }}>
                     {o.label}
                   </p>
                   <p style={{ fontSize: 11, color: "#94a3b8" }}>{o.sub}</p>
@@ -1209,7 +1204,17 @@ export default function LandingPage() {
                 { label: "Cold spend saved", value: "60%", color: primary },
               ].map((s) => (
                 <div key={s.label} style={{ textAlign: "center" }}>
-                  <p style={{ fontSize: 20, fontWeight: 900, color: s.color, letterSpacing: "-0.5px", lineHeight: 1 }}>{s.value}</p>
+                  <p
+                    style={{
+                      fontSize: 20,
+                      fontWeight: 900,
+                      color: s.color,
+                      letterSpacing: "-0.5px",
+                      lineHeight: 1,
+                    }}
+                  >
+                    {s.value}
+                  </p>
                   <p style={{ fontSize: 11, color: muted, marginTop: 2 }}>{s.label}</p>
                 </div>
               ))}
@@ -1243,35 +1248,82 @@ export default function LandingPage() {
           >
             Connects with your existing stack
           </p>
-          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 32, flexWrap: "wrap" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: 32,
+              flexWrap: "wrap",
+            }}
+          >
             {/* Salesforce */}
             <div style={{ display: "flex", alignItems: "center", gap: 7, opacity: 0.55 }}>
-              <svg width="22" height="16" viewBox="0 0 48 34" fill="none"><path d="M20 0C16.7 0 13.8 1.6 12 4.1 10.8 2.8 9 2 7 2 3.1 2 0 5.1 0 9c0 .5.1 1 .2 1.5C-.2 11.4-.5 12.8.5 14.5 1 16 2.5 17 4 17.2V17H20V0z" fill="#00A1E0"/><path d="M48 13c0-4.4-3.6-8-8-8-1.1 0-2.2.2-3.2.6C35.5 3.1 32.8 1 29.5 1c-2 0-3.8.8-5.1 2C22.8 1.1 20.5 0 18 0v17h30v-.3c0-.1 0-.2-.1-.3C48.6 15.5 48 14.3 48 13z" fill="#00A1E0"/><rect x="0" y="17" width="48" height="17" rx="4" fill="#00A1E0"/></svg>
+              <svg width="22" height="16" viewBox="0 0 48 34" fill="none">
+                <path
+                  d="M20 0C16.7 0 13.8 1.6 12 4.1 10.8 2.8 9 2 7 2 3.1 2 0 5.1 0 9c0 .5.1 1 .2 1.5C-.2 11.4-.5 12.8.5 14.5 1 16 2.5 17 4 17.2V17H20V0z"
+                  fill="#00A1E0"
+                />
+                <path
+                  d="M48 13c0-4.4-3.6-8-8-8-1.1 0-2.2.2-3.2.6C35.5 3.1 32.8 1 29.5 1c-2 0-3.8.8-5.1 2C22.8 1.1 20.5 0 18 0v17h30v-.3c0-.1 0-.2-.1-.3C48.6 15.5 48 14.3 48 13z"
+                  fill="#00A1E0"
+                />
+                <rect x="0" y="17" width="48" height="17" rx="4" fill="#00A1E0" />
+              </svg>
               <span style={{ fontSize: 13, fontWeight: 700, color: "#64748b" }}>Salesforce</span>
             </div>
             {/* HubSpot */}
             <div style={{ display: "flex", alignItems: "center", gap: 7, opacity: 0.55 }}>
-              <svg width="20" height="20" viewBox="0 0 512 512" fill="none"><circle cx="256" cy="256" r="256" fill="#FF7A59"/><path d="M312 192v-48a32 32 0 1 0-64 0v48h-64v64h64v32c0 17.7 14.3 32 32 32h64v-64h-48v-32h48v-32h-32z" fill="white"/></svg>
+              <svg width="20" height="20" viewBox="0 0 512 512" fill="none">
+                <circle cx="256" cy="256" r="256" fill="#FF7A59" />
+                <path
+                  d="M312 192v-48a32 32 0 1 0-64 0v48h-64v64h64v32c0 17.7 14.3 32 32 32h64v-64h-48v-32h48v-32h-32z"
+                  fill="white"
+                />
+              </svg>
               <span style={{ fontSize: 13, fontWeight: 700, color: "#64748b" }}>HubSpot</span>
             </div>
             {/* Slack */}
             <div style={{ display: "flex", alignItems: "center", gap: 7, opacity: 0.55 }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z" fill="#E01E5A"/></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"
+                  fill="#E01E5A"
+                />
+              </svg>
               <span style={{ fontSize: 13, fontWeight: 700, color: "#64748b" }}>Slack</span>
             </div>
             {/* LinkedIn */}
             <div style={{ display: "flex", alignItems: "center", gap: 7, opacity: 0.55 }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="4" fill="#0A66C2"/><path fill="white" d="M6.5 9h2.6v8H6.5zm1.3-3.7a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM10.6 9h2.5v1.1h.03c.35-.66 1.2-1.36 2.47-1.36 2.65 0 3.14 1.74 3.14 4V17h-2.6v-3.6c0-.86-.02-1.97-1.2-1.97-1.2 0-1.39.94-1.39 1.9V17h-2.6V9z"/></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <rect width="24" height="24" rx="4" fill="#0A66C2" />
+                <path
+                  fill="white"
+                  d="M6.5 9h2.6v8H6.5zm1.3-3.7a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM10.6 9h2.5v1.1h.03c.35-.66 1.2-1.36 2.47-1.36 2.65 0 3.14 1.74 3.14 4V17h-2.6v-3.6c0-.86-.02-1.97-1.2-1.97-1.2 0-1.39.94-1.39 1.9V17h-2.6V9z"
+                />
+              </svg>
               <span style={{ fontSize: 13, fontWeight: 700, color: "#64748b" }}>LinkedIn</span>
             </div>
             {/* Gmail */}
             <div style={{ display: "flex", alignItems: "center", gap: 7, opacity: 0.55 }}>
-              <svg width="20" height="16" viewBox="0 0 24 20" fill="none"><path d="M0 4a2 2 0 0 1 2-2h20a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4z" fill="#FAFAFA"/><path d="M0 4l12 8L24 4" stroke="#EA4335" strokeWidth="2"/></svg>
+              <svg width="20" height="16" viewBox="0 0 24 20" fill="none">
+                <path
+                  d="M0 4a2 2 0 0 1 2-2h20a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4z"
+                  fill="#FAFAFA"
+                />
+                <path d="M0 4l12 8L24 4" stroke="#EA4335" strokeWidth="2" />
+              </svg>
               <span style={{ fontSize: 13, fontWeight: 700, color: "#64748b" }}>Gmail</span>
             </div>
             {/* Outreach */}
             <div style={{ display: "flex", alignItems: "center", gap: 7, opacity: 0.55 }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#5951FF"/><path d="M7 12a5 5 0 1 0 10 0 5 5 0 0 0-10 0zm3.5 0a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0z" fill="white"/></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="12" fill="#5951FF" />
+                <path
+                  d="M7 12a5 5 0 1 0 10 0 5 5 0 0 0-10 0zm3.5 0a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0z"
+                  fill="white"
+                />
+              </svg>
               <span style={{ fontSize: 13, fontWeight: 700, color: "#64748b" }}>Outreach</span>
             </div>
           </div>
@@ -1303,7 +1355,12 @@ export default function LandingPage() {
               sub: "HubSpot research",
               color: primary,
             },
-            { value: `${v2}d`, label: "faster deal cycle", sub: "customer average", color: primary },
+            {
+              value: `${v2}d`,
+              label: "faster deal cycle",
+              sub: "customer average",
+              color: primary,
+            },
             {
               value: `${v3}%`,
               label: "reduction in cold spend",

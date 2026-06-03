@@ -84,4 +84,10 @@ jobs:
                 "NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}" \
                 "AUTH_TRUST_HOST=1" \
                 "NEXT_PUBLIC_AI_MODE=mock" \
+                "INTELLIGENCE_SERVICE_URL=${{ secrets.INTELLIGENCE_SERVICE_URL }}" \
+                "INTELLIGENCE_SERVICE_SECRET=${{ secrets.INTELLIGENCE_SERVICE_SECRET }}" \
+                "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" \
+                "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" \
+                "LINKEDIN_CLIENT_ID=${{ secrets.LINKEDIN_CLIENT_ID }}" \
+                "LINKEDIN_CLIENT_SECRET=${{ secrets.LINKEDIN_CLIENT_SECRET }}" \
               --query properties.configuration.ingress.fqdn
