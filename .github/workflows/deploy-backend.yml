@@ -1,0 +1,76 @@
+name: Deploy intelligence service to Azure Container Apps
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - "intelligence-service/**"
+    paths-ignore:
+      - "**/*.md"
+  workflow_dispatch:
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}/intelligence
+  RESOURCE_GROUP: warmpath-rg
+  LOCATION: centralindia
+  APP_NAME: warmpath-intelligence
+  CONTAINER_ENV: warmpath-env
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./intelligence-service
+          push: true
+          tags: ${{ env.IMAGE }}:${{ github.sha }},${{ env.IMAGE }}:latest
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Container Apps
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az extension add --name containerapp --upgrade --only-show-errors
+            az containerapp up \
+              --name "$APP_NAME" \
+              --resource-group "$RESOURCE_GROUP" \
+              --location "$LOCATION" \
+              --environment "$CONTAINER_ENV" \
+              --image "$IMAGE:${{ github.sha }}" \
+              --target-port 8001 \
+              --ingress external \
+              --min-replicas 0 \
+              --query properties.configuration.ingress.fqdn
+
+      - name: Set backend environment variables
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az containerapp update \
+              --name "$APP_NAME" \
+              --resource-group "$RESOURCE_GROUP" \
+              --set-env-vars \
+                "DATABASE_URL=${{ secrets.DATABASE_URL }}" \
+                "SERVICE_SECRET=${{ secrets.INTELLIGENCE_SERVICE_SECRET }}" \
+                "ALLOWED_ORIGINS=${{ secrets.NEXTAUTH_URL }},http://localhost:3000" \
+                "ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}"

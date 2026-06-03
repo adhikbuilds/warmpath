@@ -37,6 +37,45 @@ export async function GET() {
   }
 }
 
-export async function POST() {
-  return NextResponse.json({ error: "Not implemented" }, { status: 501 });
+export async function POST(req: Request) {
+  try {
+    const workspaceId = await getWorkspaceId();
+    const body = await req.json().catch(() => ({}));
+    const {
+      name,
+      email,
+      title,
+      phone,
+      accountId,
+      linkedinUrl,
+      seniority,
+      department,
+      persona,
+      warmthScore,
+    } = body;
+
+    if (!name?.trim()) {
+      return NextResponse.json({ error: "Name is required" }, { status: 400 });
+    }
+
+    const contact = await prisma.contact.create({
+      data: {
+        workspaceId,
+        name: name.trim(),
+        email: email?.trim() || null,
+        title: title?.trim() || null,
+        phone: phone?.trim() || null,
+        accountId: accountId || null,
+        linkedinUrl: linkedinUrl?.trim() || null,
+        seniority: seniority || null,
+        department: department || null,
+        persona: persona || null,
+        warmthScore: warmthScore ?? 0,
+      },
+    });
+
+    return NextResponse.json(contact, { status: 201 });
+  } catch (err) {
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
 }

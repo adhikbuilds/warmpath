@@ -4,6 +4,7 @@ import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/db/client";
 
 const INTEL_URL = process.env.INTELLIGENCE_SERVICE_URL ?? "http://localhost:8001";
+const INTEL_SECRET = process.env.INTELLIGENCE_SERVICE_SECRET ?? "";
 
 export async function POST(req: NextRequest) {
   const { name, email, password, companyName } = await req.json();
@@ -55,7 +56,7 @@ export async function POST(req: NextRequest) {
 
   await fetch(`${INTEL_URL}/auth/register`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "X-Service-Secret": INTEL_SECRET },
     body: JSON.stringify({
       id: userId,
       email,

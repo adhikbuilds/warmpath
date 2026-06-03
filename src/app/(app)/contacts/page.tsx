@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ArrowRight,
   CheckCircle2,
   Download,
   Filter,
@@ -9,9 +10,11 @@ import {
   Mail,
   Pencil,
   Plus,
+  Search,
   Sparkles,
   Upload,
   UserCheck,
+  UserPlus,
   Users,
   Zap,
 } from "lucide-react";
@@ -54,6 +57,321 @@ const SENIORITY_COLORS: Record<string, string> = {
 };
 
 const PAGE_SIZE = 100; // virtualised window cap
+
+// ─── Research a Person feature ────────────────────────────────────────────────
+
+const RESEARCH_SUGGESTIONS = [
+  "Joanne Jang (OpenAI)",
+  "Reid Hoffman (LinkedIn)",
+  "Sarah Franklin (Salesforce)",
+];
+
+const MOCK_RESEARCH_RESULTS: Record<
+  string,
+  {
+    name: string;
+    title: string;
+    company: string;
+    linkedin: string;
+    warmth: number;
+    mutual: string[];
+    summary: string;
+  }
+> = {
+  default: {
+    name: "Priya Sharma",
+    title: "VP of Sales",
+    company: "Acme AI",
+    linkedin: "linkedin.com/in/priyasharma",
+    warmth: 72,
+    mutual: ["Alex Chen", "Marcus Williams"],
+    summary:
+      "Growth-focused sales leader with 12+ years in B2B SaaS. Recently expanded her team by 40% and is evaluating new tools for pipeline management.",
+  },
+};
+
+function ResearchAPersonSection({
+  onAdd,
+}: {
+  onAdd: (name: string, title: string, company: string) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [autoResearch, setAutoResearch] = useState(false);
+  const [state, setState] = useState<"idle" | "loading" | "result">("idle");
+  const [result, setResult] = useState<(typeof MOCK_RESEARCH_RESULTS)["default"] | null>(null);
+
+  function runResearch(q: string) {
+    if (!q.trim()) return;
+    setState("loading");
+    setTimeout(() => {
+      const r = MOCK_RESEARCH_RESULTS.default;
+      const parts = q.split(" ");
+      setResult({ ...r, name: parts[0] || r.name });
+      setState("result");
+    }, 1600);
+  }
+
+  return (
+    <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
+      <div className="px-5 py-4">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-[13px] font-semibold flex items-center gap-1.5">
+            <Search className="w-3.5 h-3.5 text-brand" />
+            Research a Person
+          </h2>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-muted-foreground">Auto-research before meetings</span>
+            <button
+              type="button"
+              onClick={() => setAutoResearch(!autoResearch)}
+              className={`relative w-8 h-4 rounded-full transition-colors ${autoResearch ? "bg-brand" : "bg-muted"}`}
+            >
+              <div
+                className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-transform ${autoResearch ? "left-4" : "left-0.5"}`}
+              />
+            </button>
+            <span className="text-[9px] font-medium border border-amber-500/40 text-amber-500 bg-amber-500/10 rounded px-1 py-0.5">
+              Beta
+            </span>
+          </div>
+        </div>
+
+        <div className="flex gap-2 mb-3">
+          <div className="relative flex-1">
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") runResearch(query);
+              }}
+              placeholder="Write a name and one detail about them…"
+              className="w-full h-10 rounded-lg border border-border bg-background px-4 text-[13px] outline-none focus:border-brand/50 transition-colors"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => runResearch(query)}
+            disabled={state === "loading"}
+            className="w-10 h-10 rounded-lg bg-brand text-white flex items-center justify-center disabled:opacity-50 transition-opacity shrink-0"
+          >
+            {state === "loading" ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <ArrowRight className="w-4 h-4" />
+            )}
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          {RESEARCH_SUGGESTIONS.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => {
+                setQuery(s);
+                runResearch(s);
+              }}
+              className="text-[11px] border border-border/50 rounded-full px-3 py-1 text-muted-foreground hover:text-foreground hover:border-brand/40 hover:bg-brand/5 transition-colors"
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {state === "result" && result && (
+        <div className="border-t border-border/50 px-5 py-4 bg-brand/3">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-brand/15 text-brand flex items-center justify-center text-lg font-bold shrink-0">
+              {result.name[0]}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="text-[14px] font-semibold">{result.name}</span>
+                <span
+                  className={`text-[11px] font-bold px-2 py-0.5 rounded border ${scoreBgColor(result.warmth)}`}
+                >
+                  {result.warmth}
+                </span>
+              </div>
+              <p className="text-[12px] text-muted-foreground mb-1">
+                {result.title} · {result.company}
+              </p>
+              <p className="text-[12px] text-muted-foreground/80 leading-relaxed mb-2">
+                {result.summary}
+              </p>
+              {result.mutual.length > 0 && (
+                <p className="text-[11px] text-brand">
+                  Mutual connections: {result.mutual.join(", ")}
+                </p>
+              )}
+            </div>
+            <div className="flex flex-col gap-1.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  onAdd(result.name, result.title, result.company);
+                  setState("idle");
+                  setQuery("");
+                  toast.success(`${result.name} added to contacts`);
+                }}
+                className="flex items-center gap-1.5 text-[11px] font-medium border border-brand text-brand rounded-lg px-3 py-1.5 hover:bg-brand hover:text-white transition-colors"
+              >
+                <UserPlus className="w-3 h-3" /> Add contact
+              </button>
+              <button
+                type="button"
+                onClick={() => setState("idle")}
+                className="text-[10px] text-muted-foreground hover:text-foreground text-center"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── People you may know ──────────────────────────────────────────────────────
+
+const SUGGESTED_PEOPLE = [
+  {
+    id: "sp1",
+    name: "Priya Sharma",
+    title: "VP of Sales",
+    company: "Acme AI",
+    color: "#8b5cf6",
+    connections: "1.2K",
+    warmth: 72,
+  },
+  {
+    id: "sp2",
+    name: "Liam Chen",
+    title: "CTO",
+    company: "CloudStack",
+    color: "#2563eb",
+    connections: "843",
+    warmth: 65,
+  },
+  {
+    id: "sp3",
+    name: "Aisha Patel",
+    title: "Head of Growth",
+    company: "Finflow",
+    color: "#10b981",
+    connections: "2.1K",
+    warmth: 58,
+  },
+  {
+    id: "sp4",
+    name: "Marcus Williams",
+    title: "Founder",
+    company: "GridOps",
+    color: "#f59e0b",
+    connections: "3.4K",
+    warmth: 81,
+  },
+  {
+    id: "sp5",
+    name: "Elena Rodriguez",
+    title: "Dir. of Engineering",
+    company: "NovaTech",
+    color: "#ec4899",
+    connections: "671",
+    warmth: 49,
+  },
+  {
+    id: "sp6",
+    name: "David Kim",
+    title: "Chief Revenue Officer",
+    company: "SalesForge",
+    color: "#06b6d4",
+    connections: "5.2K",
+    warmth: 76,
+  },
+];
+
+function PeopleSuggestions({
+  onAdd,
+}: {
+  onAdd: (id: string, name: string, title: string, company: string) => void;
+}) {
+  const [added, setAdded] = useState<Set<string>>(new Set());
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-[13px] font-semibold text-muted-foreground">
+          Suggested contacts based on your network
+        </h2>
+        <span className="text-[11px] text-muted-foreground">2nd degree connections</span>
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+        {SUGGESTED_PEOPLE.map((p) => {
+          const isAdded = added.has(p.id);
+          const initials = p.name
+            .split(" ")
+            .map((n) => n[0])
+            .join("");
+          return (
+            <div
+              key={p.id}
+              className={`rounded-xl border p-4 transition-all ${isAdded ? "border-emerald-500/30 bg-emerald-500/5" : "border-border/50 bg-card hover:border-border"}`}
+            >
+              <div className="flex items-start gap-3 mb-3">
+                <div
+                  className="w-11 h-11 rounded-xl flex items-center justify-center text-[13px] font-bold shrink-0"
+                  style={{ backgroundColor: `${p.color}20`, color: p.color }}
+                >
+                  {initials}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] font-semibold truncate">{p.name}</p>
+                  <p className="text-[10px] text-muted-foreground truncate">{p.title}</p>
+                  <p className="text-[10px] text-muted-foreground/70 truncate">{p.company}</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-muted-foreground">
+                    {p.connections} connections
+                  </span>
+                  <span
+                    className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${scoreBgColor(p.warmth)}`}
+                  >
+                    {p.warmth}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  disabled={isAdded}
+                  onClick={() => {
+                    setAdded((prev) => new Set([...prev, p.id]));
+                    onAdd(p.id, p.name, p.title, p.company);
+                  }}
+                  className={`flex items-center gap-1 text-[10px] font-medium rounded-lg px-2.5 py-1.5 transition-colors ${isAdded ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" : "bg-brand text-white hover:bg-brand/90"}`}
+                >
+                  {isAdded ? (
+                    <>
+                      <CheckCircle2 className="w-3 h-3" /> Added
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="w-3 h-3" /> Add
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function ContactsPage() {
   const router = useRouter();
@@ -239,6 +557,23 @@ export default function ContactsPage() {
           </Button>
         </div>
       </div>
+
+      {/* Research a Person */}
+      <ResearchAPersonSection
+        onAdd={(name, title, company) => {
+          addContact({
+            name,
+            title,
+            email: undefined,
+            phone: undefined,
+            account_id: undefined,
+            linkedin_url: undefined,
+            seniority: "ic",
+            department: undefined,
+            persona: undefined,
+          });
+        }}
+      />
 
       {/* Stats strip */}
       <div className="grid grid-cols-3 gap-3">
@@ -599,6 +934,24 @@ export default function ContactsPage() {
           </button>
         )}
       </div>
+
+      {/* People you may know */}
+      <PeopleSuggestions
+        onAdd={(id, name, title, company) => {
+          addContact({
+            name,
+            title,
+            email: undefined,
+            phone: undefined,
+            account_id: undefined,
+            linkedin_url: undefined,
+            seniority: "ic",
+            department: undefined,
+            persona: undefined,
+          });
+          toast.success(`${name} added to contacts`);
+        }}
+      />
 
       {/* Import Contacts modal */}
       <Dialog open={importOpen} onOpenChange={(o) => !o && closeImport()}>
