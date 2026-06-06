@@ -1,19 +1,19 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/db/client";
-import { getWorkspaceId } from "@/lib/db/workspace";
+import { getWorkspaceContext } from "@/lib/db/workspace";
 import { DEMO_CONTACTS } from "@/lib/demo-data";
 import { DEMO_CONTACTS_EXTRA } from "@/lib/demo-data-extended";
 
 export async function GET() {
   try {
-    const workspaceId = await getWorkspaceId();
+    const { workspaceId, isDemo } = await getWorkspaceContext();
     const prismaContacts = await prisma.contact.findMany({
       where: { workspaceId },
       include: { account: true },
       orderBy: { createdAt: "desc" },
     });
     const baseContacts =
-      prismaContacts.length > 0 ? prismaContacts : [...DEMO_CONTACTS, ...DEMO_CONTACTS_EXTRA];
+      prismaContacts.length > 0 ? prismaContacts : (isDemo ? [...DEMO_CONTACTS, ...DEMO_CONTACTS_EXTRA] : []);
 
     // Try Twenty CRM if configured
     if (process.env.TWENTY_API_KEY) {
@@ -33,13 +33,13 @@ export async function GET() {
 
     return NextResponse.json(baseContacts);
   } catch {
-    return NextResponse.json([...DEMO_CONTACTS, ...DEMO_CONTACTS_EXTRA]);
+    return NextResponse.json([]);
   }
 }
 
 export async function POST(req: Request) {
   try {
-    const workspaceId = await getWorkspaceId();
+    const { workspaceId, isDemo } = await getWorkspaceContext();
     const body = await req.json().catch(() => ({}));
     const {
       name,

@@ -1,18 +1,18 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/db/client";
-import { getWorkspaceId } from "@/lib/db/workspace";
+import { getWorkspaceContext } from "@/lib/db/workspace";
 import { DEMO_WARM_PATHS } from "@/lib/demo-data";
 
 export async function GET() {
   try {
-    const workspaceId = await getWorkspaceId();
+    const { workspaceId, isDemo } = await getWorkspaceContext();
     const warmPaths = await prisma.warmPath.findMany({
       where: { workspaceId },
       include: { account: true, contact: true },
       orderBy: { createdAt: "desc" },
     });
     if (warmPaths.length === 0) {
-      return NextResponse.json(DEMO_WARM_PATHS);
+      return NextResponse.json(isDemo ? DEMO_WARM_PATHS : []);
     }
     return NextResponse.json(
       warmPaths.map((wp) => ({
@@ -40,7 +40,7 @@ export async function GET() {
       })),
     );
   } catch {
-    return NextResponse.json(DEMO_WARM_PATHS);
+    return NextResponse.json([]);
   }
 }
 

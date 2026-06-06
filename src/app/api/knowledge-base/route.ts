@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/db/client";
-import { getWorkspaceId } from "@/lib/db/workspace";
+import { getWorkspaceContext } from "@/lib/db/workspace";
 import { DEMO_KB_ITEMS } from "@/lib/demo-data-extended";
 
 export async function GET() {
   try {
-    const workspaceId = await getWorkspaceId();
+    const { workspaceId, isDemo } = await getWorkspaceContext();
     const items = await prisma.knowledgeBaseItem.findMany({
       where: { workspaceId },
       orderBy: { createdAt: "desc" },
     });
     if (items.length === 0) {
-      return NextResponse.json(DEMO_KB_ITEMS);
+      return NextResponse.json(isDemo ? DEMO_KB_ITEMS : []);
     }
     return NextResponse.json(
       items.map((item) => ({
@@ -31,7 +31,7 @@ export async function GET() {
       })),
     );
   } catch {
-    return NextResponse.json(DEMO_KB_ITEMS);
+    return NextResponse.json([]);
   }
 }
 
