@@ -10,7 +10,23 @@ export async function getWorkspaceId(): Promise<string> {
         select: { workspaceId: true },
       });
       if (member?.workspaceId) return member.workspaceId;
+
+      // Authenticated but no workspace — auto-create one so data never leaks
+      // to the "ws-1" fallback (which would mix this user with demo data).
+      const workspaceId = `ws-${session.user.id}`;
+      await prisma.$transaction([
+        prisma.workspace.create({
+          data: { id: workspaceId, name: "My Workspace", ownerId: session.user.id, plan: "free" },
+        }),
+        prisma.workspaceMember.create({
+          data: { workspaceId, userId: session.user.id, role: "owner", seatStatus: "active" },
+        }),
+      ]).catch(() => {
+        // Race condition: another request may have created it concurrently — ignore.
+      });
+      return workspaceId;
     }
   } catch {}
-  return "ws-1";
+  // Unauthenticated — return empty string so Prisma queries return nothing.
+  return "";
 }

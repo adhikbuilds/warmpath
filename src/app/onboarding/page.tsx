@@ -137,9 +137,24 @@ export default function OnboardingPage() {
     }
   }, [session, user]);
 
-  // Handle Google OAuth callback
+  // Handle Google OAuth callback (success or error)
   useEffect(() => {
     const url = new URL(window.location.href);
+
+    // NextAuth sends ?error=... when OAuth fails (e.g. user denied, account mismatch)
+    const oauthError = url.searchParams.get("error");
+    if (oauthError) {
+      setConnecting(false);
+      const msg =
+        oauthError === "OAuthAccountNotLinked"
+          ? "Sign in with Google using the same email as your account."
+          : `Google connect failed: ${oauthError}`;
+      toast.error(msg);
+      url.searchParams.delete("error");
+      window.history.replaceState({}, "", url.toString());
+      return;
+    }
+
     if (url.searchParams.get("connected") !== "google") return;
 
     setGoogleConnected(true);
@@ -160,6 +175,12 @@ export default function OnboardingPage() {
           );
           if (svc === "Contacts") {
             toast.success("Google connected — your network is importing.");
+            fetch("/api/integrations/google/import-contacts", { method: "POST" })
+              .then((r) => r.json())
+              .then((d) => {
+                if (d.imported > 0) toast.success(`Imported ${d.imported} contacts from Google.`);
+              })
+              .catch(() => {});
             setTimeout(() => goNext(), 1200);
           }
         }, 1200);
@@ -167,7 +188,6 @@ export default function OnboardingPage() {
       delay += 700;
     }
 
-    fetch("/api/integrations/google/import-contacts", { method: "POST" }).catch(() => {});
     url.searchParams.delete("connected");
     window.history.replaceState({}, "", url.toString());
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -198,7 +218,13 @@ export default function OnboardingPage() {
   async function handleGoogleConnect() {
     setConnecting(true);
     try {
-      await signIn("google", { callbackUrl: window.location.href + "?connected=google" });
+      // callbackUrl returns to this page with ?connected=google so the useEffect
+      // above can detect it and trigger the contact import.
+      // allowDangerousEmailAccountLinking in auth.ts lets this work even when the
+      // user already has a credentials session with the same email.
+      await signIn("google", {
+        callbackUrl: `${window.location.href}?connected=google`,
+      });
     } catch {
       toast.error("Could not connect Google. Please try again.");
       setConnecting(false);
