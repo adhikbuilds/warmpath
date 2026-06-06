@@ -70,13 +70,42 @@ export default function TeamPage() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [bulkEmails, setBulkEmails] = useState("");
   const [showBulkInvite, setShowBulkInvite] = useState(false);
+  const [inviting, setInviting] = useState(false);
+
+  async function sendInvites(emails: string[]) {
+    setInviting(true);
+    try {
+      const res = await fetch("/api/team/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emails }),
+      });
+      const data = await res.json();
+      if (data.fallback) {
+        // No email service — show the invite link
+        toast.info("Email not configured — share this link to invite teammates", {
+          description: data.inviteLink,
+          duration: 8000,
+        });
+      } else if (data.sent > 0) {
+        toast.success(
+          `${data.sent} invite${data.sent > 1 ? "s" : ""} sent`,
+          { description: "They'll receive an email with a link to join your workspace." },
+        );
+      } else {
+        toast.error("Failed to send invites — check your email configuration");
+      }
+    } catch {
+      toast.error("Could not reach the invite API");
+    } finally {
+      setInviting(false);
+    }
+  }
 
   const handleInvite = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inviteEmail.trim()) return;
-    toast.success(`Invite sent to ${inviteEmail}`, {
-      description: "They'll receive an email with a link to join your workspace.",
-    });
+    sendInvites([inviteEmail.trim()]);
     setInviteEmail("");
   };
 
@@ -86,9 +115,7 @@ export default function TeamPage() {
       .map((e) => e.trim())
       .filter(Boolean);
     if (!emails.length) return;
-    toast.success(`${emails.length} invite${emails.length > 1 ? "s" : ""} sent`, {
-      description: "Each person will receive an email to join your workspace.",
-    });
+    sendInvites(emails);
     setBulkEmails("");
     setShowBulkInvite(false);
   };

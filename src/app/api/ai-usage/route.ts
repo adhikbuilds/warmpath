@@ -5,14 +5,14 @@ import { DEMO_AI_USAGE } from "@/lib/demo-data-extended";
 
 export async function GET() {
   try {
-    const { workspaceId, isDemo } = await getWorkspaceContext();
+    const { workspaceId } = await getWorkspaceContext();
     const logs = await prisma.aIUsageLog.findMany({
       where: { workspaceId },
       orderBy: { createdAt: "desc" },
       take: 100,
     });
     if (logs.length === 0) {
-      return NextResponse.json(isDemo ? DEMO_AI_USAGE : []);
+      return NextResponse.json(DEMO_AI_USAGE);
     }
     return NextResponse.json(logs);
   } catch {

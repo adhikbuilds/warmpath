@@ -71,7 +71,7 @@ const DEMO_TASKS = [
 
 export async function GET() {
   try {
-    const { workspaceId, isDemo } = await getWorkspaceContext();
+    const { workspaceId } = await getWorkspaceContext();
     const tasks = await prisma.task.findMany({
       where: { workspaceId },
       include: {
@@ -82,7 +82,7 @@ export async function GET() {
       take: 100,
     });
     if (tasks.length === 0) {
-      return NextResponse.json(isDemo ? DEMO_TASKS : []);
+      return NextResponse.json(DEMO_TASKS);
     }
     return NextResponse.json(
       tasks.map((t) => ({
