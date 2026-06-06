@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import prisma from "@/lib/db/client";
+import { getWorkspaceContext } from "@/lib/db/workspace";
 
 const DEMO_TASKS = [
   {
@@ -68,9 +70,38 @@ const DEMO_TASKS = [
 ];
 
 export async function GET() {
-  return NextResponse.json(DEMO_TASKS);
+  try {
+    const { workspaceId, isDemo } = await getWorkspaceContext();
+    const tasks = await prisma.task.findMany({
+      where: { workspaceId },
+      include: {
+        account: { select: { name: true } },
+        contact: { select: { name: true } },
+      },
+      orderBy: { dueAt: "asc" },
+      take: 100,
+    });
+    if (tasks.length === 0) {
+      return NextResponse.json(isDemo ? DEMO_TASKS : []);
+    }
+    return NextResponse.json(
+      tasks.map((t) => ({
+        id: t.id,
+        type: t.type,
+        status: t.status,
+        title: t.title,
+        description: t.description ?? "",
+        due_date: t.dueAt?.toISOString() ?? null,
+        account_name: t.account?.name ?? "",
+        contact_name: t.contact?.name ?? "",
+        created_at: t.createdAt.toISOString(),
+      })),
+    );
+  } catch {
+    return NextResponse.json([]);
+  }
 }
 
 export async function POST() {
-  return NextResponse.json({ error: "Not implemented in demo" }, { status: 501 });
+  return NextResponse.json({ error: "Not implemented" }, { status: 501 });
 }

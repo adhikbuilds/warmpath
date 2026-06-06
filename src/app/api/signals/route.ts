@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/db/client";
-import { getWorkspaceId } from "@/lib/db/workspace";
+import { getWorkspaceContext } from "@/lib/db/workspace";
 import { DEMO_SIGNALS } from "@/lib/demo-data";
 
 export async function GET() {
   try {
-    const workspaceId = await getWorkspaceId();
+    const { workspaceId, isDemo } = await getWorkspaceContext();
     const signals = await prisma.signal.findMany({
       where: { workspaceId },
       include: {
@@ -15,7 +15,7 @@ export async function GET() {
       orderBy: { detectedAt: "desc" },
     });
     if (signals.length === 0) {
-      return NextResponse.json(DEMO_SIGNALS);
+      return NextResponse.json(isDemo ? DEMO_SIGNALS : []);
     }
     return NextResponse.json(
       signals.map((s) => ({
@@ -29,7 +29,7 @@ export async function GET() {
       })),
     );
   } catch {
-    return NextResponse.json(DEMO_SIGNALS);
+    return NextResponse.json([]);
   }
 }
 
