@@ -121,6 +121,8 @@ export default function OnboardingPage() {
   const [googleServices, setGoogleServices] = useState<
     Array<{ name: string; status: "processing" | "active" }>
   >([]);
+  const [linkedinImporting, setLinkedinImporting] = useState(false);
+  const [linkedinImported, setLinkedinImported] = useState(0);
   const [addedPeople, setAddedPeople] = useState<Set<string>>(new Set());
   const [inviteInput, setInviteInput] = useState("");
   const [invitedEmails, setInvitedEmails] = useState<string[]>([]);
@@ -229,6 +231,28 @@ export default function OnboardingPage() {
       toast.error("Could not connect Google. Please try again.");
       setConnecting(false);
     }
+  }
+
+  async function handleLinkedInCSV(file: File) {
+    setLinkedinImporting(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/integrations/linkedin/import-contacts", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setLinkedinImported(data.imported ?? 0);
+        toast.success(`Imported ${data.imported ?? 0} LinkedIn connections.`);
+      } else {
+        toast.error(data.error ?? "LinkedIn import failed.");
+      }
+    } catch {
+      toast.error("LinkedIn import failed — please try again.");
+    }
+    setLinkedinImporting(false);
   }
 
   async function handleFinish() {
@@ -425,6 +449,9 @@ export default function OnboardingPage() {
                 googleConnected={googleConnected}
                 googleServices={googleServices}
                 onConnectGoogle={handleGoogleConnect}
+                linkedinImporting={linkedinImporting}
+                linkedinImported={linkedinImported}
+                onLinkedInCSV={handleLinkedInCSV}
               />
             )}
             {step.id === "discover" && (
@@ -886,11 +913,17 @@ function StepConnect({
   googleConnected,
   googleServices,
   onConnectGoogle,
+  linkedinImporting,
+  linkedinImported,
+  onLinkedInCSV,
 }: {
   connecting: boolean;
   googleConnected: boolean;
   googleServices: Array<{ name: string; status: "processing" | "active" }>;
   onConnectGoogle: () => void;
+  linkedinImporting: boolean;
+  linkedinImported: number;
+  onLinkedInCSV: (file: File) => void;
 }) {
   return (
     <div>
@@ -1006,8 +1039,10 @@ function StepConnect({
           padding: "20px 24px",
           borderRadius: 12,
           marginBottom: 20,
-          border: "1.5px solid rgba(255,255,255,0.08)",
-          backgroundColor: "rgba(255,255,255,0.03)",
+          border: `1.5px solid ${linkedinImported > 0 ? "#4edea3" : "rgba(255,255,255,0.08)"}`,
+          backgroundColor:
+            linkedinImported > 0 ? "rgba(78,222,163,0.05)" : "rgba(255,255,255,0.03)",
+          transition: "all 0.3s",
         }}
       >
         <svg
@@ -1026,28 +1061,51 @@ function StepConnect({
         <div style={{ flex: 1 }}>
           <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 2 }}>LinkedIn</p>
           <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>
-            Upload your connections export
+            {linkedinImported > 0
+              ? `${linkedinImported} connections imported`
+              : "Upload your connections export"}
           </p>
         </div>
-        <label
-          style={{
-            fontSize: 13,
-            fontWeight: 500,
-            padding: "8px 18px",
-            borderRadius: 8,
-            border: "1.5px solid rgba(255,255,255,0.12)",
-            color: "rgba(255,255,255,0.5)",
-            cursor: "pointer",
-          }}
-        >
-          Upload CSV
-          <input
-            type="file"
-            accept=".csv,.zip"
-            style={{ display: "none" }}
-            onChange={() => toast.success("LinkedIn CSV received — connections will sync shortly.")}
-          />
-        </label>
+        {linkedinImported > 0 ? (
+          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#4edea3" }}>
+            <CheckCircle2 size={15} />
+            Done
+          </div>
+        ) : (
+          <label
+            style={{
+              fontSize: 13,
+              fontWeight: 500,
+              padding: "8px 18px",
+              borderRadius: 8,
+              border: "1.5px solid rgba(255,255,255,0.12)",
+              color: linkedinImporting ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.5)",
+              cursor: linkedinImporting ? "default" : "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            {linkedinImporting ? (
+              <>
+                <Loader2 size={13} className="animate-spin" />
+                Importing…
+              </>
+            ) : (
+              "Upload CSV"
+            )}
+            <input
+              type="file"
+              accept=".csv"
+              style={{ display: "none" }}
+              disabled={linkedinImporting}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) onLinkedInCSV(file);
+              }}
+            />
+          </label>
+        )}
       </div>
 
       <p style={{ fontSize: 12, color: "rgba(255,255,255,0.25)", lineHeight: 1.6 }}>
