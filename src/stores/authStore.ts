@@ -15,6 +15,8 @@ const DEMO_DISPLAY_USER: User = {
   created_at: new Date().toISOString(),
 };
 
+const DEMO_EMAIL = "demo@warmpath.ai";
+
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
@@ -23,6 +25,7 @@ interface AuthState {
   workspaceName: string | null;
   setUser: (user: User | null) => void;
   setAuthenticated: (v: boolean) => void;
+  syncUser: (sessionUser: { id?: string; name?: string | null; email?: string | null }) => void;
   setWorkspace: (id: string, name: string) => void;
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
@@ -41,10 +44,30 @@ export const useAuthStore = create<AuthState>()(
 
       setAuthenticated: (v) => {
         if (v) {
-          set({ isAuthenticated: true, user: DEMO_DISPLAY_USER });
+          set({ isAuthenticated: true });
         } else {
           set({ isAuthenticated: false, user: null, workspaceId: null, workspaceName: null });
         }
+      },
+
+      syncUser: (sessionUser) => {
+        // Demo email always shows the polished demo persona
+        if (sessionUser.email === DEMO_EMAIL) {
+          set({ user: DEMO_DISPLAY_USER });
+          return;
+        }
+        set((state) => ({
+          user: {
+            id: sessionUser.id ?? state.user?.id ?? "",
+            name: sessionUser.name ?? state.user?.name ?? sessionUser.email ?? "User",
+            email: sessionUser.email ?? state.user?.email ?? "",
+            company_name: state.user?.company_name ?? "",
+            role: state.user?.role ?? "sales_rep",
+            plan: state.user?.plan ?? "free",
+            onboarding_completed: state.user?.onboarding_completed ?? false,
+            created_at: state.user?.created_at ?? new Date().toISOString(),
+          } as User,
+        }));
       },
 
       setWorkspace: (id, name) => set({ workspaceId: id, workspaceName: name }),

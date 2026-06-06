@@ -109,7 +109,7 @@ const DEMO_PEOPLE = [
 export default function OnboardingPage() {
   const router = useRouter();
   const { data: session } = useSession();
-  const { user } = useAuthStore();
+  const { user, setWorkspace, setAuthenticated } = useAuthStore();
 
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedRole, setSelectedRole] = useState("");
@@ -205,7 +205,28 @@ export default function OnboardingPage() {
     }
   }
 
-  function handleFinish() {
+  async function handleFinish() {
+    try {
+      const wsRes = await fetch("/api/workspaces");
+      if (wsRes.ok) {
+        const workspaces: Array<{ id: string; name: string }> = await wsRes.json();
+        const ws = workspaces[0];
+        if (ws) {
+          const finalName = workspaceName.trim() || ws.name;
+          if (finalName !== ws.name) {
+            await fetch("/api/workspaces/current", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ name: finalName, onboardingStage: "completed" }),
+            }).catch(() => {});
+          }
+          setAuthenticated(true);
+          setWorkspace(ws.id, finalName);
+        }
+      }
+    } catch {
+      // Non-fatal — still navigate to dashboard
+    }
     router.push("/dashboard");
   }
 

@@ -1,3 +1,4 @@
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { getAuthContext } from "@/lib/db/auth-helpers";
 import { prisma } from "@/lib/db/client";
@@ -39,6 +40,32 @@ export async function GET() {
   }
 }
 
-export async function PATCH() {
-  return NextResponse.json({ error: "Not implemented" }, { status: 501 });
+export async function PATCH(req: NextRequest) {
+  try {
+    const ctx = await getAuthContext();
+    if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const body = await req.json().catch(() => ({}));
+    const { name, onboardingStage } = body as { name?: string; onboardingStage?: string };
+
+    const member = await prisma.workspaceMember.findFirst({
+      where: { userId: ctx.userId },
+      select: { workspaceId: true },
+    });
+
+    if (!member) return NextResponse.json({ error: "No workspace" }, { status: 404 });
+
+    const updated = await prisma.workspace.update({
+      where: { id: member.workspaceId },
+      data: {
+        ...(name?.trim() ? { name: name.trim() } : {}),
+        ...(onboardingStage ? { onboardingStage } : {}),
+      },
+    });
+
+    return NextResponse.json(updated);
+  } catch (err) {
+    console.error("[workspaces/current PATCH]", err);
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
 }
