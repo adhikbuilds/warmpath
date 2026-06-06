@@ -2,13 +2,18 @@ import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/db/client";
 import { getWorkspaceId } from "@/lib/db/workspace";
+import { logger } from "@/lib/logger";
 
 const INTEL_URL = process.env.INTELLIGENCE_SERVICE_URL ?? "http://localhost:8001";
 const INTEL_SECRET = process.env.INTELLIGENCE_SERVICE_SECRET ?? "";
+const ROUTE = "POST /api/ai/generate-message";
 
 export async function POST(req: NextRequest) {
+  const start = Date.now();
+
   const session = await auth();
   if (!session?.user?.id) {
+    logger.warn("Unauthenticated generate attempt", { route: ROUTE });
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -18,23 +23,59 @@ export async function POST(req: NextRequest) {
   const { accountId, contactId, signalId, warmPathId, channel = "email", tone } = body;
 
   if (!accountId || !contactId) {
+    logger.warn("Missing required IDs", { route: ROUTE, accountId, contactId });
     return NextResponse.json({ error: "accountId and contactId are required" }, { status: 400 });
   }
 
-  // Hydrate all entities from Prisma so the intelligence service gets real context
-  const [account, contact, kbItems] = await Promise.all([
-    prisma.bizAccount.findFirst({ where: { id: accountId, workspaceId } }),
-    prisma.contact.findFirst({ where: { id: contactId, workspaceId } }),
-    prisma.knowledgeBaseItem.findMany({
-      where: { workspaceId, approvedForAi: true },
-      orderBy: { updatedAt: "desc" },
-      take: 8,
-    }),
-  ]);
+  logger.info("Generate message start", {
+    route: ROUTE,
+    userId: session.user.id,
+    workspaceId,
+    accountId,
+    contactId,
+    signalId,
+    warmPathId,
+    channel,
+  });
+
+  // Hydrate all entities from Prisma
+  let account: Awaited<ReturnType<typeof prisma.bizAccount.findFirst>>;
+  let contact: Awaited<ReturnType<typeof prisma.contact.findFirst>>;
+  let kbItems: Awaited<ReturnType<typeof prisma.knowledgeBaseItem.findMany>>;
+
+  try {
+    [account, contact, kbItems] = await Promise.all([
+      prisma.bizAccount.findFirst({ where: { id: accountId, workspaceId } }),
+      prisma.contact.findFirst({ where: { id: contactId, workspaceId } }),
+      prisma.knowledgeBaseItem.findMany({
+        where: { workspaceId, approvedForAi: true },
+        orderBy: { updatedAt: "desc" },
+        take: 8,
+      }),
+    ]);
+  } catch (err) {
+    logger.error("Prisma lookup failed", { route: ROUTE, workspaceId, accountId, contactId, error: err });
+    return NextResponse.json({ error: "Database error" }, { status: 500 });
+  }
 
   if (!account || !contact) {
+    logger.warn("Account or contact not found in workspace", {
+      route: ROUTE,
+      workspaceId,
+      accountId,
+      contactId,
+      accountFound: !!account,
+      contactFound: !!contact,
+    });
     return NextResponse.json({ error: "Account or contact not found" }, { status: 404 });
   }
+
+  logger.info("Prisma hydration ok", {
+    route: ROUTE,
+    accountName: account.name,
+    contactName: contact.name,
+    kbItemCount: kbItems.length,
+  });
 
   const [signal, warmPath] = await Promise.all([
     signalId
@@ -43,9 +84,12 @@ export async function POST(req: NextRequest) {
     warmPathId
       ? prisma.warmPath.findFirst({ where: { id: warmPathId, workspaceId } })
       : Promise.resolve(null),
-  ]);
+  ]).catch((err) => {
+    logger.warn("Signal/warmPath lookup failed (non-fatal)", { route: ROUTE, signalId, warmPathId, error: err });
+    return [null, null] as const;
+  });
 
-  // Map to the GenerateRequest schema the intelligence service expects
+  // Map to GenerateRequest schema
   const intelBody: Record<string, unknown> = {
     contact_name: contact.name,
     contact_title: contact.title ?? "",
@@ -84,23 +128,72 @@ export async function POST(req: NextRequest) {
     intelBody.intro_person = pathNames[1] ?? undefined;
   }
 
-  const res = await fetch(`${INTEL_URL}/agents/generate`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Service-Secret": INTEL_SECRET,
-    },
-    body: JSON.stringify(intelBody),
+  logger.info("Calling intelligence service", {
+    route: ROUTE,
+    intelUrl: `${INTEL_URL}/agents/generate`,
+    channel,
+    kbItemCount: kbItems.length,
+    hasSignal: !!signal,
+    hasWarmPath: !!warmPath,
   });
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
+  let res: Response;
+  try {
+    res = await fetch(`${INTEL_URL}/agents/generate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Service-Secret": INTEL_SECRET,
+      },
+      body: JSON.stringify(intelBody),
+      signal: AbortSignal.timeout(30000),
+    });
+  } catch (err) {
+    logger.error("Intelligence service unreachable", {
+      route: ROUTE,
+      intelUrl: INTEL_URL,
+      durationMs: Date.now() - start,
+      error: err,
+    });
     return NextResponse.json(
-      { error: "Intelligence service error", detail: err },
+      { error: "Intelligence service unreachable", detail: String(err) },
+      { status: 502 },
+    );
+  }
+
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => ({}));
+    logger.error("Intelligence service returned error", {
+      route: ROUTE,
+      status: res.status,
+      durationMs: Date.now() - start,
+      responseBody: errBody,
+    });
+    return NextResponse.json(
+      { error: "Intelligence service error", detail: errBody },
       { status: res.status },
     );
   }
 
   const result = await res.json();
+  const model = result.model ?? "unknown";
+  const isMock = model === "mock";
+
+  logger.info("Generate message complete", {
+    route: ROUTE,
+    durationMs: Date.now() - start,
+    model,
+    isMock,
+    costUsd: result.cost_usd,
+    confidenceScore: result.confidence_score,
+  });
+
+  if (isMock) {
+    logger.warn("Intelligence service fell back to mock — Azure OpenAI may not be configured", {
+      route: ROUTE,
+      intelUrl: INTEL_URL,
+    });
+  }
+
   return NextResponse.json(result);
 }
