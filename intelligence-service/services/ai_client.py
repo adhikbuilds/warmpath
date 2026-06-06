@@ -19,10 +19,14 @@ Cost model (claude-sonnet-4-6 as of 2026-05):
   Input $3.00 / Cache write $3.75 / Cache read $0.30 / Output $15.00  (per M tokens)
 """
 
+import logging
 import os
 from typing import Any
 
+logger = logging.getLogger("warmpath.ai_client")
+
 PROVIDER = os.getenv("AI_PROVIDER", "azure_openai").lower()
+logger.info("AI provider selected: %s", PROVIDER)
 
 # ── Anthropic ────────────────────────────────────────────────────────────────
 
@@ -129,6 +133,7 @@ def _azure_generate(
 ) -> dict[str, Any]:
     client = _get_azure()
     deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-4.1-nano")
+    logger.info("Azure OpenAI request: deployment=%s max_tokens=%s", deployment, max_tokens)
     response = client.chat.completions.create(
         model=deployment,
         max_tokens=max_tokens,
@@ -206,5 +211,5 @@ def generate_with_cache(
             return _mock_generate(system_prompt, user_prompt, max_tokens, temperature)
         return _anthropic_generate(system_prompt, user_prompt, max_tokens, temperature)
     except Exception as exc:  # noqa: BLE001 — intentional catch-all to stay up
-        print(f"[ai_client] provider '{PROVIDER}' failed ({exc}); falling back to mock")
+        logger.error("Provider '%s' failed (%s: %s); falling back to mock", PROVIDER, type(exc).__name__, exc)
         return _mock_generate(system_prompt, user_prompt, max_tokens, temperature)
