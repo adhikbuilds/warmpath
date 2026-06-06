@@ -1,7 +1,8 @@
 """
 AI agent endpoints.
-POST /agents/research  prospect research pipeline (hooks, pain points, company events)
-POST /agents/generate  generate outreach message via Claude with prompt caching
+POST /agents/research     prospect research pipeline (hooks, pain points, company events)
+POST /agents/generate     generate outreach message via Claude with prompt caching
+POST /agents/call-script  generate a call script for a rep
 """
 
 import json
@@ -197,6 +198,85 @@ async def generate_message(req: GenerateRequest):
 
     try:
         result = generate_with_cache(system_prompt, user_prompt, max_tokens=800, temperature=0.72)
+        content = result["content"].strip().removeprefix("```json").removesuffix("```").strip()
+        parsed = json.loads(content)
+        return {**parsed, "usage": result["usage"], "cost_usd": result["cost_usd"], "model": result["model"]}
+    except json.JSONDecodeError as e:
+        raise HTTPException(status_code=422, detail=f"Model returned non-JSON: {str(e)}") from e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+# ─── Call script ──────────────────────────────────────────────────────────────
+
+CALL_SCRIPT_SYSTEM_PROMPT = """You are an expert B2B sales coach. Generate a concise call script for a sales rep.
+
+The script must have clear sections: OPENER, HOOK, DISCOVERY QUESTIONS, VALUE PROP, OBJECTION HANDLES, CLOSE.
+
+Return ONLY valid JSON:
+{
+  "opener": "string — how to open the call (10-15 words)",
+  "hook": "string — one-sentence trigger/reason for the call",
+  "discovery_questions": ["2-3 targeted discovery questions"],
+  "value_prop": "string — tailored 2-sentence value proposition",
+  "objection_handles": [
+    {"objection": "string", "handle": "string"}
+  ],
+  "close": "string — specific next-step ask",
+  "talk_time_minutes": number,
+  "confidence_score": number
+}
+
+Rules:
+- Keep opener warm and human, never robotic
+- Hook must reference the specific signal or trigger if provided
+- Discovery questions should uncover pain relevant to the product
+- Close must be a specific, low-friction ask (demo, intro call, etc.)
+- Total talk time 3-5 minutes for a cold call"""
+
+
+class CallScriptRequest(BaseModel):
+    contact_name: str
+    contact_title: str
+    account_name: str
+    account_industry: str
+    account_description: str | None = None
+    signal_type: str | None = None
+    signal_title: str | None = None
+    warm_path: list[str] | None = None
+    kb_items: list[dict[str, Any]] = []
+
+
+@router.post("/call-script")
+async def generate_call_script(req: CallScriptRequest):
+    """Generate a structured call script for a sales rep."""
+    kb_context = ""
+    if req.kb_items:
+        approved = [k for k in req.kb_items if k.get("approved_for_ai")][:4]
+        if approved:
+            kb_context = "PRODUCT KNOWLEDGE (use only these facts):\n" + "\n".join(
+                f"[{k['type'].upper()}] {k['title']}: {k['content'][:200]}" for k in approved
+            )
+
+    system_prompt = (
+        CALL_SCRIPT_SYSTEM_PROMPT
+        + (f"\n\n{kb_context}" if kb_context else "")
+    )
+
+    lines = [
+        f"Generate a call script for reaching {req.contact_name} ({req.contact_title}) at {req.account_name} ({req.account_industry}).",
+    ]
+    if req.account_description:
+        lines.append(f"Company: {req.account_description}")
+    if req.signal_type and req.signal_title:
+        lines.append(f"Trigger: {req.signal_type.upper()} — {req.signal_title}")
+    if req.warm_path:
+        lines.append(f"Warm path: {' → '.join(req.warm_path)}")
+
+    user_prompt = "\n".join(lines)
+
+    try:
+        result = generate_with_cache(system_prompt, user_prompt, max_tokens=600, temperature=0.65)
         content = result["content"].strip().removeprefix("```json").removesuffix("```").strip()
         parsed = json.loads(content)
         return {**parsed, "usage": result["usage"], "cost_usd": result["cost_usd"], "model": result["model"]}
