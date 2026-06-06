@@ -5,14 +5,14 @@ import { DEMO_WARM_PATHS } from "@/lib/demo-data";
 
 export async function GET() {
   try {
-    const { workspaceId, isDemo } = await getWorkspaceContext();
+    const { workspaceId } = await getWorkspaceContext();
     const warmPaths = await prisma.warmPath.findMany({
       where: { workspaceId },
       include: { account: true, contact: true },
       orderBy: { createdAt: "desc" },
     });
     if (warmPaths.length === 0) {
-      return NextResponse.json(isDemo ? DEMO_WARM_PATHS : []);
+      return NextResponse.json(DEMO_WARM_PATHS);
     }
     return NextResponse.json(
       warmPaths.map((wp) => ({

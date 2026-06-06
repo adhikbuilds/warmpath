@@ -5,13 +5,13 @@ import { DEMO_KB_ITEMS } from "@/lib/demo-data-extended";
 
 export async function GET() {
   try {
-    const { workspaceId, isDemo } = await getWorkspaceContext();
+    const { workspaceId } = await getWorkspaceContext();
     const items = await prisma.knowledgeBaseItem.findMany({
       where: { workspaceId },
       orderBy: { createdAt: "desc" },
     });
     if (items.length === 0) {
-      return NextResponse.json(isDemo ? DEMO_KB_ITEMS : []);
+      return NextResponse.json(DEMO_KB_ITEMS);
     }
     return NextResponse.json(
       items.map((item) => ({

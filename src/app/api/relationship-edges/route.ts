@@ -5,12 +5,12 @@ import { DEMO_RELATIONSHIP_EDGES } from "@/lib/demo-data";
 
 export async function GET() {
   try {
-    const { workspaceId, isDemo } = await getWorkspaceContext();
+    const { workspaceId } = await getWorkspaceContext();
     const edges = await prisma.relationshipEdge.findMany({
       where: { workspaceId },
     });
     if (edges.length === 0) {
-      return NextResponse.json(isDemo ? DEMO_RELATIONSHIP_EDGES : []);
+      return NextResponse.json(DEMO_RELATIONSHIP_EDGES);
     }
     return NextResponse.json(
       edges.map((e) => ({
