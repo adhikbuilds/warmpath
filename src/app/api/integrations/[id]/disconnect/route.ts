@@ -12,7 +12,13 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
   if (!existing) return notFound("Integration");
   const updated = await prisma.integrationConnection.update({
     where: { id },
-    data: { status: "disconnected", demoMode: false, syncStatus: null, errorMessage: null, lastSyncAt: null },
+    data: {
+      status: "disconnected",
+      demoMode: false,
+      syncStatus: null,
+      errorMessage: null,
+      lastSyncAt: null,
+    },
   });
   return NextResponse.json(updated);
 }

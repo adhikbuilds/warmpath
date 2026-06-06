@@ -20,24 +20,31 @@ const MODE_CONFIG: Record<
     costNote: string;
   }
 > = {
+  azure: {
+    icon: <Zap className="w-4 h-4" />,
+    label: "Azure OpenAI (gpt-4.1-nano)",
+    description: "Server-side Azure OpenAI — real generations, API key stays secure",
+    color: "bg-brand/10 text-brand border-brand/20",
+    costNote: "~$0.001–0.005 / generation",
+  },
   mock: {
     icon: <HardDrive className="w-4 h-4" />,
     label: "Mock AI",
-    description: "Deterministic templates free, instant, no API calls",
+    description: "Deterministic templates — free, instant, no API calls",
     color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
     costNote: "$0.00 / generation",
   },
   local: {
     icon: <Cpu className="w-4 h-4" />,
     label: "Local LLM (Ollama)",
-    description: "Calls Ollama at localhost:11434 free, private, requires setup",
+    description: "Calls Ollama at localhost:11434 — free, private, requires setup",
     color: "bg-blue-500/10 text-blue-500 border-blue-500/20",
     costNote: "$0.00 / generation (self-hosted)",
   },
   remote: {
     icon: <Cloud className="w-4 h-4" />,
-    label: "Remote AI (Claude / GPT-4)",
-    description: "Calls Anthropic or OpenAI highest quality, costs ~$0.01–0.05/message",
+    label: "Remote AI (Claude Sonnet)",
+    description: "Calls Anthropic — highest quality, costs ~$0.01–0.05/message",
     color: "bg-violet-500/10 text-violet-500 border-violet-500/20",
     costNote: "~$0.01–0.05 / generation",
   },
@@ -82,8 +89,8 @@ export default function AIUsagePage() {
         <CardHeader className="pb-3">
           <CardTitle className="text-sm">AI Mode</CardTitle>
         </CardHeader>
-        <CardContent className="grid md:grid-cols-3 gap-3">
-          {(["mock", "local", "remote"] as AIMode[]).map((mode) => {
+        <CardContent className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
+          {(["azure", "mock", "local", "remote"] as AIMode[]).map((mode) => {
             const c = MODE_CONFIG[mode];
             const isCurrent = currentMode === mode;
             return (
@@ -91,12 +98,33 @@ export default function AIUsagePage() {
                 type="button"
                 key={mode}
                 onClick={async () => {
+                  if (mode === "azure") {
+                    // Verify the Azure route responds before switching
+                    try {
+                      const res = await fetch("/api/ai/azure", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ _ping: true, kb_items: [] }),
+                      });
+                      if (res.status === 503) {
+                        toast.error(
+                          "Azure OpenAI not configured — add AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY to .env.local",
+                        );
+                        return;
+                      }
+                    } catch {
+                      toast.error("Could not reach /api/ai/azure — check your dev server");
+                      return;
+                    }
+                    updateAISettings({ ai_mode: mode });
+                    toast.success("Switched to Azure OpenAI (gpt-4.1-nano)");
+                    return;
+                  }
                   if (mode === "remote") {
-                    toast.info("Remote mode requires NEXT_PUBLIC_ANTHROPIC_API_KEY in .env.local");
+                    toast.info("Remote mode requires ANTHROPIC_API_KEY in .env.local");
                     return;
                   }
                   if (mode === "local") {
-                    // Verify Ollama is reachable before switching
                     try {
                       const res = await fetch("http://localhost:11434/api/tags");
                       if (!res.ok) throw new Error("not ok");
@@ -135,7 +163,15 @@ export default function AIUsagePage() {
 
       {/* Current mode status */}
       <Card
-        className={`border-2 ${currentMode === "mock" ? "border-emerald-500/30 bg-emerald-500/5" : currentMode === "local" ? "border-blue-500/30 bg-blue-500/5" : "border-violet-500/30 bg-violet-500/5"}`}
+        className={`border-2 ${
+          currentMode === "azure"
+            ? "border-brand/30 bg-brand/5"
+            : currentMode === "mock"
+              ? "border-emerald-500/30 bg-emerald-500/5"
+              : currentMode === "local"
+                ? "border-blue-500/30 bg-blue-500/5"
+                : "border-violet-500/30 bg-violet-500/5"
+        }`}
       >
         <CardContent className="p-4 flex items-center gap-3">
           <div

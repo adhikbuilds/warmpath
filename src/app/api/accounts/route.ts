@@ -12,7 +12,11 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
     const baseAccounts =
-      prismaAccounts.length > 0 ? prismaAccounts : (isDemo ? [...DEMO_ACCOUNTS, ...DEMO_ACCOUNTS_EXTRA] : []);
+      prismaAccounts.length > 0
+        ? prismaAccounts
+        : isDemo
+          ? [...DEMO_ACCOUNTS, ...DEMO_ACCOUNTS_EXTRA]
+          : [];
 
     // Try Twenty CRM if configured
     if (process.env.TWENTY_API_KEY) {

@@ -18,7 +18,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const body = await req.json().catch(() => ({}));
   const existing = await prisma.message.findFirst({ where: { id, workspaceId: ctx.workspaceId } });
   if (!existing) return notFound("Message");
-  const { subject, body: msgBody, status, approvalStatus, scheduledAt, personalizationReason, introRequest } = body;
+  const {
+    subject,
+    body: msgBody,
+    status,
+    approvalStatus,
+    scheduledAt,
+    personalizationReason,
+    introRequest,
+  } = body;
   const updated = await prisma.message.update({
     where: { id },
     data: {

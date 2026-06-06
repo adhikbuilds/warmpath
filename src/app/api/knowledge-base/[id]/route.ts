@@ -6,7 +6,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
   const { id } = await params;
-  const item = await prisma.knowledgeBaseItem.findFirst({ where: { id, workspaceId: ctx.workspaceId } });
+  const item = await prisma.knowledgeBaseItem.findFirst({
+    where: { id, workspaceId: ctx.workspaceId },
+  });
   if (!item) return notFound("Knowledge base item");
   return NextResponse.json(item);
 }
@@ -16,7 +18,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (!ctx) return unauthorized();
   const { id } = await params;
   const body = await req.json().catch(() => ({}));
-  const existing = await prisma.knowledgeBaseItem.findFirst({ where: { id, workspaceId: ctx.workspaceId } });
+  const existing = await prisma.knowledgeBaseItem.findFirst({
+    where: { id, workspaceId: ctx.workspaceId },
+  });
   if (!existing) return notFound("Knowledge base item");
   const { title, type, content, source, tagsJson, confidenceScore, approvedForAi } = body;
   const updated = await prisma.knowledgeBaseItem.update({
@@ -42,7 +46,9 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
   const { id } = await params;
-  const existing = await prisma.knowledgeBaseItem.findFirst({ where: { id, workspaceId: ctx.workspaceId } });
+  const existing = await prisma.knowledgeBaseItem.findFirst({
+    where: { id, workspaceId: ctx.workspaceId },
+  });
   if (!existing) return notFound("Knowledge base item");
   await prisma.knowledgeBaseItem.delete({ where: { id } });
   return NextResponse.json({ ok: true });

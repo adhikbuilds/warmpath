@@ -6,7 +6,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
   const { id } = await params;
-  const account = await prisma.bizAccount.findFirst({ where: { id, workspaceId: ctx.workspaceId } });
+  const account = await prisma.bizAccount.findFirst({
+    where: { id, workspaceId: ctx.workspaceId },
+  });
   if (!account) return notFound("Account");
   return NextResponse.json(account);
 }
@@ -16,9 +18,23 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (!ctx) return unauthorized();
   const { id } = await params;
   const body = await req.json().catch(() => ({}));
-  const existing = await prisma.bizAccount.findFirst({ where: { id, workspaceId: ctx.workspaceId } });
+  const existing = await prisma.bizAccount.findFirst({
+    where: { id, workspaceId: ctx.workspaceId },
+  });
   if (!existing) return notFound("Account");
-  const { name, domain, industry, employeeCount, location, description, stage, fitScore, intentScore, warmthScore, logoUrl } = body;
+  const {
+    name,
+    domain,
+    industry,
+    employeeCount,
+    location,
+    description,
+    stage,
+    fitScore,
+    intentScore,
+    warmthScore,
+    logoUrl,
+  } = body;
   const updated = await prisma.bizAccount.update({
     where: { id },
     data: {
@@ -46,7 +62,9 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
   const { id } = await params;
-  const existing = await prisma.bizAccount.findFirst({ where: { id, workspaceId: ctx.workspaceId } });
+  const existing = await prisma.bizAccount.findFirst({
+    where: { id, workspaceId: ctx.workspaceId },
+  });
   if (!existing) return notFound("Account");
   await prisma.bizAccount.delete({ where: { id } });
   return NextResponse.json({ ok: true });

@@ -22,7 +22,16 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     where: { id, workspaceId: ctx.workspaceId },
   });
   if (!existing) return notFound("Integration");
-  const { displayName, status, authType, scopesJson, capabilitiesJson, lastSyncAt, syncStatus, errorMessage } = body;
+  const {
+    displayName,
+    status,
+    authType,
+    scopesJson,
+    capabilitiesJson,
+    lastSyncAt,
+    syncStatus,
+    errorMessage,
+  } = body;
   const updated = await prisma.integrationConnection.update({
     where: { id },
     data: {

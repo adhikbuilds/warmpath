@@ -21,7 +21,22 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const body = await req.json().catch(() => ({}));
   const existing = await prisma.contact.findFirst({ where: { id, workspaceId: ctx.workspaceId } });
   if (!existing) return notFound("Contact");
-  const { name, email, phone, title, linkedinUrl, seniority, department, persona, fitScore, warmthScore, engagementScore, consentStatus, avatarUrl, accountId } = body;
+  const {
+    name,
+    email,
+    phone,
+    title,
+    linkedinUrl,
+    seniority,
+    department,
+    persona,
+    fitScore,
+    warmthScore,
+    engagementScore,
+    consentStatus,
+    avatarUrl,
+    accountId,
+  } = body;
   const updated = await prisma.contact.update({
     where: { id },
     data: {

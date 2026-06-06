@@ -34,14 +34,14 @@ import type {
 
 const DEFAULT_AI_SETTINGS: WorkspaceAISettings = {
   workspace_id: "",
-  ai_mode: "mock",
+  ai_mode: "azure",
   monthly_budget_usd: 50,
   usage_this_month_usd: 0,
-  allow_remote_generation: false,
-  require_approval_for_remote: true,
+  allow_remote_generation: true,
+  require_approval_for_remote: false,
   fallback_to_mock: true,
-  provider: "mock",
-  model: "mock-v1",
+  provider: "azure",
+  model: "gpt-4.1-nano",
 };
 
 const DEFAULT_WORKSPACE: Workspace = {
@@ -191,6 +191,11 @@ interface SalesState {
   updateAccount: (id: string, updates: Partial<Account>) => void;
   addContact: (c: Omit<Contact, "id">) => void;
   updateContact: (id: string, updates: Partial<Contact>) => void;
+  importLinkedInContacts: (
+    contacts: Omit<Contact, "id">[],
+    accounts: Omit<Account, "id" | "created_at">[],
+    campaigns: Campaign[],
+  ) => void;
 
   // Actions Campaigns
   addCampaign: (campaign: Campaign) => void;
@@ -198,8 +203,15 @@ interface SalesState {
   updateCampaignStep: (
     campaignId: string,
     stepId: string,
-    updates: { delay_days?: number; template_hint?: string },
+    updates: {
+      delay_days?: number;
+      template_hint?: string;
+      subject_a?: string;
+      subject_b?: string;
+      email_body?: string;
+    },
   ) => void;
+  deleteCampaignStep: (campaignId: string, stepId: string) => void;
 
   // Actions Warm paths
   addWarmPath: (wp: WarmPath) => void;
@@ -1238,6 +1250,24 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
     }));
   },
 
+  importLinkedInContacts: (contacts, accounts, campaigns) => {
+    const now = new Date().toISOString();
+    const mappedAccounts = accounts.map((a, i) => ({
+      ...a,
+      id: `li-acc-${i}-${Date.now()}`,
+      created_at: now,
+    }));
+    const mappedContacts = contacts.map((c, i) => ({
+      ...c,
+      id: `li-con-${i}-${Date.now()}`,
+    }));
+    set((state) => ({
+      accounts: [...mappedAccounts, ...state.accounts],
+      contacts: [...mappedContacts, ...state.contacts],
+      campaigns: [...campaigns, ...state.campaigns],
+    }));
+  },
+
   addCampaign: (campaign) => {
     set((state) => ({ campaigns: [campaign, ...state.campaigns] }));
   },
@@ -1257,6 +1287,14 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
               steps: c.steps.map((s) => (s.id === stepId ? { ...s, ...updates } : s)),
             }
           : c,
+      ),
+    }));
+  },
+
+  deleteCampaignStep: (campaignId, stepId) => {
+    set((state) => ({
+      campaigns: state.campaigns.map((c) =>
+        c.id === campaignId ? { ...c, steps: c.steps.filter((s) => s.id !== stepId) } : c,
       ),
     }));
   },

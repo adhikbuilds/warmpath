@@ -6,7 +6,9 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
   const ctx = await getAuthContext();
   if (!ctx) return unauthorized();
   const { id } = await params;
-  const item = await prisma.knowledgeBaseItem.findFirst({ where: { id, workspaceId: ctx.workspaceId } });
+  const item = await prisma.knowledgeBaseItem.findFirst({
+    where: { id, workspaceId: ctx.workspaceId },
+  });
   if (!item) return notFound("Knowledge base item");
   const updated = await prisma.knowledgeBaseItem.update({
     where: { id },

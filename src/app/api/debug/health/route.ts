@@ -69,10 +69,12 @@ export async function GET() {
       const body = await res.json().catch(() => ({}));
       // 422 = model replied but returned non-JSON (format issue, not connectivity)
       // This still proves Azure OpenAI is reachable and responding
-      if (res.status === 422) return "Azure OpenAI connected (model replied; JSON format issue on health probe input)";
+      if (res.status === 422)
+        return "Azure OpenAI connected (model replied; JSON format issue on health probe input)";
       if (!res.ok) throw new Error(`HTTP ${res.status}: ${JSON.stringify(body)}`);
       const model = body.model ?? "unknown";
-      if (model === "mock") return "⚠ fell back to mock — Azure OpenAI env vars likely missing in intel service";
+      if (model === "mock")
+        return "⚠ fell back to mock — Azure OpenAI env vars likely missing in intel service";
       return `Azure OpenAI ok — model: ${model}, cost: $${body.cost_usd?.toFixed(6) ?? "?"}`;
     }),
 
