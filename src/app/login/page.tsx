@@ -3,14 +3,15 @@
 import { ArrowRight, Loader2, Zap } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
-import { Suspense, useState } from "react";
+import { signIn, useSession } from "next-auth/react";
+import { Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Logo } from "@/components/logo";
 import { useAuthStore } from "@/stores/authStore";
 
 function LoginPageContent() {
   const { isAuthenticated, setAuthenticated } = useAuthStore();
+  const { status: sessionStatus } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [tab, setTab] = useState<"signin" | "signup">(
@@ -22,9 +23,32 @@ function LoginPageContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<string | null>(null);
 
-  if (isAuthenticated) {
-    router.replace("/workspace-select");
-    return null;
+  // Clear stale localStorage when NextAuth says we're not authenticated
+  useEffect(() => {
+    if (sessionStatus === "unauthenticated" && isAuthenticated) {
+      setAuthenticated(false);
+    }
+  }, [sessionStatus, isAuthenticated, setAuthenticated]);
+
+  // Redirect only when BOTH Zustand and NextAuth agree the session is live
+  useEffect(() => {
+    if (sessionStatus === "authenticated" && isAuthenticated) {
+      router.replace("/workspace-select");
+    }
+  }, [sessionStatus, isAuthenticated, router]);
+
+  if (sessionStatus === "loading") {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: "#09090b" }}
+      >
+        <div
+          className="w-5 h-5 border-2 rounded-full animate-spin"
+          style={{ borderColor: "#2a2a2e", borderTopColor: "#8083ff" }}
+        />
+      </div>
+    );
   }
 
   const handleDemo = async () => {

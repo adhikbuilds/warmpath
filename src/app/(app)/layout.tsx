@@ -34,7 +34,7 @@ const PAGE_TITLES: Record<string, string> = {
 };
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, setAuthenticated } = useAuthStore();
+  const { isAuthenticated, setAuthenticated, syncUser } = useAuthStore();
   const { data: session, status: sessionStatus } = useSession();
   const { theme, setTheme } = useTheme();
   const {
@@ -64,11 +64,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       router.replace("/login");
       return;
     }
-    // session is authenticated — sync into Zustand so other guards stay happy
+    // Session authenticated — sync real user details into Zustand
     if (sessionStatus === "authenticated" && session?.user) {
       setAuthenticated(true);
+      syncUser({
+        id: (session.user as { id?: string }).id,
+        name: session.user.name,
+        email: session.user.email,
+      });
     }
-  }, [sessionStatus, session, setAuthenticated, router]);
+  }, [sessionStatus, session, setAuthenticated, syncUser, router]);
 
   useEffect(() => {
     if (hydrated && sessionStatus !== "loading" && !isAuthenticated) {
