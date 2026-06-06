@@ -5,8 +5,7 @@ on:
     branches: [develop]
     paths:
       - "intelligence-service/**"
-    paths-ignore:
-      - "**/*.md"
+      - "!intelligence-service/**/*.md"
   workflow_dispatch:
 
 env:

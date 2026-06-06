@@ -560,17 +560,19 @@ export default function ContactsPage() {
 
       {/* Research a Person */}
       <ResearchAPersonSection
-        onAdd={(name, title, company) => {
+        onAdd={(name, title, _company) => {
           addContact({
             name,
             title,
-            email: undefined,
-            phone: undefined,
-            account_id: undefined,
+            email: "",
+            account_id: "",
             linkedin_url: undefined,
             seniority: "ic",
-            department: undefined,
-            persona: undefined,
+            department: "",
+            persona: "",
+            fit_score: 0,
+            warmth_score: 0,
+            engagement_score: 0,
           });
         }}
       />
@@ -937,17 +939,19 @@ export default function ContactsPage() {
 
       {/* People you may know */}
       <PeopleSuggestions
-        onAdd={(id, name, title, company) => {
+        onAdd={(_id, name, title, _company) => {
           addContact({
             name,
             title,
-            email: undefined,
-            phone: undefined,
-            account_id: undefined,
+            email: "",
+            account_id: "",
             linkedin_url: undefined,
             seniority: "ic",
-            department: undefined,
-            persona: undefined,
+            department: "",
+            persona: "",
+            fit_score: 0,
+            warmth_score: 0,
+            engagement_score: 0,
           });
           toast.success(`${name} added to contacts`);
         }}

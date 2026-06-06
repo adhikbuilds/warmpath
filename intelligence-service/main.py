@@ -15,11 +15,13 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from routers import agents, classify, discovery, enrich, graph, scoring, sequences, signals
+from database import init_db
+from routers import agents, auth, classify, discovery, enrich, graph, scoring, sequences, signals
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    init_db()
     print("WarmPath intelligence service started")
     yield
     print("WarmPath intelligence service shutting down")
@@ -60,6 +62,7 @@ async def require_service_secret(request: Request, call_next):
 
 # ─── Intelligence routers ─────────────────────────────────────────────────────
 
+app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(agents.router, prefix="/agents", tags=["agents"])
 app.include_router(signals.router, prefix="/signals", tags=["signals"])
 app.include_router(graph.router, prefix="/graph", tags=["graph"])
