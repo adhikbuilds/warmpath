@@ -7,6 +7,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { CommandBar } from "@/components/command-bar";
 import { ProductTour } from "@/components/product-tour";
@@ -33,7 +34,8 @@ const PAGE_TITLES: Record<string, string> = {
 };
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, setAuthenticated } = useAuthStore();
+  const { data: session, status: sessionStatus } = useSession();
   const { theme, setTheme } = useTheme();
   const {
     messages,
@@ -53,11 +55,26 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     setHydrated(true);
   }, []);
 
+  // Authoritative check: NextAuth session must be valid.
+  // Clears stale localStorage state if the real session has expired.
   useEffect(() => {
-    if (hydrated && !isAuthenticated) {
+    if (sessionStatus === "loading") return;
+    if (sessionStatus === "unauthenticated") {
+      setAuthenticated(false);
+      router.replace("/login");
+      return;
+    }
+    // session is authenticated — sync into Zustand so other guards stay happy
+    if (sessionStatus === "authenticated" && session?.user) {
+      setAuthenticated(true);
+    }
+  }, [sessionStatus, session, setAuthenticated, router]);
+
+  useEffect(() => {
+    if (hydrated && sessionStatus !== "loading" && !isAuthenticated) {
       router.replace("/login");
     }
-  }, [hydrated, isAuthenticated, router]);
+  }, [hydrated, isAuthenticated, sessionStatus, router]);
 
   useEffect(() => {
     function handler(e: KeyboardEvent) {
@@ -84,7 +101,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const baseSegment = "/" + (pathname.split("/")[1] ?? "");
   const pageTitle = PAGE_TITLES[baseSegment] ?? "";
 
-  if (!hydrated) {
+  if (!hydrated || sessionStatus === "loading") {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
@@ -98,7 +115,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!isAuthenticated) return null;
+  if (!isAuthenticated || sessionStatus === "unauthenticated") return null;
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
