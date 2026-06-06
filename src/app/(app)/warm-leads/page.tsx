@@ -36,8 +36,6 @@ import {
 } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
-import type { GenerateMessageInput } from "@/lib/ai";
-import { getAIProvider } from "@/lib/ai";
 import { buildRelationshipGraph } from "@/lib/graph";
 import { cn, formatRelativeTime, signalTypeColor, signalTypeLabel } from "@/lib/utils";
 import { useSalesStore } from "@/stores/salesStore";
@@ -231,7 +229,7 @@ interface ComposeSheetProps {
 }
 
 function ComposeSheet({ open, onClose, account, contact, signal, warmPath }: ComposeSheetProps) {
-  const { addMessageToQueue, kbItems } = useSalesStore();
+  const { addMessageToQueue } = useSalesStore();
   const router = useRouter();
   const [channel, setChannel] = useState<ComposeChannel>(warmPath ? "warm_intro" : "email");
   const [body, setBody] = useState("");
@@ -252,27 +250,33 @@ function ComposeSheet({ open, onClose, account, contact, signal, warmPath }: Com
 
     setIsGenerating(true);
     setGenerated(false);
-    const ai = getAIProvider();
-    const input: GenerateMessageInput = {
-      account,
-      contact,
-      signal: signal ?? undefined,
-      warmPath: warmPath ?? undefined,
-      channel,
-      kbItems,
-    };
-    ai.generateMessage(input).then((result) => {
-      setBody(result.body);
-      setSubject(result.subject ?? "");
-      setIntroRequest(result.intro_request ?? "");
-      setPersonalizationReason(result.personalization_reason);
-      setConfidenceScore(result.confidence_score);
-      setFactualClaims(result.factual_claims);
-      setSupportingSources(result.supporting_sources);
-      setIsGenerating(false);
-      setGenerated(true);
-    });
-  }, [open, account, contact, signal, warmPath, channel, kbItems]);
+    fetch("/api/ai/generate-message", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        accountId: account.id,
+        contactId: contact.id,
+        signalId: signal?.id,
+        warmPathId: warmPath?.id,
+        channel,
+      }),
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject(r)))
+      .then((result) => {
+        setBody(result.body ?? "");
+        setSubject(result.subject ?? "");
+        setIntroRequest(result.intro_request ?? "");
+        setPersonalizationReason(result.personalization_reason ?? "");
+        setConfidenceScore(result.confidence_score ?? 0);
+        setFactualClaims(result.factual_claims ?? []);
+        setSupportingSources(result.supporting_sources ?? []);
+        setIsGenerating(false);
+        setGenerated(true);
+      })
+      .catch(() => {
+        setIsGenerating(false);
+      });
+  }, [open, account, contact, signal, warmPath, channel]);
 
   function handleClose() {
     didGenerate.current = false;

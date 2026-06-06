@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 
-const SERVICE_URL = process.env.INTELLIGENCE_SERVICE_URL ?? "http://localhost:8000";
+const SERVICE_URL = process.env.INTELLIGENCE_SERVICE_URL ?? "http://localhost:8001";
 const SERVICE_SECRET = process.env.INTELLIGENCE_SERVICE_SECRET ?? "";
 
 export async function proxyToService(
