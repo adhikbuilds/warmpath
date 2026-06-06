@@ -6,16 +6,18 @@ import { DEMO_CONTACTS_EXTRA } from "@/lib/demo-data-extended";
 
 export async function GET() {
   try {
-    const { workspaceId } = await getWorkspaceContext();
+    const { workspaceId, isDemo } = await getWorkspaceContext();
     const prismaContacts = await prisma.contact.findMany({
       where: { workspaceId },
       include: { account: true },
       orderBy: { createdAt: "desc" },
     });
-    // Show demo data for any empty workspace so new signups see a populated UI.
-    // Once a user imports real contacts, Prisma records take over automatically.
     const baseContacts =
-      prismaContacts.length > 0 ? prismaContacts : [...DEMO_CONTACTS, ...DEMO_CONTACTS_EXTRA];
+      prismaContacts.length > 0
+        ? prismaContacts
+        : isDemo
+          ? [...DEMO_CONTACTS, ...DEMO_CONTACTS_EXTRA]
+          : [];
 
     // Try Twenty CRM if configured
     if (process.env.TWENTY_API_KEY) {
@@ -41,7 +43,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const { workspaceId } = await getWorkspaceContext();
+    const { workspaceId, isDemo } = await getWorkspaceContext();
     const body = await req.json().catch(() => ({}));
     const {
       name,

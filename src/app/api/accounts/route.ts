@@ -6,14 +6,17 @@ import { DEMO_ACCOUNTS_EXTRA } from "@/lib/demo-data-extended";
 
 export async function GET() {
   try {
-    const { workspaceId } = await getWorkspaceContext();
+    const { workspaceId, isDemo } = await getWorkspaceContext();
     const prismaAccounts = await prisma.bizAccount.findMany({
       where: { workspaceId },
       orderBy: { createdAt: "desc" },
     });
-    // Show demo data for any empty workspace so new signups see a populated UI.
     const baseAccounts =
-      prismaAccounts.length > 0 ? prismaAccounts : [...DEMO_ACCOUNTS, ...DEMO_ACCOUNTS_EXTRA];
+      prismaAccounts.length > 0
+        ? prismaAccounts
+        : isDemo
+          ? [...DEMO_ACCOUNTS, ...DEMO_ACCOUNTS_EXTRA]
+          : [];
 
     // Try Twenty CRM if configured
     if (process.env.TWENTY_API_KEY) {
@@ -39,7 +42,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const { workspaceId } = await getWorkspaceContext();
+    const { workspaceId, isDemo } = await getWorkspaceContext();
     const body = await req.json().catch(() => ({}));
     const {
       name,

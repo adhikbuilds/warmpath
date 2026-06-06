@@ -5,7 +5,7 @@ import { DEMO_MESSAGES } from "@/lib/demo-data";
 
 export async function GET() {
   try {
-    const { workspaceId } = await getWorkspaceContext();
+    const { workspaceId, isDemo } = await getWorkspaceContext();
     const messages = await prisma.message.findMany({
       where: { workspaceId },
       include: {
@@ -18,7 +18,7 @@ export async function GET() {
       take: 100,
     });
     if (messages.length === 0) {
-      return NextResponse.json(DEMO_MESSAGES);
+      return NextResponse.json(isDemo ? DEMO_MESSAGES : []);
     }
     return NextResponse.json(
       messages.map((m) => ({
