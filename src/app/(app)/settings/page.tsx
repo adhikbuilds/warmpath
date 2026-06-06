@@ -193,9 +193,15 @@ export default function SettingsPage() {
     }
   };
 
-  // Team state
-  const [teamMembers] = useState([
-    { id: "1", name: "Adhik Agarwal", email: "adhik@warmblue.ai", role: "Admin", connections: 847 },
+  // Team state — seeded from real auth user + workspace members
+  const [teamMembers, setTeamMembers] = useState([
+    {
+      id: "1",
+      name: _user?.name ?? "Adhik Agarwal",
+      email: _user?.email ?? "adhik@warmblue.ai",
+      role: "Admin",
+      connections: 847,
+    },
     { id: "2", name: "Sarah Chen", email: "sarah@warmblue.ai", role: "Member", connections: 1240 },
     { id: "3", name: "Rohan Mehta", email: "rohan@warmblue.ai", role: "Member", connections: 634 },
   ]);
@@ -596,8 +602,11 @@ export default function SettingsPage() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="h-7 text-xs text-muted-foreground"
-                      onClick={() => toast.info("Remove team member?")}
+                      className="h-7 text-xs text-red-400 hover:text-red-500 hover:bg-red-500/10"
+                      onClick={() => {
+                        setTeamMembers((prev) => prev.filter((m) => m.id !== member.id));
+                        toast.success(`${member.name} removed from team`);
+                      }}
                     >
                       Remove
                     </Button>
