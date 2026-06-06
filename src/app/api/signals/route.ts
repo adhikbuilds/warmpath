@@ -5,7 +5,7 @@ import { DEMO_SIGNALS } from "@/lib/demo-data";
 
 export async function GET() {
   try {
-    const { workspaceId } = await getWorkspaceContext();
+    const { workspaceId, isDemo } = await getWorkspaceContext();
     const signals = await prisma.signal.findMany({
       where: { workspaceId },
       include: {
@@ -15,7 +15,7 @@ export async function GET() {
       orderBy: { detectedAt: "desc" },
     });
     if (signals.length === 0) {
-      return NextResponse.json(DEMO_SIGNALS);
+      return NextResponse.json(isDemo ? DEMO_SIGNALS : []);
     }
     return NextResponse.json(
       signals.map((s) => ({

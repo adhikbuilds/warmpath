@@ -5,14 +5,14 @@ import { DEMO_CAMPAIGNS } from "@/lib/demo-data";
 
 export async function GET() {
   try {
-    const { workspaceId } = await getWorkspaceContext();
+    const { workspaceId, isDemo } = await getWorkspaceContext();
     const campaigns = await prisma.campaign.findMany({
       where: { workspaceId },
       include: { steps: { orderBy: { stepNumber: "asc" } } },
       orderBy: { createdAt: "desc" },
     });
     if (campaigns.length === 0) {
-      return NextResponse.json(DEMO_CAMPAIGNS);
+      return NextResponse.json(isDemo ? DEMO_CAMPAIGNS : []);
     }
     return NextResponse.json(
       campaigns.map((c) => ({

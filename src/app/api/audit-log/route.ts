@@ -5,14 +5,14 @@ import { DEMO_AUDIT_LOGS } from "@/lib/demo-data-extended";
 
 export async function GET() {
   try {
-    const { workspaceId } = await getWorkspaceContext();
+    const { workspaceId, isDemo } = await getWorkspaceContext();
     const logs = await prisma.auditLog.findMany({
       where: { workspaceId },
       orderBy: { createdAt: "desc" },
       take: 100,
     });
     if (logs.length === 0) {
-      return NextResponse.json(DEMO_AUDIT_LOGS);
+      return NextResponse.json(isDemo ? DEMO_AUDIT_LOGS : []);
     }
     return NextResponse.json(logs);
   } catch {
