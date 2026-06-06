@@ -61,34 +61,37 @@ const PAGE_SIZE = 100; // virtualised window cap
 // ─── Research a Person feature ────────────────────────────────────────────────
 
 const RESEARCH_SUGGESTIONS = [
-  "Joanne Jang (OpenAI)",
-  "Reid Hoffman (LinkedIn)",
-  "Sarah Franklin (Salesforce)",
+  "VP Sales at Hasura",
+  "CRO at Razorpay",
+  "Head of Growth at Darwinbox",
 ];
 
-const MOCK_RESEARCH_RESULTS: Record<
-  string,
-  {
-    name: string;
-    title: string;
-    company: string;
-    linkedin: string;
-    warmth: number;
-    mutual: string[];
-    summary: string;
-  }
-> = {
-  default: {
-    name: "Priya Sharma",
-    title: "VP of Sales",
-    company: "Acme AI",
-    linkedin: "linkedin.com/in/priyasharma",
-    warmth: 72,
-    mutual: ["Alex Chen", "Marcus Williams"],
-    summary:
-      "Growth-focused sales leader with 12+ years in B2B SaaS. Recently expanded her team by 40% and is evaluating new tools for pipeline management.",
-  },
+type ResearchResult = {
+  name: string;
+  title: string;
+  company: string;
+  linkedin: string;
+  warmth: number;
+  mutual: string[];
+  summary: string;
 };
+
+function parseResearchQuery(q: string): { name: string; title: string; company: string } {
+  // Patterns: "Name at Company", "Title at Company", "Name (Company)", "Name"
+  const atMatch = q.match(/^(.+?)\s+at\s+(.+)$/i);
+  if (atMatch) {
+    const left = atMatch[1].trim();
+    const company = atMatch[2].trim();
+    // If left looks like a title (VP, CRO, Head, etc.), treat as title
+    if (/^(vp|cro|cmo|cto|ceo|head|director|founder|partner|manager)/i.test(left)) {
+      return { name: "", title: left, company };
+    }
+    return { name: left, title: "", company };
+  }
+  const parenMatch = q.match(/^(.+?)\s*\((.+)\)$/);
+  if (parenMatch) return { name: parenMatch[1].trim(), title: "", company: parenMatch[2].trim() };
+  return { name: q.trim(), title: "", company: "" };
+}
 
 function ResearchAPersonSection({
   onAdd,
@@ -98,17 +101,24 @@ function ResearchAPersonSection({
   const [query, setQuery] = useState("");
   const [autoResearch, setAutoResearch] = useState(false);
   const [state, setState] = useState<"idle" | "loading" | "result">("idle");
-  const [result, setResult] = useState<(typeof MOCK_RESEARCH_RESULTS)["default"] | null>(null);
+  const [result, setResult] = useState<ResearchResult | null>(null);
 
   function runResearch(q: string) {
     if (!q.trim()) return;
     setState("loading");
+    const { name, title, company } = parseResearchQuery(q);
     setTimeout(() => {
-      const r = MOCK_RESEARCH_RESULTS.default;
-      const parts = q.split(" ");
-      setResult({ ...r, name: parts[0] || r.name });
+      setResult({
+        name: name || "Unknown",
+        title: title || "Executive",
+        company: company || q.trim(),
+        linkedin: `linkedin.com/in/${(name || q).toLowerCase().replace(/\s+/g, "")}`,
+        warmth: Math.floor(Math.random() * 30) + 50,
+        mutual: [],
+        summary: `${name || title} at ${company || q}. Add them as a contact to start finding warm paths through your team's network.`,
+      });
       setState("result");
-    }, 1600);
+    }, 1200);
   }
 
   return (
@@ -506,13 +516,20 @@ export default function ContactsPage() {
     new Set(contacts.map((c) => c.department).filter(Boolean)),
   ).sort() as string[];
 
+  // Build a lookup so company name is searchable
+  const accountNameById = Object.fromEntries(accounts.map((a) => [a.id, a.name]));
+
   const filtered = contacts
     .filter((c) => {
+      const companyName = accountNameById[c.account_id] ?? "";
+      const q = search.toLowerCase();
       const matchSearch =
         !search ||
-        c.name.toLowerCase().includes(search.toLowerCase()) ||
-        c.title?.toLowerCase().includes(search.toLowerCase()) ||
-        c.department?.toLowerCase().includes(search.toLowerCase());
+        c.name.toLowerCase().includes(q) ||
+        c.title?.toLowerCase().includes(q) ||
+        c.department?.toLowerCase().includes(q) ||
+        companyName.toLowerCase().includes(q) ||
+        c.email?.toLowerCase().includes(q);
       const matchSeniority = seniorityFilter === "all" || c.seniority === seniorityFilter;
       const matchDept = deptFilter === "all" || c.department === deptFilter;
       return matchSearch && matchSeniority && matchDept;

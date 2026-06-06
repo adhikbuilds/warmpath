@@ -38,6 +38,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Textarea } from "@/components/ui/textarea";
 import { buildRelationshipGraph } from "@/lib/graph";
 import { cn, formatRelativeTime, signalTypeColor, signalTypeLabel } from "@/lib/utils";
+import { useAuthStore } from "@/stores/authStore";
 import { useSalesStore } from "@/stores/salesStore";
 import type { Account, Contact, Signal, WarmPath } from "@/types";
 
@@ -557,6 +558,8 @@ export default function WarmLeadsPage() {
     createFollowUpTask,
     addMessageToQueue,
   } = useSalesStore();
+  const { user } = useAuthStore();
+  const senderFirstName = user?.name?.split(" ")[0] ?? "Adhik";
 
   const [view, setView] = useState<"list" | "pipeline">("list");
   const [focusMode, setFocusMode] = useState(false);
@@ -1034,7 +1037,7 @@ Thanks,
                                   subject: topSignal
                                     ? `${topSignal.title} — ${account.name}`
                                     : `Outreach — ${account.name}`,
-                                  body: `Hi ${topContact?.name?.split(" ")[0] ?? "there"},\n\n${topSignal ? topSignal.description + "\n\n" : ""}I wanted to reach out about ${account.name} — we have a warm path through your network.\n\nWould love 15 minutes to share what we're working on.\n\nBest,\nAdhik`,
+                                  body: `Hi ${topContact?.name?.split(" ")[0] ?? "there"},\n\n${topSignal ? topSignal.description + "\n\n" : ""}I wanted to reach out about ${account.name} — we have a warm path through your network.\n\nWould love 15 minutes to share what we're working on.\n\nBest,\n${senderFirstName}`,
                                   status: "draft",
                                   approval_status: "pending",
                                   generated_by_ai: true,
@@ -1361,7 +1364,7 @@ Thanks,
                                         signal_id: item.signalId,
                                         channel: item.stage === "active" ? "warm_intro" : "email",
                                         subject: `Follow-up — ${item.contactName} at ${item.accountName}`,
-                                        body: `Hi ${item.contactName.split(" ")[0]},\n\nFollowing up on our conversation — wanted to share how WarmBlue can help ${item.accountName} with warm outbound.\n\nBest,\nAdhik`,
+                                        body: `Hi ${item.contactName.split(" ")[0]},\n\nFollowing up on our conversation — wanted to share how WarmBlue can help ${item.accountName} with warm outbound.\n\nBest,\n${senderFirstName}`,
                                         status: "draft",
                                         approval_status: "pending",
                                         generated_by_ai: true,
@@ -1449,7 +1452,7 @@ Thanks,
                             signal_id: selectedCard.signalId,
                             channel: "email",
                             subject: `Following up — ${selectedCard.contactName}`,
-                            body: `Hi ${selectedCard.contactName.split(" ")[0]},\n\nThanks for accepting the intro from ${selectedCard.introBy}! Wanted to reach out directly and share how we could help ${selectedCard.accountName}.\n\nWould you have 20 minutes this week?\n\nBest,\nAdhik`,
+                            body: `Hi ${selectedCard.contactName.split(" ")[0]},\n\nThanks for accepting the intro from ${selectedCard.introBy}! Wanted to reach out directly and share how we could help ${selectedCard.accountName}.\n\nWould you have 20 minutes this week?\n\nBest,\n${senderFirstName}`,
                             status: "draft",
                             approval_status: "pending",
                             generated_by_ai: true,
@@ -1618,7 +1621,7 @@ Thanks,
                         signal_id: selectedCard.signalId,
                         channel: "email",
                         subject: `Following up — ${selectedCard.contactName} at ${selectedCard.accountName}`,
-                        body: `Hi ${selectedCard.contactName.split(" ")[0]},\n\nWanted to follow up and see if you'd have time this week to connect about ${selectedCard.accountName}.\n\nWould 20 minutes work?\n\nBest,\nAdhik`,
+                        body: `Hi ${selectedCard.contactName.split(" ")[0]},\n\nWanted to follow up and see if you'd have time this week to connect about ${selectedCard.accountName}.\n\nWould 20 minutes work?\n\nBest,\n${senderFirstName}`,
                         status: "draft",
                         approval_status: "pending",
                         generated_by_ai: true,

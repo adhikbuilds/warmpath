@@ -530,8 +530,9 @@ export default function DiscoverPage() {
   const [importingAll, setImportingAll] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // ── Visitors ────────────────────────────────────────────────────────────────
-  const [visitors, setVisitors] = useState(DEMO_VISITORS);
+  // ── Visitors — demo sample data shown until website tracker is connected ──
+  const isDemoVisitors = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+  const [visitors, setVisitors] = useState(isDemoVisitors ? DEMO_VISITORS : []);
   const [convertingId, setConvertingId] = useState<string | null>(null);
   const [selectedVisitorIds, setSelectedVisitorIds] = useState<Set<string>>(new Set());
   const [bulkConverting, setBulkConverting] = useState(false);
@@ -801,6 +802,11 @@ export default function DiscoverPage() {
           {highIntentVisitors > 0 && (
             <span className="w-4 h-4 rounded-full bg-[#8083ff] text-white text-[10px] font-bold flex items-center justify-center">
               {highIntentVisitors}
+            </span>
+          )}
+          {isDemoVisitors && (
+            <span className="text-[9px] font-medium border border-amber-500/40 text-amber-500 bg-amber-500/10 rounded px-1 py-0.5">
+              Sample
             </span>
           )}
         </button>
