@@ -5,10 +5,10 @@ export const dynamic = "force-dynamic";
 import { ArrowRight, Building2, Loader2, Plus, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Logo } from "@/components/logo";
-import { useSession } from "next-auth/react";
 import { useAuthStore } from "@/stores/authStore";
 
 type Workspace = {

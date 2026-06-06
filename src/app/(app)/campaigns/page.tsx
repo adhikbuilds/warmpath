@@ -16,8 +16,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { Campaign } from "@/types";
 import { useSalesStore } from "@/stores/salesStore";
+import type { Campaign } from "@/types";
 
 type StatusFilter = "all" | "active" | "draft" | "paused" | "completed";
 
@@ -33,8 +33,8 @@ function derivedStats(c: Campaign) {
   const s = c.stats.messages_sent;
   const r = c.stats.replies;
   const seed = c.id.codePointAt(c.id.length - 1) ?? 7;
-  const opened = Math.round(s * (0.52 + ((seed % 18) * 0.01)));
-  const clicked = Math.round(s * (0.07 + ((seed % 9) * 0.01)));
+  const opened = Math.round(s * (0.52 + (seed % 18) * 0.01));
+  const clicked = Math.round(s * (0.07 + (seed % 9) * 0.01));
   return {
     opened,
     openPct: s > 0 ? ((opened / s) * 100).toFixed(0) : "0",
@@ -48,7 +48,11 @@ function derivedStats(c: Campaign) {
 }
 
 function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" });
+  return new Date(iso).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "2-digit",
+  });
 }
 
 export default function CampaignsPage() {
@@ -122,7 +126,9 @@ export default function CampaignsPage() {
                 AI suggestion
               </span>
               <span className="text-[12px] font-semibold">{topRec.title}</span>
-              <span className="text-[11px] text-muted-foreground ml-2 truncate">{topRec.reason}</span>
+              <span className="text-[11px] text-muted-foreground ml-2 truncate">
+                {topRec.reason}
+              </span>
             </div>
             <Button size="sm" variant="outline" className="h-6 text-[11px] px-2.5 shrink-0" asChild>
               <Link href="/campaigns/new">
@@ -135,7 +141,8 @@ export default function CampaignsPage() {
         {/* Filter tabs */}
         <div className="flex items-center gap-0.5 -mx-5 px-5">
           {(Object.keys(FILTER_LABELS) as StatusFilter[]).map((s) => {
-            const count = s === "all" ? campaigns.length : campaigns.filter((c) => c.status === s).length;
+            const count =
+              s === "all" ? campaigns.length : campaigns.filter((c) => c.status === s).length;
             return (
               <button
                 key={s}
@@ -281,10 +288,14 @@ export default function CampaignsPage() {
 
                   {/* Replied */}
                   <td className="px-3 py-3 text-right">
-                    <span className={`font-semibold ${c.stats.reply_rate >= 20 ? "text-emerald-500" : ""}`}>
+                    <span
+                      className={`font-semibold ${c.stats.reply_rate >= 20 ? "text-emerald-500" : ""}`}
+                    >
                       {c.stats.replies}
                     </span>
-                    <span className="text-muted-foreground ml-1">{c.stats.reply_rate.toFixed(1)}%</span>
+                    <span className="text-muted-foreground ml-1">
+                      {c.stats.reply_rate.toFixed(1)}%
+                    </span>
                   </td>
 
                   {/* Positive */}
@@ -295,7 +306,9 @@ export default function CampaignsPage() {
 
                   {/* Bounced */}
                   <td className="px-3 py-3 text-right">
-                    <span className={`font-semibold ${d.bounced > 2 ? "text-red-400" : ""}`}>{d.bounced}</span>
+                    <span className={`font-semibold ${d.bounced > 2 ? "text-red-400" : ""}`}>
+                      {d.bounced}
+                    </span>
                     <span className="text-muted-foreground ml-1">{d.bouncePct}%</span>
                   </td>
 

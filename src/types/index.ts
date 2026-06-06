@@ -159,6 +159,9 @@ export interface CampaignStep {
   template_hint: string;
   objective: string;
   is_ai_generated: boolean;
+  subject_a?: string;
+  subject_b?: string;
+  email_body?: string;
 }
 
 export type MessageStatus =
@@ -354,7 +357,7 @@ export interface KnowledgeBaseItem {
 
 // ─── AI Provider / Usage ───────────────────────────────────────────────────
 
-export type AIMode = "mock" | "local" | "remote";
+export type AIMode = "mock" | "local" | "remote" | "azure";
 
 export interface AIUsageLog {
   id: string;
@@ -384,7 +387,7 @@ export interface WorkspaceAISettings {
   allow_remote_generation: boolean;
   require_approval_for_remote: boolean;
   fallback_to_mock: boolean;
-  provider: "anthropic" | "openai" | "ollama" | "mock";
+  provider: "anthropic" | "openai" | "ollama" | "mock" | "azure";
   model?: string;
 }
 

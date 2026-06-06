@@ -92,14 +92,14 @@ export const DEMO_WORKSPACE_MEMBERS: WorkspaceMember[] = [
 
 export const DEMO_AI_SETTINGS: WorkspaceAISettings = {
   workspace_id: "ws-1",
-  ai_mode: "mock",
+  ai_mode: "azure",
   monthly_budget_usd: 50,
   usage_this_month_usd: 0,
-  allow_remote_generation: false,
-  require_approval_for_remote: true,
+  allow_remote_generation: true,
+  require_approval_for_remote: false,
   fallback_to_mock: true,
-  provider: "mock",
-  model: "warmpath-mock-v1",
+  provider: "azure",
+  model: "gpt-4.1-nano",
 };
 
 // ─── Knowledge Base ────────────────────────────────────────────────────────

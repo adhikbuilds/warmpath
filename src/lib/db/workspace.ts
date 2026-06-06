@@ -20,14 +20,16 @@ export async function getWorkspaceContext(): Promise<WorkspaceContext> {
       if (member?.workspaceId) return { workspaceId: member.workspaceId, isDemo };
 
       const workspaceId = `ws-${session.user.id}`;
-      await prisma.$transaction([
-        prisma.workspace.create({
-          data: { id: workspaceId, name: "My Workspace", ownerId: session.user.id, plan: "free" },
-        }),
-        prisma.workspaceMember.create({
-          data: { workspaceId, userId: session.user.id, role: "owner", seatStatus: "active" },
-        }),
-      ]).catch(() => {});
+      await prisma
+        .$transaction([
+          prisma.workspace.create({
+            data: { id: workspaceId, name: "My Workspace", ownerId: session.user.id, plan: "free" },
+          }),
+          prisma.workspaceMember.create({
+            data: { workspaceId, userId: session.user.id, role: "owner", seatStatus: "active" },
+          }),
+        ])
+        .catch(() => {});
       return { workspaceId, isDemo };
     }
   } catch {}
@@ -47,16 +49,18 @@ export async function getWorkspaceId(): Promise<string> {
       // Authenticated but no workspace — auto-create one so data never leaks
       // to the "ws-1" fallback (which would mix this user with demo data).
       const workspaceId = `ws-${session.user.id}`;
-      await prisma.$transaction([
-        prisma.workspace.create({
-          data: { id: workspaceId, name: "My Workspace", ownerId: session.user.id, plan: "free" },
-        }),
-        prisma.workspaceMember.create({
-          data: { workspaceId, userId: session.user.id, role: "owner", seatStatus: "active" },
-        }),
-      ]).catch(() => {
-        // Race condition: another request may have created it concurrently — ignore.
-      });
+      await prisma
+        .$transaction([
+          prisma.workspace.create({
+            data: { id: workspaceId, name: "My Workspace", ownerId: session.user.id, plan: "free" },
+          }),
+          prisma.workspaceMember.create({
+            data: { workspaceId, userId: session.user.id, role: "owner", seatStatus: "active" },
+          }),
+        ])
+        .catch(() => {
+          // Race condition: another request may have created it concurrently — ignore.
+        });
       return workspaceId;
     }
   } catch {}

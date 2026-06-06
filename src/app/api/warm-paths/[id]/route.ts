@@ -21,7 +21,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const body = await req.json().catch(() => ({}));
   const existing = await prisma.warmPath.findFirst({ where: { id, workspaceId: ctx.workspaceId } });
   if (!existing) return notFound("Warm path");
-  const { pathJson, explanation, warmthScore, confidenceScore, recommendedIntroPerson, recommendedChannel, status } = body;
+  const {
+    pathJson,
+    explanation,
+    warmthScore,
+    confidenceScore,
+    recommendedIntroPerson,
+    recommendedChannel,
+    status,
+  } = body;
   const updated = await prisma.warmPath.update({
     where: { id },
     data: {

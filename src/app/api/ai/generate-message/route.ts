@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { callAzureOpenAI, isAzureConfigured } from "@/lib/ai/azure-generate";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/db/client";
 import { getWorkspaceId } from "@/lib/db/workspace";
@@ -54,7 +55,13 @@ export async function POST(req: NextRequest) {
       }),
     ]);
   } catch (err) {
-    logger.error("Prisma lookup failed", { route: ROUTE, workspaceId, accountId, contactId, error: err });
+    logger.error("Prisma lookup failed", {
+      route: ROUTE,
+      workspaceId,
+      accountId,
+      contactId,
+      error: err,
+    });
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
 
@@ -85,7 +92,12 @@ export async function POST(req: NextRequest) {
       ? prisma.warmPath.findFirst({ where: { id: warmPathId, workspaceId } })
       : Promise.resolve(null),
   ]).catch((err) => {
-    logger.warn("Signal/warmPath lookup failed (non-fatal)", { route: ROUTE, signalId, warmPathId, error: err });
+    logger.warn("Signal/warmPath lookup failed (non-fatal)", {
+      route: ROUTE,
+      signalId,
+      warmPathId,
+      error: err,
+    });
     return [null, null] as const;
   });
 
@@ -126,6 +138,40 @@ export async function POST(req: NextRequest) {
     })();
     intelBody.warm_path = pathNames;
     intelBody.intro_person = pathNames[1] ?? undefined;
+  }
+
+  // Azure-first: call Azure OpenAI directly when credentials are available.
+  // Falls back to the Python intelligence service if Azure is not configured.
+  if (isAzureConfigured()) {
+    logger.info("Calling Azure OpenAI directly", {
+      route: ROUTE,
+      channel,
+      kbItemCount: kbItems.length,
+      hasSignal: !!signal,
+      hasWarmPath: !!warmPath,
+    });
+
+    try {
+      const result = await callAzureOpenAI(
+        intelBody as unknown as Parameters<typeof callAzureOpenAI>[0],
+      );
+
+      logger.info("Generate message complete (Azure)", {
+        route: ROUTE,
+        durationMs: Date.now() - start,
+        model: result.model,
+        confidenceScore: result.confidence_score,
+      });
+
+      return NextResponse.json(result);
+    } catch (err) {
+      logger.error("Azure OpenAI call failed — falling back to intelligence service", {
+        route: ROUTE,
+        durationMs: Date.now() - start,
+        error: err,
+      });
+      // Fall through to Python service below
+    }
   }
 
   logger.info("Calling intelligence service", {
@@ -179,7 +225,7 @@ export async function POST(req: NextRequest) {
   const model = result.model ?? "unknown";
   const isMock = model === "mock";
 
-  logger.info("Generate message complete", {
+  logger.info("Generate message complete (intelligence service)", {
     route: ROUTE,
     durationMs: Date.now() - start,
     model,

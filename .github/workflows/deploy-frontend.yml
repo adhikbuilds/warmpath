@@ -84,6 +84,10 @@ jobs:
                 "NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}" \
                 "AUTH_TRUST_HOST=1" \
                 "NEXT_PUBLIC_AI_MODE=mock" \
+                "NEXT_PUBLIC_DEMO_MODE=true" \
+                "AZURE_OPENAI_ENDPOINT=${{ secrets.AZURE_OPENAI_ENDPOINT }}" \
+                "AZURE_OPENAI_API_KEY=${{ secrets.AZURE_OPENAI_API_KEY }}" \
+                "AZURE_OPENAI_DEPLOYMENT=gpt-4.1-nano" \
                 "INTELLIGENCE_SERVICE_URL=${{ secrets.INTELLIGENCE_SERVICE_URL }}" \
                 "INTELLIGENCE_SERVICE_SECRET=${{ secrets.INTELLIGENCE_SERVICE_SECRET }}" \
                 "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" \

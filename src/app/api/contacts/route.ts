@@ -13,7 +13,11 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
     const baseContacts =
-      prismaContacts.length > 0 ? prismaContacts : (isDemo ? [...DEMO_CONTACTS, ...DEMO_CONTACTS_EXTRA] : []);
+      prismaContacts.length > 0
+        ? prismaContacts
+        : isDemo
+          ? [...DEMO_CONTACTS, ...DEMO_CONTACTS_EXTRA]
+          : [];
 
     // Try Twenty CRM if configured
     if (process.env.TWENTY_API_KEY) {
