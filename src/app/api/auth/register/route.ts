@@ -20,39 +20,59 @@ export async function POST(req: NextRequest) {
 
   const hashed = await bcrypt.hash(password, 10);
   const userId = randomUUID();
-  const workspaceId = `ws-${userId}`;
+  const normalizedEmail = email.toLowerCase();
 
-  // Create the user, their workspace, and their owner membership atomically.
-  // Without the WorkspaceMember, getWorkspaceId() would fall back to "ws-1" and
-  // every request would read/write the wrong (shared) workspace.
-  const [prismaUser] = await prisma.$transaction([
-    prisma.user.create({
-      data: {
-        id: userId,
-        email,
-        name: name || null,
-        password: hashed,
-        role: "owner",
-      },
-    }),
-    prisma.workspace.create({
-      data: {
-        id: workspaceId,
-        name: companyName || (name ? `${name}'s workspace` : `${email}'s workspace`),
-        ownerId: userId,
-        plan: "free",
-        onboardingStage: "not_started",
-      },
-    }),
-    prisma.workspaceMember.create({
-      data: {
-        workspaceId,
-        userId,
-        role: "owner",
-        seatStatus: "active",
-      },
-    }),
-  ]);
+  // Check for a pending invite before creating a personal workspace
+  const pendingInvite = await prisma.workspaceInvitation.findFirst({
+    where: { email: normalizedEmail, status: "pending", expiresAt: { gt: new Date() } },
+    orderBy: { createdAt: "desc" },
+  });
+
+  let workspaceIdForIntel: string;
+  let prismaUser: { id: string; email: string; name: string | null };
+
+  if (pendingInvite) {
+    // Join the inviter's workspace instead of creating a personal one
+    workspaceIdForIntel = pendingInvite.workspaceId;
+    [prismaUser] = await prisma.$transaction([
+      prisma.user.create({
+        data: { id: userId, email, name: name || null, password: hashed, role: "sales_rep" },
+      }),
+      prisma.workspaceMember.create({
+        data: {
+          workspaceId: pendingInvite.workspaceId,
+          userId,
+          role: pendingInvite.role,
+          seatStatus: "active",
+        },
+      }),
+      prisma.workspaceInvitation.update({
+        where: { id: pendingInvite.id },
+        data: { status: "accepted", acceptedAt: new Date(), acceptedByUserId: userId },
+      }),
+    ]);
+  } else {
+    const workspaceId = `ws-${userId}`;
+    workspaceIdForIntel = workspaceId;
+    // Create the user, their workspace, and their owner membership atomically.
+    [prismaUser] = await prisma.$transaction([
+      prisma.user.create({
+        data: { id: userId, email, name: name || null, password: hashed, role: "owner" },
+      }),
+      prisma.workspace.create({
+        data: {
+          id: workspaceId,
+          name: companyName || (name ? `${name}'s workspace` : `${email}'s workspace`),
+          ownerId: userId,
+          plan: "free",
+          onboardingStage: "not_started",
+        },
+      }),
+      prisma.workspaceMember.create({
+        data: { workspaceId, userId, role: "owner", seatStatus: "active" },
+      }),
+    ]);
+  }
 
   await fetch(`${INTEL_URL}/auth/register`, {
     method: "POST",
@@ -63,7 +83,7 @@ export async function POST(req: NextRequest) {
       password,
       name: name || null,
       company_name: companyName || null,
-      workspace_id: workspaceId,
+      workspace_id: workspaceIdForIntel,
     }),
   }).catch(() => {});
 

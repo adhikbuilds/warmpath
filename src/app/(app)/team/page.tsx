@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Clock,
   Crown,
   Eye,
   GitFork,
@@ -8,6 +9,7 @@ import {
   Link2,
   Mail,
   Plus,
+  RefreshCw,
   Shield,
   UserCheck,
   Users,
@@ -66,11 +68,12 @@ const ROLE_SCORE: Record<WorkspaceMember["role"], number> = {
 };
 
 export default function TeamPage() {
-  const { workspaceMembers, workspace, relationshipEdges } = useSalesStore();
+  const { workspaceMembers, workspace, relationshipEdges, pendingInvitations } = useSalesStore();
   const [inviteEmail, setInviteEmail] = useState("");
   const [bulkEmails, setBulkEmails] = useState("");
   const [showBulkInvite, setShowBulkInvite] = useState(false);
   const [inviting, setInviting] = useState(false);
+  const [resendingId, setResendingId] = useState<string | null>(null);
 
   async function sendInvites(emails: string[]) {
     setInviting(true);
@@ -81,24 +84,42 @@ export default function TeamPage() {
         body: JSON.stringify({ emails }),
       });
       const data = await res.json();
-      if (data.fallback) {
-        // No email service — show the invite link
-        toast.info("Email not configured — share this link to invite teammates", {
-          description: data.inviteLink,
-          duration: 8000,
-        });
+      if (!res.ok) {
+        toast.error(data.error ?? "Failed to send invite");
       } else if (data.sent > 0) {
-        toast.success(
-          `${data.sent} invite${data.sent > 1 ? "s" : ""} sent`,
-          { description: "They'll receive an email with a link to join your workspace." },
-        );
+        toast.success(`${data.sent} invite${data.sent > 1 ? "s" : ""} sent`, {
+          description: "They'll receive an email with a link to join your workspace.",
+        });
+      } else if (data.skipped > 0) {
+        toast.info("All emails are already members or have pending invites");
       } else {
-        toast.error("Failed to send invites — check your email configuration");
+        toast.error("Failed to send invites — check email configuration");
       }
     } catch {
       toast.error("Could not reach the invite API");
     } finally {
       setInviting(false);
+    }
+  }
+
+  async function resendInvite(email: string, inviteId: string) {
+    setResendingId(inviteId);
+    try {
+      const res = await fetch("/api/team/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emails: [email] }),
+      });
+      const data = await res.json();
+      if (data.sent > 0) {
+        toast.success(`Invite resent to ${email}`);
+      } else {
+        toast.error(data.error ?? "Failed to resend invite");
+      }
+    } catch {
+      toast.error("Could not reach the invite API");
+    } finally {
+      setResendingId(null);
     }
   }
 
@@ -169,7 +190,7 @@ export default function TeamPage() {
         ))}
       </div>
 
-      {/* Permissions matrix (surfaced at top — admin feature everyone can see) */}
+      {/* Permissions matrix */}
       <Card className="border-border/60">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
@@ -361,6 +382,58 @@ export default function TeamPage() {
         </CardContent>
       </Card>
 
+      {/* Pending invitations */}
+      {pendingInvitations.length > 0 && (
+        <Card className="border-border/60">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Clock className="w-4 h-4 text-amber-500" />
+              Pending invitations
+              <Badge variant="outline" className="text-[10px] text-amber-500 border-amber-500/30">
+                {pendingInvitations.length}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {pendingInvitations.map((invite) => (
+              <div
+                key={invite.id}
+                className="flex items-center gap-3 p-3 rounded-lg border border-amber-500/20 bg-amber-500/5"
+              >
+                <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                  <Mail className="w-3.5 h-3.5 text-amber-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{invite.email}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {invite.role === "sales_rep" ? "Sales Rep" : invite.role} · Expires{" "}
+                    {formatRelativeTime(invite.expiresAt)}
+                  </p>
+                </div>
+                <Badge
+                  variant="outline"
+                  className="text-[10px] text-amber-500 border-amber-500/30 flex-shrink-0"
+                >
+                  Awaiting acceptance
+                </Badge>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs text-muted-foreground hover:text-foreground flex-shrink-0"
+                  disabled={resendingId === invite.id}
+                  onClick={() => resendInvite(invite.email, invite.id)}
+                >
+                  <RefreshCw
+                    className={`w-3 h-3 mr-1 ${resendingId === invite.id ? "animate-spin" : ""}`}
+                  />
+                  Resend
+                </Button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Invite */}
       <Card className="border-border/60">
         <CardHeader className="pb-3">
@@ -391,8 +464,8 @@ export default function TeamPage() {
                   className="pl-8 h-8 text-sm"
                 />
               </div>
-              <Button type="submit" size="sm" className="h-8">
-                Send invite
+              <Button type="submit" size="sm" className="h-8" disabled={inviting}>
+                {inviting ? "Sending…" : "Send invite"}
               </Button>
             </form>
           ) : (
@@ -410,9 +483,9 @@ export default function TeamPage() {
                 size="sm"
                 className="h-8"
                 onClick={handleBulkInvite}
-                disabled={!bulkEmails.trim()}
+                disabled={!bulkEmails.trim() || inviting}
               >
-                Send bulk invites
+                {inviting ? "Sending…" : "Send bulk invites"}
               </Button>
             </div>
           )}

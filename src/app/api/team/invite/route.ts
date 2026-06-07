@@ -1,111 +1,164 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import prisma from "@/lib/db/client";
+import { prisma } from "@/lib/db/client";
 import { getWorkspaceContext } from "@/lib/db/workspace";
 
-const APP_URL = process.env.NEXTAUTH_URL ?? "https://warmpath-frontend.ashysea-7d3de045.centralindia.azurecontainerapps.io";
+const APP_URL =
+  process.env.NEXTAUTH_URL ??
+  "https://warmpath-frontend.ashysea-7d3de045.centralindia.azurecontainerapps.io";
 
 export async function POST(req: NextRequest) {
   const session = await auth();
-  if (!session?.user?.id) {
+  if (!session?.user?.id || !session.user.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const body = await req.json().catch(() => ({}));
-  const emails: string[] = Array.isArray(body.emails)
+  const rawEmails: string[] = Array.isArray(body.emails)
     ? body.emails
     : body.email
       ? [body.email]
       : [];
 
-  if (!emails.length) {
+  if (!rawEmails.length) {
     return NextResponse.json({ error: "At least one email is required" }, { status: 400 });
   }
 
   const { workspaceId } = await getWorkspaceContext();
-  const workspace = workspaceId
-    ? await prisma.workspace.findUnique({ where: { id: workspaceId }, select: { name: true } })
-    : null;
-  const workspaceName = workspace?.name ?? "WarmPath";
-  const inviterName = session.user.name ?? session.user.email ?? "A teammate";
+  if (!workspaceId) {
+    return NextResponse.json({ error: "No workspace found" }, { status: 404 });
+  }
+
+  // Validate requester is an active workspace member
+  const requesterMember = await prisma.workspaceMember.findFirst({
+    where: { workspaceId, userId: session.user.id, seatStatus: "active" },
+  });
+  if (!requesterMember) {
+    return NextResponse.json({ error: "Not a workspace member" }, { status: 403 });
+  }
 
   const resendKey = process.env.RESEND_API_KEY;
-
   if (!resendKey) {
-    // No email service — return the invite link so the caller can share it manually
-    const inviteLink = `${APP_URL}/login`;
-    return NextResponse.json({
-      success: true,
-      fallback: true,
-      inviteLink,
-      message: `RESEND_API_KEY not set — share this link manually: ${inviteLink}`,
-      emails,
-    });
+    return NextResponse.json(
+      { success: false, error: "RESEND_API_KEY not configured — contact your admin" },
+      { status: 500 },
+    );
   }
+
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: workspaceId },
+    select: { name: true },
+  });
+  const workspaceName = workspace?.name ?? "WarmPath";
+  const inviterName = session.user.name ?? session.user.email;
+
+  // Get emails of current active members to skip duplicates
+  const existingMembers = await prisma.workspaceMember.findMany({
+    where: { workspaceId, seatStatus: "active" },
+    include: { user: { select: { email: true } } },
+  });
+  const memberEmails = new Set(
+    existingMembers.map((m) => m.user.email?.toLowerCase()).filter(Boolean),
+  );
+
+  // Get emails with an active pending invite already
+  const pendingInvites = await prisma.workspaceInvitation.findMany({
+    where: { workspaceId, status: "pending", expiresAt: { gt: new Date() } },
+    select: { email: true },
+  });
+  const pendingEmails = new Set(pendingInvites.map((i) => i.email));
 
   const { Resend } = await import("resend");
   const resend = new Resend(resendKey);
 
-  const results: Array<{ email: string; ok: boolean; error?: string }> = [];
+  const results: Array<{
+    email: string;
+    status: "sent" | "skipped" | "failed";
+    reason?: string;
+    inviteId?: string;
+  }> = [];
 
-  for (const email of emails.slice(0, 20)) {
-    const html = buildInviteEmail({ inviterName, workspaceName, appUrl: APP_URL });
-    const { error } = await resend.emails.send({
+  for (const rawEmail of rawEmails.slice(0, 20)) {
+    const email = rawEmail.trim().toLowerCase();
+    if (!email) continue;
+
+    if (memberEmails.has(email)) {
+      results.push({ email, status: "skipped", reason: "already_member" });
+      continue;
+    }
+    if (pendingEmails.has(email)) {
+      results.push({ email, status: "skipped", reason: "already_invited" });
+      continue;
+    }
+
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const invite = await prisma.workspaceInvitation.create({
+      data: { workspaceId, email, role: "sales_rep", invitedByUserId: session.user.id, expiresAt },
+    });
+
+    const acceptUrl = `${APP_URL}/invite/accept?token=${invite.token}`;
+    const { error: sendError } = await resend.emails.send({
       from: "WarmPath <noreply@warmpath.app>",
       to: email,
       subject: `${inviterName} invited you to join ${workspaceName} on WarmPath`,
-      html,
+      html: buildInviteEmail({ inviterName, workspaceName, acceptUrl }),
     });
-    results.push({ email, ok: !error, error: error?.message });
+
+    if (sendError) {
+      // Keep invitation record; caller can retry
+      results.push({ email, status: "failed", reason: sendError.message, inviteId: invite.id });
+    } else {
+      results.push({ email, status: "sent", inviteId: invite.id });
+    }
   }
 
-  const sent = results.filter((r) => r.ok).length;
-  const failed = results.filter((r) => !r.ok);
+  const sent = results.filter((r) => r.status === "sent").length;
+  const failed = results.filter((r) => r.status === "failed");
 
   return NextResponse.json({
     success: sent > 0,
     sent,
+    skipped: results.filter((r) => r.status === "skipped").length,
     failed: failed.length,
-    errors: failed.length > 0 ? failed : undefined,
+    emailFailed: failed.length > 0 ? failed : undefined,
+    invites: results,
   });
 }
 
 function buildInviteEmail({
   inviterName,
   workspaceName,
-  appUrl,
+  acceptUrl,
 }: {
   inviterName: string;
   workspaceName: string;
-  appUrl: string;
+  acceptUrl: string;
 }) {
   return `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
 <body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fafafa">
   <div style="max-width:520px;margin:40px auto;background:#fff;border-radius:12px;border:1px solid #e8e8ea;overflow:hidden">
-    <div style="background:#131315;padding:24px 32px;display:flex;align-items:center;gap:10px">
+    <div style="background:#131315;padding:24px 32px">
       <span style="font-size:18px;font-weight:800;color:#fff;letter-spacing:-0.5px">WarmPath</span>
     </div>
     <div style="padding:32px">
       <h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#111">You're invited</h1>
       <p style="margin:0 0 24px;font-size:15px;color:#555;line-height:1.6">
         <strong style="color:#111">${inviterName}</strong> has invited you to join
-        <strong style="color:#111">${workspaceName}</strong> on WarmPath — the AI outbound platform that routes
-        every prospect through your team's real relationship graph.
+        <strong style="color:#111">${workspaceName}</strong> on WarmPath — the AI outbound platform
+        that routes every prospect through your team's real relationship graph.
       </p>
-      <a href="${appUrl}/login" style="display:inline-block;background:#8083ff;color:#fff;padding:13px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;letter-spacing:-0.2px">
+      <a href="${acceptUrl}" style="display:inline-block;background:#8083ff;color:#fff;padding:13px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;letter-spacing:-0.2px">
         Accept invitation →
       </a>
       <p style="margin:24px 0 0;font-size:13px;color:#999;line-height:1.6">
-        Sign in with Google to get started. Once you connect your LinkedIn,
-        your network becomes part of the relationship graph — every contact your team
-        reaches out to gets routed through the warmest possible intro path.
+        This link expires in 7 days. Sign in with Google to get started.
       </p>
     </div>
     <div style="padding:16px 32px;border-top:1px solid #e8e8ea;text-align:center">
       <p style="margin:0;font-size:12px;color:#aaa">
-        WarmPath · AI-first B2B outbound · <a href="${appUrl}" style="color:#8083ff;text-decoration:none">warmpath.ai</a>
+        WarmPath · AI-first B2B outbound · <a href="${APP_URL}" style="color:#8083ff;text-decoration:none">warmpath.ai</a>
       </p>
     </div>
   </div>

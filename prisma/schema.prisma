@@ -17,17 +17,19 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts         Account[]         @relation("AuthAccounts")
-  sessions         Session[]
-  workspaceMembers WorkspaceMember[]
-  ownedWorkspaces  Workspace[]       @relation("WorkspaceOwner")
-  auditLogs        AuditLog[]
-  aiUsageLogs      AIUsageLog[]
-  approvals        Approval[]
-  campaigns        Campaign[]
-  tasks            Task[]
-  subscriptions    Subscription[]
-  preference       UserPreference?
+  accounts            Account[]              @relation("AuthAccounts")
+  sessions            Session[]
+  workspaceMembers    WorkspaceMember[]
+  ownedWorkspaces     Workspace[]            @relation("WorkspaceOwner")
+  auditLogs           AuditLog[]
+  aiUsageLogs         AIUsageLog[]
+  approvals           Approval[]
+  campaigns           Campaign[]
+  tasks               Task[]
+  subscriptions       Subscription[]
+  preference          UserPreference?
+  sentInvitations     WorkspaceInvitation[]  @relation("SentInvitations")
+  acceptedInvitations WorkspaceInvitation[]  @relation("AcceptedInvitations")
 }
 
 model Account {
@@ -108,6 +110,7 @@ model Workspace {
   abTests                ABTest[]
   signalDismissals       SignalDismissal[]
   warmthScoreLogs        WarmthScoreLog[]
+  invitations            WorkspaceInvitation[]
 }
 
 model WorkspaceMember {
@@ -672,4 +675,23 @@ model SignalDismissal {
   dismissedAt DateTime @default(now())
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model WorkspaceInvitation {
+  id                String    @id @default(cuid())
+  workspaceId       String
+  email             String
+  role              String    @default("sales_rep")
+  status            String    @default("pending")
+  token             String    @unique @default(cuid())
+  invitedByUserId   String
+  expiresAt         DateTime
+  acceptedAt        DateTime?
+  acceptedByUserId  String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  workspace  Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  invitedBy  User      @relation("SentInvitations", fields: [invitedByUserId], references: [id])
+  acceptedBy User?     @relation("AcceptedInvitations", fields: [acceptedByUserId], references: [id])
 }

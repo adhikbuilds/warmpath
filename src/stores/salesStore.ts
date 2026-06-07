@@ -87,6 +87,14 @@ interface SalesState {
   // Workspace
   workspace: Workspace;
   workspaceMembers: WorkspaceMember[];
+  pendingInvitations: Array<{
+    id: string;
+    email: string;
+    role: string;
+    expiresAt: string;
+    createdAt: string;
+    invitedBy?: { name: string | null; email: string };
+  }>;
 
   // Knowledge Base
   kbItems: KnowledgeBaseItem[];
@@ -597,6 +605,7 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
   gtmMissions: [],
   workspace: DEFAULT_WORKSPACE,
   workspaceMembers: [],
+  pendingInvitations: [],
   kbItems: [],
   aiSettings: DEFAULT_AI_SETTINGS,
   aiUsageLogs: [],
@@ -742,6 +751,16 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
         workspace: workspaceData,
         workspaceMembers,
         teamMembers,
+        pendingInvitations: Array.isArray(rawWorkspace?.pendingInvitations)
+          ? (rawWorkspace.pendingInvitations as Record<string, unknown>[]).map((inv) => ({
+              id: inv.id as string,
+              email: inv.email as string,
+              role: (inv.role as string) ?? "sales_rep",
+              expiresAt: (inv.expiresAt as string) ?? "",
+              createdAt: (inv.createdAt as string) ?? "",
+              invitedBy: inv.invitedBy as { name: string | null; email: string } | undefined,
+            }))
+          : [],
         initialized: true,
         loading: false,
       });
