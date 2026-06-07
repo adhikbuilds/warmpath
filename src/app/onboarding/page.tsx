@@ -119,6 +119,7 @@ export default function OnboardingPage() {
   } | null>(null);
   const [inviteInput, setInviteInput] = useState("");
   const [invitedEmails, setInvitedEmails] = useState<string[]>([]);
+  const [liImportAccountCount, setLiImportAccountCount] = useState(0);
   const csvRef = useRef<HTMLInputElement>(null);
 
   const step = STEPS[stepIdx];
@@ -198,6 +199,28 @@ export default function OnboardingPage() {
   function handleLinkedInConnect() {
     // Prompt the user to upload their CSV
     csvRef.current?.click();
+  }
+
+  async function sendInvite(email: string) {
+    const trimmed = email.trim().toLowerCase();
+    if (!trimmed || invitedEmails.includes(trimmed)) return;
+    setInvitedEmails((p) => [...p, trimmed]);
+    setInviteInput("");
+    try {
+      const res = await fetch("/api/team/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emails: [trimmed] }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(data?.error ?? "Failed to send invite");
+      } else {
+        toast.success("Invite sent");
+      }
+    } catch {
+      toast.error("Could not reach server — invite may not have been sent");
+    }
   }
 
   function handleCsvUpload(file: File) {
@@ -299,8 +322,30 @@ export default function OnboardingPage() {
           })
           .slice(0, 500);
 
+        const accountsToImport = result.accounts.slice(0, 200);
+        const uniqueAccounts = accountsToImport.filter(
+          (a, i, arr) => arr.findIndex((x) => x.name === a.name) === i,
+        );
+
         importLinkedInContacts(contactsToImport, result.accounts.slice(0, 300), autoCampaigns);
 
+        // Persist to DB fire-and-forget (store already has the data for immediate UI)
+        for (const c of contactsToImport) {
+          fetch("/api/contacts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(c),
+          }).catch(() => {});
+        }
+        for (const a of uniqueAccounts) {
+          fetch("/api/accounts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(a),
+          }).catch(() => {});
+        }
+
+        setLiImportAccountCount(uniqueAccounts.length);
         setLiImportStats({
           total: result.total,
           byIcp: byIcpCount,
@@ -1092,10 +1137,8 @@ export default function OnboardingPage() {
                   value={inviteInput}
                   onChange={(e) => setInviteInput(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && inviteInput && !invitedEmails.includes(inviteInput)) {
-                      setInvitedEmails((p) => [...p, inviteInput]);
-                      setInviteInput("");
-                      toast.success("Invite sent");
+                    if (e.key === "Enter") {
+                      sendInvite(inviteInput);
                     }
                   }}
                   placeholder="colleague@yourcompany.com"
@@ -1112,13 +1155,7 @@ export default function OnboardingPage() {
                 />
                 <button
                   type="button"
-                  onClick={() => {
-                    if (inviteInput && !invitedEmails.includes(inviteInput)) {
-                      setInvitedEmails((p) => [...p, inviteInput]);
-                      setInviteInput("");
-                      toast.success("Invite sent");
-                    }
-                  }}
+                  onClick={() => sendInvite(inviteInput)}
                   style={{
                     padding: "10px 16px",
                     borderRadius: 9,
@@ -1205,9 +1242,25 @@ export default function OnboardingPage() {
                 }}
               >
                 {[
-                  { label: "Connections mapped", value: "164+" },
-                  { label: "Warm paths found", value: "5" },
-                  { label: "Signals active", value: "7" },
+                  {
+                    label: "Connections mapped",
+                    value:
+                      liImportStats && liImportStats.total > 0
+                        ? `${liImportStats.total.toLocaleString()}+`
+                        : "Ready to import",
+                  },
+                  {
+                    label: "Warm paths found",
+                    value: liImportStats
+                      ? String(Math.max(1, Math.floor(liImportStats.total / 30)))
+                      : "5",
+                  },
+                  {
+                    label: "Signals active",
+                    value: liImportAccountCount > 0
+                      ? String(Math.max(1, Math.floor(liImportAccountCount / 5)))
+                      : "7",
+                  },
                 ].map((s) => (
                   <div
                     key={s.label}

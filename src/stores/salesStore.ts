@@ -641,6 +641,7 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
         workspaceRes,
         edgesRes,
         tasksRes,
+        campaignAssetsRes,
       ] = await Promise.allSettled([
         fetch("/api/accounts").then((r) => (r.ok ? r.json() : [])),
         fetch("/api/contacts").then((r) => (r.ok ? r.json() : [])),
@@ -655,6 +656,7 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
         fetch("/api/workspaces/current").then((r) => (r.ok ? r.json() : null)),
         fetch("/api/relationship-edges").then((r) => (r.ok ? r.json() : [])),
         fetch("/api/tasks").then((r) => (r.ok ? r.json() : [])),
+        fetch("/api/campaign-assets").then((r) => (r.ok ? r.json() : [])),
       ]);
 
       const val = <T>(r: PromiseSettledResult<T>, fallback: T): T =>
@@ -673,6 +675,7 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
       const rawWorkspace = val(workspaceRes, null) as Record<string, unknown> | null;
       const rawEdges = val(edgesRes, []) as Record<string, unknown>[];
       const rawTasks = val(tasksRes, []) as Record<string, unknown>[];
+      const rawCampaignAssets = val(campaignAssetsRes, []) as Record<string, unknown>[];
 
       const workspaceMembers: WorkspaceMember[] = rawWorkspace?.members
         ? (rawWorkspace.members as Record<string, unknown>[]).map((m) => ({
@@ -741,7 +744,7 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
         warmPaths: mappedWarmPaths,
         campaigns: rawCampaigns.map(mapCampaign),
         messages: mappedMessages,
-        campaignAssets: [],
+        campaignAssets: rawCampaignAssets.map(mapCampaignAsset),
         kbItems: rawKB.map(mapKBItem),
         integrations: rawIntegrations.map(mapIntegration),
         auditLogs: rawAudit.map(mapAuditLog),

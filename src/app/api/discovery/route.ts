@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 
 const MOCK_LEAD_TEMPLATES = [
   {
@@ -73,6 +74,11 @@ function seededRandom(seed: number): () => number {
 }
 
 export async function POST(req: NextRequest) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const body = await req.json().catch(() => ({}));
   const query: string = body.query ?? "B2B SaaS";
   const requestedLimit: number = Math.min(body.limit ?? 10, 20);
