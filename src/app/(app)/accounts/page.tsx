@@ -39,6 +39,39 @@ import { scoreBgColor } from "@/lib/utils";
 import { useSalesStore } from "@/stores/salesStore";
 import type { Account } from "@/types";
 
+function CompanyLogo({ name, domain, size = 36 }: { name: string; domain?: string; size?: number }) {
+  const [failed, setFailed] = useState(false);
+  const cleanDomain = domain?.replace(/^https?:\/\//, "").replace(/\/.*$/, "").trim();
+  const showLogo = !failed && cleanDomain && cleanDomain.includes(".");
+
+  if (showLogo) {
+    return (
+      <div
+        style={{ width: size, height: size }}
+        className="rounded-lg border border-border/40 bg-white overflow-hidden flex items-center justify-center flex-shrink-0 hover:opacity-80 transition-opacity"
+      >
+        <img
+          src={`https://logo.clearbit.com/${cleanDomain}`}
+          alt={name}
+          width={size}
+          height={size}
+          className="object-contain"
+          onError={() => setFailed(true)}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      style={{ width: size, height: size }}
+      className="rounded-lg bg-brand/10 flex items-center justify-center flex-shrink-0 text-sm font-bold text-brand hover:bg-brand/20 transition-colors"
+    >
+      {name[0]?.toUpperCase()}
+    </div>
+  );
+}
+
 const STAGE_COLORS: Record<string, string> = {
   prospect: "bg-muted text-muted-foreground",
   engaged: "bg-[#5db8a6]/10 text-[#4edea3] border-[#5db8a6]/20",
@@ -337,9 +370,7 @@ export default function AccountsPage() {
               <CardContent className="p-3.5">
                 <div className="flex items-start gap-3">
                   <Link href={`/accounts/${account.id}`}>
-                    <div className="w-9 h-9 rounded-lg bg-brand/10 flex items-center justify-center flex-shrink-0 text-sm font-bold text-brand hover:bg-brand/20 transition-colors">
-                      {account.name[0]}
-                    </div>
+                    <CompanyLogo name={account.name} domain={account.domain} size={36} />
                   </Link>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">

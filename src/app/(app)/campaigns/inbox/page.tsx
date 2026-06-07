@@ -16,6 +16,7 @@ import {
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useAuthStore } from "@/stores/authStore";
 import { useSalesStore } from "@/stores/salesStore";
 
 const FILTERS = [
@@ -209,15 +210,34 @@ We just posted the role yesterday, so your timing is spot on! Let's schedule a c
   },
 ];
 
+const DEMO_EMAIL = "demo@warmpath.ai";
+
 export default function MasterInboxPage() {
+  const { user } = useAuthStore();
+  const isDemo = user?.email === DEMO_EMAIL;
+  const selfName = user?.name ?? "You";
+  const selfEmail = user?.email ?? "";
+
+  // Remap demo threads: replace hardcoded sender with real user's identity
+  const threads = isDemo
+    ? DEMO_THREADS.map((t) => ({
+        ...t,
+        thread: t.thread.map((msg) =>
+          msg.from === "Adhik Agarwal"
+            ? { ...msg, from: selfName, email: selfEmail }
+            : msg,
+        ),
+      }))
+    : [];
+
   const [activeFilter, setActiveFilter] = useState<FilterKey>("all");
   const [selectedThreadId, setSelectedThreadId] = useState<string>(DEMO_THREADS[0].id);
   const [search, setSearch] = useState("");
   const [replyText, setReplyText] = useState("");
 
-  const selectedThread = DEMO_THREADS.find((t) => t.id === selectedThreadId);
+  const selectedThread = threads.find((t) => t.id === selectedThreadId);
 
-  const visibleThreads = DEMO_THREADS.filter((t) => {
+  const visibleThreads = threads.filter((t) => {
     if (
       search &&
       !t.from.toLowerCase().includes(search.toLowerCase()) &&
@@ -229,6 +249,22 @@ export default function MasterInboxPage() {
     if (activeFilter === "pending") return !t.isRead || t.tag === null;
     return true;
   });
+
+  if (!isDemo && threads.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-4 text-center p-8">
+        <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center">
+          <Inbox className="w-6 h-6 text-muted-foreground" />
+        </div>
+        <div>
+          <p className="font-semibold text-sm">No replies yet</p>
+          <p className="text-xs text-muted-foreground mt-1 max-w-xs">
+            Once your campaigns send emails and prospects reply, conversations will appear here.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full overflow-hidden">
@@ -429,7 +465,7 @@ export default function MasterInboxPage() {
             {/* Thread messages */}
             <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
               {selectedThread.thread.map((msg, i) => {
-                const isSelf = msg.from === "Adhik Agarwal";
+                const isSelf = msg.from === selfName;
                 return (
                   <div key={msg.id} className={`flex gap-3 ${isSelf ? "flex-row-reverse" : ""}`}>
                     <div
