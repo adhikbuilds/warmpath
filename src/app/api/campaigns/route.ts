@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/db/client";
 import { auth } from "@/lib/auth";
+import prisma from "@/lib/db/client";
 import { getWorkspaceContext, getWorkspaceId } from "@/lib/db/workspace";
 import { DEMO_CAMPAIGNS } from "@/lib/demo-data";
 
@@ -48,7 +48,7 @@ export async function GET() {
       })),
     );
   } catch {
-    return NextResponse.json(DEMO_CAMPAIGNS);
+    return NextResponse.json([]);
   }
 }
 

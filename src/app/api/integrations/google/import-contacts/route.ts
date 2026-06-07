@@ -45,12 +45,26 @@ export async function POST() {
     let skipped = 0;
 
     for (const person of connections) {
-      const name = person.names?.[0]?.displayName;
+      const rawName = person.names?.[0]?.displayName;
       const email = person.emailAddresses?.[0]?.value;
       const company = person.organizations?.[0]?.name;
       const title = person.organizations?.[0]?.title;
 
-      if (!name || !email) {
+      if (!email) {
+        skipped++;
+        continue;
+      }
+
+      // Google sometimes sets displayName = email for contacts with no name
+      const nameIsEmail = !rawName || rawName === email || rawName.includes("@");
+      const name = nameIsEmail
+        ? email
+            .split("@")[0]
+            .replace(/[._-]/g, " ")
+            .replace(/\b\w/g, (c) => c.toUpperCase())
+        : rawName;
+
+      if (!name) {
         skipped++;
         continue;
       }
