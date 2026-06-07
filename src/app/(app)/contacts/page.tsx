@@ -888,30 +888,34 @@ export default function ContactsPage() {
                       size="sm"
                       variant="ghost"
                       className="h-7 w-7 p-0 text-muted-foreground hover:text-brand"
-                      onClick={() => {
+                      onClick={async () => {
                         const warmPath = warmPaths.find(
                           (wp) => wp.account_id === contact.account_id,
                         );
-                        addMessageToQueue({
-                          account_id: contact.account_id ?? "",
-                          contact_id: contact.id,
-                          warm_path_id: warmPath?.id,
-                          channel: "email",
-                          subject: `Outreach to ${contact.name}`,
-                          body: `Hi ${contact.name.split(" ")[0]},\n\nI came across your profile and wanted to reach out — your work at ${accounts.find((a) => a.id === contact.account_id)?.name ?? "your company"} looks impressive.\n\nWould love to connect and share how we're helping similar teams.\n\nBest,\nAdhik`,
-                          status: "draft",
-                          approval_status: "pending",
-                          generated_by_ai: true,
-                          confidence_score: 0.8,
-                          personalization_reason: `Direct outreach to ${contact.title ?? "contact"} at ${accounts.find((a) => a.id === contact.account_id)?.name ?? "company"}`,
-                          factual_claims: [],
-                          supporting_sources: [],
-                          risk_flags: [],
-                        });
-                        toast.success(
-                          `Outreach drafted for ${contact.name} — review in Approval Queue`,
-                        );
-                        router.push("/approval-queue");
+                        try {
+                          await addMessageToQueue({
+                            account_id: contact.account_id ?? "",
+                            contact_id: contact.id,
+                            warm_path_id: warmPath?.id,
+                            channel: "email",
+                            subject: `Outreach to ${contact.name}`,
+                            body: `Hi ${contact.name.split(" ")[0]},\n\nI came across your profile and wanted to reach out — your work at ${accounts.find((a) => a.id === contact.account_id)?.name ?? "your company"} looks impressive.\n\nWould love to connect and share how we're helping similar teams.\n\nBest,\nAdhik`,
+                            status: "draft",
+                            approval_status: "pending",
+                            generated_by_ai: true,
+                            confidence_score: 0.8,
+                            personalization_reason: `Direct outreach to ${contact.title ?? "contact"} at ${accounts.find((a) => a.id === contact.account_id)?.name ?? "company"}`,
+                            factual_claims: [],
+                            supporting_sources: [],
+                            risk_flags: [],
+                          });
+                          toast.success(
+                            `Outreach drafted for ${contact.name} — review in Approval Queue`,
+                          );
+                          router.push("/approval-queue");
+                        } catch {
+                          toast.error("Failed to save message");
+                        }
                       }}
                     >
                       <Sparkles className="w-3.5 h-3.5" />

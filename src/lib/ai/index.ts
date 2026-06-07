@@ -33,6 +33,8 @@ export interface GenerateMessageInput {
   channel?: "email" | "linkedin" | "warm_intro" | "phone" | "whatsapp" | "telegram" | "meta_ads";
   tone?: string;
   introPersonName?: string;
+  repName?: string;
+  workspaceId?: string;
 }
 
 export interface GeneratedMessageResult {
@@ -136,6 +138,7 @@ function getKBFacts(kbItems: KnowledgeBaseItem[]): {
 function buildWarmIntroEmail(input: GenerateMessageInput): GeneratedMessageResult {
   const { account, contact, signal, warmPath, kbItems = [] } = input;
   const introName = warmPath?.recommended_intro_person ?? input.introPersonName ?? "Sarah";
+  const repName = input.repName ?? "Your rep";
   const kb = getKBFacts(kbItems);
 
   const signalHook = signal
@@ -155,14 +158,14 @@ Hope you're well! Quick ask I noticed you're connected to ${contact.name} (${con
 
 ${signalHook}
 
-We help GTM teams ${kb.valueProp}. I'd love a quick intro if you're comfortable even just "you should talk to Adhik" would be huge.
+We help GTM teams ${kb.valueProp}. I'd love a quick intro if you're comfortable even just "you should talk to ${repName}" would be huge.
 
 ${kb.caseStudy ? `For context: ${kb.caseStudy}.` : ""}
 
 Would really appreciate it!
-Adhik`;
+${repName}`;
 
-  const introRequest = `Hi ${introName} mind if I mention your name when reaching out to ${contact.name} at ${account.name}? ${signalHook.replace("I saw", "I saw")} Happy to make the ask super easy just a quick "you should chat with Adhik" is all I need.`;
+  const introRequest = `Hi ${introName} mind if I mention your name when reaching out to ${contact.name} at ${account.name}? ${signalHook.replace("I saw", "I saw")} Happy to make the ask super easy just a quick "you should chat with ${repName}" is all I need.`;
 
   return {
     subject,
@@ -186,6 +189,7 @@ Adhik`;
 
 function buildDirectEmail(input: GenerateMessageInput): GeneratedMessageResult {
   const { account, contact, signal, warmPath, kbItems = [] } = input;
+  const repName = input.repName ?? "Your rep";
   const kb = getKBFacts(kbItems);
   const cta = pickRandom(MOCK_CTAAS).replace("[account]", account.name);
 
@@ -224,7 +228,7 @@ ${kb.caseStudy ? `${kb.caseStudy}.` : ""}
 
 ${cta}
 
-Adhik`;
+${repName}`;
 
   return {
     subject,
@@ -250,6 +254,7 @@ function buildPhoneScript(input: GenerateMessageInput): GeneratedMessageResult {
   const kb = getKBFacts(kbItems);
   const introName = warmPath?.recommended_intro_person ?? input.introPersonName;
   const firstName = contact.name.split(" ")[0];
+  const repName = input.repName ?? "Your rep";
 
   const signalRef = signal
     ? signal.type === "job_posting"
@@ -260,7 +265,7 @@ function buildPhoneScript(input: GenerateMessageInput): GeneratedMessageResult {
     : `been following ${account.name}`;
 
   const body = `OPENER:
-"Hey ${firstName}, this is Adhik from WarmBlue. Quick reason for the call ${introName ? `${introName} mentioned you` : `I ${signalRef}`}'re close to ${account.name}'s outbound push. I had a short idea on warm-path selling instead of cold volume. Got 2 minutes?"
+"Hey ${firstName}, this is ${repName} from WarmBlue. Quick reason for the call ${introName ? `${introName} mentioned you` : `I ${signalRef}`}'re close to ${account.name}'s outbound push. I had a short idea on warm-path selling instead of cold volume. Got 2 minutes?"
 
 IF YES:
 "Great. So ${kb.caseStudy}. For ${account.name} specifically, I can already see warm paths into your target accounts. Would a 20-minute Zoom make sense this week?"
@@ -274,7 +279,7 @@ OBJECTION "We already use Apollo":
 "WarmBlue isn't replacing your sequence tool it's the warm-path layer on top. Apollo tells you who to target; WarmBlue tells you who already knows them."
 
 VOICEMAIL:
-"Hey ${firstName}, Adhik from WarmBlue. ${introName ? `${introName} mentioned` : `I ${signalRef} and`} thought you'd find this useful. We just mapped warm paths into your target accounts. I'll send a note feel free to grab time on my calendar."`;
+"Hey ${firstName}, ${repName} from WarmBlue. ${introName ? `${introName} mentioned` : `I ${signalRef} and`} thought you'd find this useful. We just mapped warm paths into your target accounts. I'll send a note feel free to grab time on my calendar."`;
 
   return {
     body,
@@ -302,7 +307,8 @@ function buildWhatsAppMessage(input: GenerateMessageInput): GeneratedMessageResu
         : `Noticed ${account.name} ${signal.title.split(" ").slice(0, 5).join(" ")}`
     : `I've been following ${account.name}`;
 
-  const body = `Hey ${firstName} Adhik here. ${introName ? `${introName} mentioned you.` : ""} ${hook} thought this might be useful. We mapped warm paths into your target accounts. Worth a quick look? (Reply STOP to opt out)`;
+  const repName = input.repName ?? "Your rep";
+  const body = `Hey ${firstName} ${repName} here. ${introName ? `${introName} mentioned you.` : ""} ${hook} thought this might be useful. We mapped warm paths into your target accounts. Worth a quick look? (Reply STOP to opt out)`;
 
   return {
     body,
@@ -876,7 +882,7 @@ RESPOND ONLY with valid JSON:
 
     // Log usage metadata (caller can persist to DB)
     this.logUsage({
-      workspace_id: input.account.id,
+      workspace_id: input.workspaceId ?? "unknown",
       user_id: "system",
       action_type: "generate_message",
       provider: "remote",

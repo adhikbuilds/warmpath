@@ -227,10 +227,10 @@ interface SalesState {
   addWarmPath: (wp: WarmPath) => void;
   updateWarmPathStatus: (id: string, status: WarmPath["status"]) => void;
 
-  // Actions Queue a newly composed message (client-side only)
+  // Actions Queue a newly composed message — persists to DB, returns real ID
   addMessageToQueue: (
     draft: Omit<GeneratedMessage, "id" | "contact" | "account" | "warm_path" | "signal">,
-  ) => string;
+  ) => Promise<string>;
 }
 
 // ─── Helper to map API shapes to frontend types ───────────────────────────────
@@ -1326,8 +1326,39 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
     }));
   },
 
-  addMessageToQueue: (draft) => {
-    const id = `msg-new-${Date.now()}`;
+  addMessageToQueue: async (draft) => {
+    // Persist to DB first — the approval queue reads from DB so the ID must be real.
+    const resp = await fetch("/api/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        account_id: draft.account_id,
+        contact_id: draft.contact_id,
+        warm_path_id: draft.warm_path_id,
+        signal_id: draft.signal_id,
+        channel: draft.channel,
+        subject: draft.subject,
+        body: draft.body,
+        intro_request: draft.intro_request,
+        status: "draft",
+        approval_status: "pending",
+        generated_by_ai: draft.generated_by_ai ?? true,
+        confidence_score: draft.confidence_score ?? 0,
+        personalization_reason: draft.personalization_reason,
+        factual_claims: draft.factual_claims ?? [],
+        supporting_sources: draft.supporting_sources ?? [],
+        risk_flags: draft.risk_flags ?? [],
+      }),
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error((err as { error?: string }).error ?? "Failed to save message");
+    }
+
+    const saved = (await resp.json()) as { id: string };
+    const id = saved.id;
+
     const state = get();
     const contact = state.contacts.find((c) => c.id === draft.contact_id);
     const account = state.accounts.find((a) => a.id === draft.account_id);

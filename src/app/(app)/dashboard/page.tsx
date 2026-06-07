@@ -529,33 +529,37 @@ export default function DashboardPage() {
                 <Button
                   size="sm"
                   className="gap-1.5 bg-[#8083ff] hover:bg-[#8083ff]/90 text-white"
-                  onClick={() => {
+                  onClick={async () => {
                     const contact = contacts.find(
                       (c) => c.account_id === topPlay.signal.account_id,
                     );
                     const warmPath = warmPaths.find(
                       (wp) => wp.account_id === topPlay.signal.account_id,
                     );
-                    addMessageToQueue({
-                      account_id: topPlay.signal.account_id,
-                      contact_id: contact?.id ?? "",
-                      warm_path_id: warmPath?.id,
-                      signal_id: topPlay.signal.id,
-                      channel: "warm_intro",
-                      subject: `Intro request — ${topPlay.account?.name}`,
-                      body: `Hi,\n\nI noticed ${topPlay.signal.title} and wanted to reach out about ${topPlay.account?.name}.\n\n${topPlay.signal.description}\n\nWould you be open to a quick intro?`,
-                      intro_request: `Would you mind connecting me with someone at ${topPlay.account?.name}? The timing looks great based on their recent activity.`,
-                      status: "draft",
-                      approval_status: "pending",
-                      generated_by_ai: true,
-                      confidence_score: 0.85,
-                      personalization_reason: topPlay.signal.description ?? topPlay.signal.title,
-                      factual_claims: [topPlay.signal.title],
-                      supporting_sources: ["WarmPath signal monitor"],
-                      risk_flags: [],
-                    });
-                    toast.success("1:1 intro request drafted — review it before sending");
-                    router.push("/approval-queue");
+                    try {
+                      await addMessageToQueue({
+                        account_id: topPlay.signal.account_id,
+                        contact_id: contact?.id ?? "",
+                        warm_path_id: warmPath?.id,
+                        signal_id: topPlay.signal.id,
+                        channel: "warm_intro",
+                        subject: `Intro request — ${topPlay.account?.name}`,
+                        body: `Hi,\n\nI noticed ${topPlay.signal.title} and wanted to reach out about ${topPlay.account?.name}.\n\n${topPlay.signal.description}\n\nWould you be open to a quick intro?`,
+                        intro_request: `Would you mind connecting me with someone at ${topPlay.account?.name}? The timing looks great based on their recent activity.`,
+                        status: "draft",
+                        approval_status: "pending",
+                        generated_by_ai: true,
+                        confidence_score: 0.85,
+                        personalization_reason: topPlay.signal.description ?? topPlay.signal.title,
+                        factual_claims: [topPlay.signal.title],
+                        supporting_sources: ["WarmPath signal monitor"],
+                        risk_flags: [],
+                      });
+                      toast.success("1:1 intro request drafted — review it before sending");
+                      router.push("/approval-queue");
+                    } catch {
+                      toast.error("Failed to save message");
+                    }
                   }}
                 >
                   <GitFork className="w-3.5 h-3.5" />

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import prisma from "@/lib/db/client";
+import { getWorkspaceId } from "@/lib/db/workspace";
 
 export async function GET() {
   const session = await auth();
@@ -7,13 +9,22 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const apiUrl = process.env.TWENTY_API_URL;
-  const apiKey = process.env.TWENTY_API_KEY;
-  const isDefault = !apiUrl || apiUrl === "http://localhost:3001/api";
-  const configured = !isDefault && !!apiKey;
+  const workspaceId = await getWorkspaceId();
+
+  const connection = await prisma.integrationConnection
+    .findUnique({
+      where: { workspaceId_provider: { workspaceId, provider: "twenty" } },
+    })
+    .catch(() => null);
+
+  if (!connection) {
+    return NextResponse.json({ configured: false });
+  }
 
   return NextResponse.json({
-    configured,
-    apiUrl: configured ? apiUrl : null,
+    configured: true,
+    status: connection.status,
+    connectedAt: connection.createdAt,
+    lastSyncAt: connection.lastSyncAt,
   });
 }
