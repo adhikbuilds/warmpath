@@ -12,12 +12,18 @@ export async function GET() {
         members: {
           include: { user: { select: { name: true, email: true, image: true } } },
         },
+        invitations: {
+          where: { status: "pending", expiresAt: { gt: new Date() } },
+          include: { invitedBy: { select: { name: true, email: true } } },
+          orderBy: { createdAt: "desc" },
+        },
       },
     });
     if (!workspace) {
       return NextResponse.json(DEMO_WORKSPACE);
     }
-    return NextResponse.json(workspace);
+    const { invitations, ...rest } = workspace;
+    return NextResponse.json({ ...rest, pendingInvitations: invitations });
   } catch {
     return NextResponse.json(DEMO_WORKSPACE);
   }
