@@ -1,15 +1,7 @@
 "use client";
 
-import {
-  Bell,
-  Building2,
-  Settings,
-  SlidersHorizontal,
-  Sparkles,
-  Target,
-  Users,
-} from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Building2, Settings, Sparkles, Target, Users } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,7 +18,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuthStore } from "@/stores/authStore";
-import { useSalesStore } from "@/stores/salesStore";
 
 const INDUSTRIES = [
   "SaaS",
@@ -96,51 +87,57 @@ export default function SettingsPage() {
     Object.fromEntries(SIGNAL_TYPES.map((s) => [s.id, s.enabled])),
   );
 
-  // Preferences state
-  const [prefs, setPrefs] = useState({
-    emailDigests: true,
-    slackNotifications: false,
-    autoApprovePaths: false,
-    signalAlerts: true,
-    aiPersonalization: true,
-    weeklyRoiReport: false,
-  });
-
-  const togglePref = (key: keyof typeof prefs) => {
-    setPrefs((prev) => {
-      const next = { ...prev, [key]: !prev[key] };
-      try {
-        localStorage.setItem("warmblue-preferences", JSON.stringify(next));
-      } catch {}
-      toast.success("Preference saved");
-      return next;
-    });
-  };
-
   // Workspace / company info state
-  const [workspaceName, setWorkspaceName] = useState("WarmBlue");
-  const [workspaceWebsite, setWorkspaceWebsite] = useState("warmblue.ai");
+  const [workspaceName, setWorkspaceName] = useState("WarmPath");
+  const [workspaceWebsite, setWorkspaceWebsite] = useState("warmpath.ai");
   const [workspaceDescription, setWorkspaceDescription] = useState(
     "AI sales agent that routes outreach through your team's relationship graph",
   );
   const [savingWorkspace, setSavingWorkspace] = useState(false);
 
+  // Briefing state
+  const [dailyEmailDigest, setDailyEmailDigest] = useState(false);
+  const [savingBriefing, setSavingBriefing] = useState(false);
+
+  // ICP save state
+  const [savingIcp, setSavingIcp] = useState(false);
+
   useEffect(() => {
+    // Load ICP + workspace data from API (DB-backed)
+    fetch("/api/workspaces/current")
+      .then((r) => r.json())
+      .then((ws) => {
+        if (ws.industry) setSelectedIndustries(ws.industry.split(",").map((s: string) => s.trim()).filter(Boolean));
+        if (ws.companySize) setSelectedSizes(ws.companySize.split(",").map((s: string) => s.trim()).filter(Boolean));
+        if (ws.region) setGeographies(ws.region);
+        if (ws.name) setWorkspaceName(ws.name);
+        if (ws.website) setWorkspaceWebsite(ws.website);
+        if (ws.description) setWorkspaceDescription(ws.description);
+      })
+      .catch(() => {
+        // Fall back to localStorage for workspace fields
+        try {
+          const saved = localStorage.getItem("warmpath-workspace");
+          if (saved) {
+            const d = JSON.parse(saved);
+            if (d.name) setWorkspaceName(d.name);
+            if (d.website) setWorkspaceWebsite(d.website);
+            if (d.description) setWorkspaceDescription(d.description);
+          }
+        } catch {}
+      });
+
+    // Load user preferences from API (DB-backed)
+    fetch("/api/user/preferences")
+      .then((r) => r.json())
+      .then((prefs) => {
+        if (typeof prefs.dailyEmailDigest === "boolean") setDailyEmailDigest(prefs.dailyEmailDigest);
+      })
+      .catch(() => {});
+
+    // Persona and signals remain localStorage-only
     try {
-      const saved = localStorage.getItem("warmblue-icp-settings");
-      if (saved) {
-        const d = JSON.parse(saved);
-        if (d.selectedIndustries) setSelectedIndustries(d.selectedIndustries);
-        if (d.selectedSizes) setSelectedSizes(d.selectedSizes);
-        if (d.selectedTech) setSelectedTech(d.selectedTech);
-        if (d.jobTitles) setJobTitles(d.jobTitles);
-        if (d.geographies) setGeographies(d.geographies);
-        if (d.minRevenue) setMinRevenue(d.minRevenue);
-        if (d.maxRevenue) setMaxRevenue(d.maxRevenue);
-      }
-    } catch {}
-    try {
-      const saved = localStorage.getItem("warmblue-persona-settings");
+      const saved = localStorage.getItem("warmpath-persona-settings");
       if (saved) {
         const d = JSON.parse(saved);
         if (d.tone) setPersonaTone(d.tone);
@@ -149,26 +146,22 @@ export default function SettingsPage() {
       }
     } catch {}
     try {
-      const saved = localStorage.getItem("warmblue-signal-settings");
+      const saved = localStorage.getItem("warmpath-signal-settings");
       if (saved) {
         const d = JSON.parse(saved);
         setEnabledSignals(d);
       }
     } catch {}
+
+    // localStorage fallback for ICP fields not covered by DB columns
     try {
-      const saved = localStorage.getItem("warmblue-workspace");
+      const saved = localStorage.getItem("warmpath-icp-settings");
       if (saved) {
         const d = JSON.parse(saved);
-        if (d.name) setWorkspaceName(d.name);
-        if (d.website) setWorkspaceWebsite(d.website);
-        if (d.description) setWorkspaceDescription(d.description);
-      }
-    } catch {}
-    try {
-      const saved = localStorage.getItem("warmblue-preferences");
-      if (saved) {
-        const d = JSON.parse(saved);
-        setPrefs((prev) => ({ ...prev, ...d }));
+        if (d.selectedTech) setSelectedTech(d.selectedTech);
+        if (d.jobTitles) setJobTitles(d.jobTitles);
+        if (d.minRevenue) setMinRevenue(d.minRevenue);
+        if (d.maxRevenue) setMaxRevenue(d.maxRevenue);
       }
     } catch {}
   }, []);
@@ -176,69 +169,41 @@ export default function SettingsPage() {
   const saveWorkspace = async () => {
     setSavingWorkspace(true);
     try {
-      localStorage.setItem(
-        "warmblue-workspace",
-        JSON.stringify({
+      const res = await fetch("/api/workspaces/current", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           name: workspaceName,
           website: workspaceWebsite,
           description: workspaceDescription,
         }),
-      );
-      await new Promise((r) => setTimeout(r, 400));
+      });
+      if (!res.ok) throw new Error("Failed");
       toast.success("Company info saved");
     } catch {
+      // Fallback to localStorage if API fails
+      try {
+        localStorage.setItem(
+          "warmpath-workspace",
+          JSON.stringify({ name: workspaceName, website: workspaceWebsite, description: workspaceDescription }),
+        );
+      } catch {}
       toast.error("Failed to save company info");
     } finally {
       setSavingWorkspace(false);
     }
   };
 
-  // Team state — seeded from real auth user + workspace members
-  const [teamMembers, setTeamMembers] = useState([
-    {
-      id: "1",
-      name: _user?.name ?? "Adhik Agarwal",
-      email: _user?.email ?? "adhik@warmblue.ai",
-      role: "Admin",
-      connections: 847,
-    },
-    { id: "2", name: "Sarah Chen", email: "sarah@warmblue.ai", role: "Member", connections: 1240 },
-    { id: "3", name: "Rohan Mehta", email: "rohan@warmblue.ai", role: "Member", connections: 634 },
+  // Team state
+  const [teamMembers] = useState([
+    { id: "1", name: "Adhik Agarwal", email: "adhik@warmpath.ai", role: "Admin", connections: 847 },
+    { id: "2", name: "Sarah Chen", email: "sarah@warmpath.ai", role: "Member", connections: 1240 },
+    { id: "3", name: "Rohan Mehta", email: "rohan@warmpath.ai", role: "Member", connections: 634 },
   ]);
 
   const toggleItem = (item: string, selected: string[], setSelected: (s: string[]) => void) => {
     setSelected(selected.includes(item) ? selected.filter((i) => i !== item) : [...selected, item]);
   };
-
-  // Live ICP match counter: count accounts from the store that match current ICP settings.
-  const { accounts } = useSalesStore();
-  const icpMatchCount = useMemo(() => {
-    const geoTokens = geographies
-      .split(",")
-      .map((g) => g.trim().toLowerCase())
-      .filter(Boolean);
-    return accounts.filter((a) => {
-      const matchIndustry =
-        selectedIndustries.length === 0 ||
-        selectedIndustries.some((ind) => a.industry?.toLowerCase().includes(ind.toLowerCase()));
-      // Size: employee_count vs selected bands
-      const matchSize =
-        selectedSizes.length === 0 ||
-        selectedSizes.some((band) => {
-          const [lo, hi] = band.split("-").map(Number);
-          const emp = a.employee_count ?? 0;
-          if (!hi) return emp >= lo;
-          return emp >= lo && emp <= hi;
-        });
-      const matchGeo =
-        geoTokens.length === 0 || geoTokens.some((g) => a.location?.toLowerCase().includes(g));
-      const rev = (a as { annual_revenue?: number }).annual_revenue ?? 0;
-      const matchRevenue =
-        (!minRevenue || rev === 0 || rev >= Number(minRevenue) * 1_000_000) &&
-        (!maxRevenue || rev === 0 || rev <= Number(maxRevenue) * 1_000_000);
-      return matchIndustry && matchSize && matchGeo && matchRevenue;
-    }).length;
-  }, [accounts, selectedIndustries, selectedSizes, geographies, minRevenue, maxRevenue, jobTitles]);
 
   return (
     <div className="p-6 space-y-5 max-w-[900px] mx-auto">
@@ -266,31 +231,10 @@ export default function SettingsPage() {
           <TabsTrigger value="team" className="text-xs h-7">
             Team
           </TabsTrigger>
-          <TabsTrigger value="preferences" className="text-xs h-7">
-            Preferences
-          </TabsTrigger>
         </TabsList>
 
         {/* ICP Builder */}
         <TabsContent value="icp" className="mt-4 space-y-4">
-          {/* Live match counter */}
-          <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-brand/30 bg-brand/5">
-            <Target className="w-4 h-4 text-brand flex-shrink-0" />
-            <div className="flex-1">
-              <span className="text-sm font-semibold">{icpMatchCount}</span>
-              <span className="text-sm text-muted-foreground">
-                {" "}
-                of {accounts.length} accounts in your CRM match this ICP
-              </span>
-            </div>
-            <Badge
-              variant="outline"
-              className="text-[10px] bg-brand/10 text-brand border-brand/25 tabular-nums"
-            >
-              {Math.round((icpMatchCount / Math.max(accounts.length, 1)) * 100)}% coverage
-            </Badge>
-          </div>
-
           <Card className="border-border/60">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2">
@@ -300,58 +244,40 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-5">
               <div>
-                <Label className="text-xs font-medium mb-2 block">
-                  Target industries
-                  {selectedIndustries.length > 0 && (
-                    <span className="ml-2 text-brand font-normal">
-                      {selectedIndustries.length} selected
-                    </span>
-                  )}
-                </Label>
+                <Label className="text-xs font-medium mb-2 block">Target industries</Label>
                 <div className="flex flex-wrap gap-1.5">
                   {INDUSTRIES.map((ind) => (
                     <button
                       type="button"
                       key={ind}
                       onClick={() => toggleItem(ind, selectedIndustries, setSelectedIndustries)}
-                      className={`text-xs px-2.5 py-1 rounded border transition-colors font-medium ${
+                      className={`text-xs px-2.5 py-1 rounded border transition-colors ${
                         selectedIndustries.includes(ind)
-                          ? "bg-brand text-white border-brand shadow-sm"
-                          : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
+                          ? "bg-brand/10 text-brand border-brand/30"
+                          : "border-border/60 text-muted-foreground hover:border-border"
                       }`}
                     >
                       {ind}
-                      {selectedIndustries.includes(ind) && (
-                        <span className="ml-1 opacity-70">✓</span>
-                      )}
                     </button>
                   ))}
                 </div>
               </div>
 
               <div>
-                <Label className="text-xs font-medium mb-2 block">
-                  Company size (employees)
-                  {selectedSizes.length > 0 && (
-                    <span className="ml-2 text-brand font-normal">
-                      {selectedSizes.length} selected
-                    </span>
-                  )}
-                </Label>
+                <Label className="text-xs font-medium mb-2 block">Company size (employees)</Label>
                 <div className="flex flex-wrap gap-1.5">
                   {COMPANY_SIZES.map((size) => (
                     <button
                       type="button"
                       key={size}
                       onClick={() => toggleItem(size, selectedSizes, setSelectedSizes)}
-                      className={`text-xs px-2.5 py-1 rounded border transition-colors font-medium ${
+                      className={`text-xs px-2.5 py-1 rounded border transition-colors ${
                         selectedSizes.includes(size)
-                          ? "bg-brand text-white border-brand shadow-sm"
-                          : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
+                          ? "bg-brand/10 text-brand border-brand/30"
+                          : "border-border/60 text-muted-foreground hover:border-border"
                       }`}
                     >
                       {size}
-                      {selectedSizes.includes(size) && <span className="ml-1 opacity-70">✓</span>}
                     </button>
                   ))}
                 </div>
@@ -408,7 +334,7 @@ export default function SettingsPage() {
                       onClick={() => toggleItem(tech, selectedTech, setSelectedTech)}
                       className={`text-xs px-2.5 py-1 rounded border transition-colors ${
                         selectedTech.includes(tech)
-                          ? "bg-brand text-white border-brand shadow-sm"
+                          ? "bg-brand/10 text-brand border-brand/30"
                           : "border-border/60 text-muted-foreground hover:border-border"
                       }`}
                     >
@@ -420,23 +346,34 @@ export default function SettingsPage() {
 
               <Button
                 size="sm"
-                onClick={() => {
-                  localStorage.setItem(
-                    "warmblue-icp-settings",
-                    JSON.stringify({
-                      selectedIndustries,
-                      selectedSizes,
-                      selectedTech,
-                      jobTitles,
-                      geographies,
-                      minRevenue,
-                      maxRevenue,
-                    }),
-                  );
-                  toast.success("ICP saved — agent will re-score all accounts");
+                disabled={savingIcp}
+                onClick={async () => {
+                  setSavingIcp(true);
+                  try {
+                    // Save DB-backed fields to workspace
+                    await fetch("/api/workspaces/current", {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        industry: selectedIndustries.join(", "),
+                        companySize: selectedSizes.join(", "),
+                        region: geographies,
+                      }),
+                    });
+                    // Save remaining ICP fields to localStorage (no DB column yet)
+                    localStorage.setItem(
+                      "warmpath-icp-settings",
+                      JSON.stringify({ selectedTech, jobTitles, minRevenue, maxRevenue }),
+                    );
+                    toast.success("ICP saved — agent will re-score all accounts");
+                  } catch {
+                    toast.error("Failed to save ICP");
+                  } finally {
+                    setSavingIcp(false);
+                  }
                 }}
               >
-                Save ICP
+                {savingIcp ? "Saving..." : "Save ICP"}
               </Button>
             </CardContent>
           </Card>
@@ -509,7 +446,7 @@ export default function SettingsPage() {
                 size="sm"
                 onClick={() => {
                   localStorage.setItem(
-                    "warmblue-persona-settings",
+                    "warmpath-persona-settings",
                     JSON.stringify({
                       tone: personaTone,
                       style: personaStyle,
@@ -527,6 +464,53 @@ export default function SettingsPage() {
 
         {/* Signals */}
         <TabsContent value="signals" className="mt-4 space-y-4">
+          <Card className="border-border/60">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm">Notifications</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between p-2.5 rounded-lg border border-border/50">
+                <div>
+                  <p className="text-sm font-medium">Daily email briefing</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Receive a morning digest of top signals and warm path opportunities.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={savingBriefing}
+                  onClick={async () => {
+                    const next = !dailyEmailDigest;
+                    setSavingBriefing(true);
+                    try {
+                      const res = await fetch("/api/user/preferences", {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ dailyEmailDigest: next }),
+                      });
+                      if (!res.ok) throw new Error("Failed");
+                      setDailyEmailDigest(next);
+                      toast.success(next ? "Daily briefing enabled" : "Daily briefing disabled");
+                    } catch {
+                      toast.error("Failed to update briefing preference");
+                    } finally {
+                      setSavingBriefing(false);
+                    }
+                  }}
+                  className={`relative w-9 h-5 rounded-full transition-colors ${
+                    dailyEmailDigest ? "bg-primary" : "bg-muted"
+                  } ${savingBriefing ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  <div
+                    className={`absolute top-0.5 w-4 h-4 rounded-full bg-[#e5e1e4] shadow transition-transform ${
+                      dailyEmailDigest ? "left-4" : "left-0.5"
+                    }`}
+                  />
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="border-border/60">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm">Signal detection settings</CardTitle>
@@ -548,7 +532,7 @@ export default function SettingsPage() {
                     }`}
                   >
                     <div
-                      className={`absolute top-0.5 w-4 h-4 rounded-full bg-foreground shadow transition-transform ${
+                      className={`absolute top-0.5 w-4 h-4 rounded-full bg-[#e5e1e4] shadow transition-transform ${
                         enabledSignals[signal.id] ? "left-4" : "left-0.5"
                       }`}
                     />
@@ -559,7 +543,7 @@ export default function SettingsPage() {
                 size="sm"
                 className="mt-2"
                 onClick={() => {
-                  localStorage.setItem("warmblue-signal-settings", JSON.stringify(enabledSignals));
+                  localStorage.setItem("warmpath-signal-settings", JSON.stringify(enabledSignals));
                   toast.success("Signal preferences saved");
                 }}
               >
@@ -602,11 +586,8 @@ export default function SettingsPage() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="h-7 text-xs text-red-400 hover:text-red-500 hover:bg-red-500/10"
-                      onClick={() => {
-                        setTeamMembers((prev) => prev.filter((m) => m.id !== member.id));
-                        toast.success(`${member.name} removed from team`);
-                      }}
+                      className="h-7 text-xs text-muted-foreground"
+                      onClick={() => toast.info("Remove team member?")}
                     >
                       Remove
                     </Button>
@@ -671,101 +652,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </TabsContent>
-        {/* Preferences */}
-        <TabsContent value="preferences" className="mt-4 space-y-4">
-          <Card className="border-border/60">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Bell className="w-4 h-4 text-brand" />
-                Notifications
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-1">
-              <PreferenceRow
-                title="Email digests"
-                description="Receive daily email digest of warm paths and signals"
-                checked={prefs.emailDigests}
-                onToggle={() => togglePref("emailDigests")}
-              />
-              <PreferenceRow
-                title="Slack notifications"
-                description="Send approval requests to Slack"
-                checked={prefs.slackNotifications}
-                onToggle={() => togglePref("slackNotifications")}
-              />
-              <PreferenceRow
-                title="Signal alerts"
-                description="Get notified when a tracked contact changes jobs or gets funded"
-                checked={prefs.signalAlerts}
-                onToggle={() => togglePref("signalAlerts")}
-              />
-              <PreferenceRow
-                title="Weekly ROI report"
-                description="Receive weekly network ROI summary"
-                checked={prefs.weeklyRoiReport}
-                onToggle={() => togglePref("weeklyRoiReport")}
-              />
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/60">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4 text-brand" />
-                Automation &amp; AI
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-1">
-              <PreferenceRow
-                title="Auto-approve low-risk paths"
-                description="Automatically approve intros with warmth score > 85"
-                checked={prefs.autoApprovePaths}
-                onToggle={() => togglePref("autoApprovePaths")}
-              />
-              <PreferenceRow
-                title="AI personalization"
-                description="Allow AI to personalize outreach using public profile data"
-                checked={prefs.aiPersonalization}
-                onToggle={() => togglePref("aiPersonalization")}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
-    </div>
-  );
-}
-
-interface PreferenceRowProps {
-  title: string;
-  description: string;
-  checked: boolean;
-  onToggle: () => void;
-}
-
-function PreferenceRow({ title, description, checked, onToggle }: PreferenceRowProps) {
-  return (
-    <div className="flex items-center justify-between gap-4 px-1 py-3 border-b border-border/40 last:border-0">
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium leading-snug">{title}</p>
-        <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{description}</p>
-      </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        onClick={onToggle}
-        className={`relative flex-shrink-0 w-9 h-5 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${
-          checked ? "bg-brand" : "bg-muted"
-        }`}
-      >
-        <span
-          className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${
-            checked ? "translate-x-4" : "translate-x-0.5"
-          }`}
-        />
-        <span className="sr-only">{checked ? "On" : "Off"}</span>
-      </button>
     </div>
   );
 }

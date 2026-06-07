@@ -1,8 +1,14 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { searchNetwork } from "@/lib/happenstance/client";
 
 export async function POST(req: NextRequest) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const body = await req.json().catch(() => ({}));
   const { query = "VP Sales FinTech AI SaaS", limit = 10 } = body;
   try {

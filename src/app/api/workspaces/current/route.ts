@@ -1,77 +1,68 @@
-import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { getAuthContext } from "@/lib/db/auth-helpers";
-import { prisma } from "@/lib/db/client";
+import prisma from "@/lib/db/client";
+import { getWorkspaceId } from "@/lib/db/workspace";
+import { DEMO_WORKSPACE } from "@/lib/demo-data-extended";
 
 export async function GET() {
   try {
-    const ctx = await getAuthContext();
-    if (!ctx) return NextResponse.json({}, { status: 401 });
-
-    let workspace = await prisma.workspace.findFirst({
-      where: { members: { some: { userId: ctx.userId } } },
+    const workspaceId = await getWorkspaceId();
+    const workspace = await prisma.workspace.findUnique({
+      where: { id: workspaceId },
       include: {
         members: {
           include: { user: { select: { name: true, email: true, image: true } } },
         },
       },
     });
-
     if (!workspace) {
-      workspace = await prisma.workspace.create({
-        data: {
-          name: "My Workspace",
-          ownerId: ctx.userId,
-          onboardingStage: "not_started",
-          members: { create: { userId: ctx.userId, role: "owner" } },
-        },
-        include: {
-          members: {
-            include: { user: { select: { name: true, email: true, image: true } } },
-          },
-        },
-      });
+      return NextResponse.json(DEMO_WORKSPACE);
     }
-
-    const pendingInvitations = await prisma.workspaceInvitation.findMany({
-      where: { workspaceId: workspace.id, status: "pending", expiresAt: { gt: new Date() } },
-      include: { invitedBy: { select: { name: true, email: true } } },
-      orderBy: { createdAt: "desc" },
-    });
-
-    return NextResponse.json({ ...workspace, pendingInvitations });
-  } catch (err) {
-    console.error("[workspaces/current]", err);
-    return NextResponse.json({}, { status: 500 });
+    return NextResponse.json(workspace);
+  } catch {
+    return NextResponse.json(DEMO_WORKSPACE);
   }
 }
 
-export async function PATCH(req: NextRequest) {
+export async function PATCH(request: Request) {
   try {
-    const ctx = await getAuthContext();
-    if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const workspaceId = await getWorkspaceId();
+    const body = await request.json();
 
-    const body = await req.json().catch(() => ({}));
-    const { name, onboardingStage } = body as { name?: string; onboardingStage?: string };
+    const allowedFields: (keyof {
+      name: string;
+      domain: string;
+      industry: string;
+      companySize: string;
+      website: string;
+      description: string;
+      region: string;
+      sellingMotion: string;
+      primaryGoal: string;
+    })[] = [
+      "name",
+      "domain",
+      "industry",
+      "companySize",
+      "website",
+      "description",
+      "region",
+      "sellingMotion",
+      "primaryGoal",
+    ];
 
-    const member = await prisma.workspaceMember.findFirst({
-      where: { userId: ctx.userId },
-      select: { workspaceId: true },
+    const data: Record<string, string> = {};
+    for (const field of allowedFields) {
+      if (field in body && typeof body[field] === "string") {
+        data[field] = body[field];
+      }
+    }
+
+    const workspace = await prisma.workspace.update({
+      where: { id: workspaceId },
+      data,
     });
-
-    if (!member) return NextResponse.json({ error: "No workspace" }, { status: 404 });
-
-    const updated = await prisma.workspace.update({
-      where: { id: member.workspaceId },
-      data: {
-        ...(name?.trim() ? { name: name.trim() } : {}),
-        ...(onboardingStage ? { onboardingStage } : {}),
-      },
-    });
-
-    return NextResponse.json(updated);
-  } catch (err) {
-    console.error("[workspaces/current PATCH]", err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return NextResponse.json(workspace);
+  } catch {
+    return NextResponse.json({ error: "Failed to update workspace" }, { status: 500 });
   }
 }

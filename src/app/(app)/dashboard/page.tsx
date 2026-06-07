@@ -5,7 +5,6 @@ import {
   AlertTriangle,
   ArrowRight,
   Bell,
-  BookOpen,
   CheckCircle,
   ChevronRight,
   Flame,
@@ -51,11 +50,7 @@ function warmthLabel(score: number) {
 }
 
 function warmthLabelColor(score: number) {
-  return score >= 70
-    ? "text-emerald-500"
-    : score >= 50
-      ? "text-[#4edea3]"
-      : "text-muted-foreground";
+  return score >= 70 ? "text-emerald-500" : score >= 50 ? "text-[#4edea3]" : "text-[#c7c4d7]";
 }
 
 // ─── Re-engage Sheet ──────────────────────────────────────────────────────────
@@ -112,7 +107,7 @@ ${userName}`;
             <Link2Off className="w-4 h-4 text-[#4edea3]" />
             Re-engage {contactName}
           </SheetTitle>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-[#c7c4d7]">
             Last interaction{" "}
             {Math.round((Date.now() - new Date(edge.last_interaction_at).getTime()) / 86_400_000)}d
             ago · warmth score {computeEdgeWarmth(edge)}
@@ -121,19 +116,19 @@ ${userName}`;
 
         <div className="px-6 space-y-4 pb-6">
           {/* Draft message */}
-          <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-2">
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+          <div className="rounded-xl border border-[#464554] bg-muted/30 p-4 space-y-2">
+            <p className="text-[10px] font-semibold text-[#c7c4d7] uppercase tracking-wider">
               Pre-drafted check-in
             </p>
-            <p className="text-xs font-semibold text-foreground">Subject: {messageSubject}</p>
-            <div className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
+            <p className="text-xs font-semibold text-[#e5e1e4]">Subject: {messageSubject}</p>
+            <div className="text-xs text-[#c7c4d7] leading-relaxed whitespace-pre-wrap">
               {messageBody}
             </div>
           </div>
 
           {/* Note */}
-          <p className="text-[11px] text-muted-foreground italic border-l-2 border-[#4edea3]/40 pl-3">
-            This message doesn't mention WarmBlue or sales. Keep it authentic.
+          <p className="text-[11px] text-[#c7c4d7] italic border-l-2 border-[#4edea3]/40 pl-3">
+            This message doesn't mention WarmPath or sales. Keep it authentic.
           </p>
 
           {/* Actions */}
@@ -232,26 +227,24 @@ ${userFirstName}`;
             <Trophy className="w-4 h-4 text-violet-500" />
             Reach out to {contactName}
           </SheetTitle>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-[#c7c4d7]">
             {oldCo} → {newCo} · {newTitle}
           </p>
         </SheetHeader>
 
         <div className="px-6 space-y-4 pb-6">
           {/* Draft message */}
-          <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-2">
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+          <div className="rounded-xl border border-[#464554] bg-muted/30 p-4 space-y-2">
+            <p className="text-[10px] font-semibold text-[#c7c4d7] uppercase tracking-wider">
               Pre-drafted message
             </p>
-            <p className="text-xs font-semibold text-foreground">Subject: {subject}</p>
-            <div className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
-              {body}
-            </div>
+            <p className="text-xs font-semibold text-[#e5e1e4]">Subject: {subject}</p>
+            <div className="text-xs text-[#c7c4d7] leading-relaxed whitespace-pre-wrap">{body}</div>
           </div>
 
           {/* Note */}
-          <p className="text-[11px] text-muted-foreground italic border-l-2 border-violet-500/40 pl-3">
-            This message references your existing relationship, not WarmBlue. Keep it authentic.
+          <p className="text-[11px] text-[#c7c4d7] italic border-l-2 border-violet-500/40 pl-3">
+            This message references your existing relationship, not WarmPath. Keep it authentic.
           </p>
 
           {/* Actions */}
@@ -297,6 +290,7 @@ export default function DashboardPage() {
     contacts,
     signals,
     campaignAssets,
+    teamMembers,
     relationshipEdges,
     followUpTasks,
     completeFollowUpTask,
@@ -310,7 +304,6 @@ export default function DashboardPage() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [champSheetSignal, setChampSheetSignal] = useState<(typeof signals)[0] | null>(null);
   const [champSheetOpen, setChampSheetOpen] = useState(false);
-  const [briefingOpen, setBriefingOpen] = useState(false);
 
   // ── Derived counts ────────────────────────────────────────────────────────
   const pendingMessages = messages.filter((m) => m.approval_status === "pending");
@@ -325,8 +318,6 @@ export default function DashboardPage() {
     d.setDate(d.getDate() - (6 - i));
     return d;
   });
-  // Fallback demo counts since demo messages use historical dates far from today
-  const DEMO_DAY_COUNTS = [2, 1, 4, 3, 5, 0, 0];
   const dayMessages = (day: Date): number => {
     return messages.filter((m) => {
       const msgDate = m.sent_at ?? m.scheduled_at;
@@ -339,10 +330,7 @@ export default function DashboardPage() {
       );
     }).length;
   };
-  const dayCounts = weekDays.map((d, i) => {
-    const real = dayMessages(d);
-    return real > 0 ? real : (DEMO_DAY_COUNTS[i] ?? 0);
-  });
+  const dayCounts = weekDays.map((d) => dayMessages(d));
   const maxDayCount = Math.max(1, ...dayCounts);
 
   // ── Today's warm plays ────────────────────────────────────────────────────
@@ -419,14 +407,17 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-[1280px] mx-auto bg-background text-foreground">
+    <div
+      className="p-6 space-y-6 max-w-[1280px] mx-auto"
+      style={{ backgroundColor: "#131315", color: "#e5e1e4" }}
+    >
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
             {greeting}, {user?.name?.split(" ")[0] ?? "there"}
           </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <p className="text-sm text-[#c7c4d7] mt-0.5">
             {plays.length > 0
               ? `${plays.length} warm ${plays.length === 1 ? "intro opportunity" : "intro opportunities"} ready`
               : "No urgent plays right now"}
@@ -463,17 +454,8 @@ export default function DashboardPage() {
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => setBriefingOpen(true)}
-            className="gap-1.5 text-muted-foreground hover:text-foreground"
-          >
-            <BookOpen className="w-3.5 h-3.5" />
-            Briefing
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
             onClick={() => setTourOpen(true)}
-            className="gap-1.5 text-muted-foreground hover:text-foreground"
+            className="gap-1.5 text-[#c7c4d7] hover:text-[#e5e1e4]"
           >
             <HelpCircle className="w-3.5 h-3.5" />
             Tour
@@ -500,7 +482,7 @@ export default function DashboardPage() {
           </Link>
           <button
             type="button"
-            className="p-1 rounded text-[#4edea3] hover:text-foreground hover:bg-[#8083ff]/10 transition-colors flex-shrink-0"
+            className="p-1 rounded text-[#4edea3] hover:text-[#e5e1e4] hover:bg-[#8083ff]/10 transition-colors flex-shrink-0"
             onClick={() => setBannerDismissed(true)}
           >
             <X className="w-3.5 h-3.5" />
@@ -510,7 +492,7 @@ export default function DashboardPage() {
 
       {/* ── Hero action card (featured play) ─────────────────────────────── */}
       {topPlay && !dismissed.has(topPlay.signal.id) && (
-        <div className="relative rounded-2xl border border-border border-l-4 border-l-brand bg-gradient-to-r from-brand/8 to-transparent p-5">
+        <div className="relative rounded-2xl border border-[#464554] border-l-4 border-l-brand bg-gradient-to-r from-brand/8 to-transparent p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
@@ -522,15 +504,15 @@ export default function DashboardPage() {
               <h2 className="text-xl font-bold mb-1">
                 {topPlay.contact?.name ?? topPlay.account?.name ?? "Unknown"}
                 {topPlay.contact && topPlay.account && (
-                  <span className="text-muted-foreground font-normal text-base">
+                  <span className="text-[#c7c4d7] font-normal text-base">
                     {" "}
                     · {topPlay.contact.title} at {topPlay.account.name}
                   </span>
                 )}
               </h2>
               {topPlay.via && (
-                <p className="text-sm text-muted-foreground mb-1">
-                  via <span className="font-semibold text-foreground">{topPlay.via}</span>
+                <p className="text-sm text-[#c7c4d7] mb-1">
+                  via <span className="font-semibold text-[#e5e1e4]">{topPlay.via}</span>
                   {" · "}
                   <Badge
                     variant="outline"
@@ -540,7 +522,7 @@ export default function DashboardPage() {
                   </Badge>
                 </p>
               )}
-              <p className="text-sm text-muted-foreground italic mb-4 leading-relaxed line-clamp-2">
+              <p className="text-sm text-[#c7c4d7] italic mb-4 leading-relaxed line-clamp-2">
                 {topPlay.signal.description ?? topPlay.signal.title}
               </p>
               <div className="flex items-center gap-2 flex-wrap">
@@ -569,7 +551,7 @@ export default function DashboardPage() {
                       confidence_score: 0.85,
                       personalization_reason: topPlay.signal.description ?? topPlay.signal.title,
                       factual_claims: [topPlay.signal.title],
-                      supporting_sources: ["WarmBlue signal monitor"],
+                      supporting_sources: ["WarmPath signal monitor"],
                       risk_flags: [],
                     });
                     toast.success("1:1 intro request drafted — review it before sending");
@@ -583,7 +565,7 @@ export default function DashboardPage() {
                   <Link href={`/accounts/${topPlay.signal.account_id}`}>View account</Link>
                 </Button>
                 {plays.length > 1 && (
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-[#c7c4d7]">
                     +{plays.length - 1} more plays below
                   </span>
                 )}
@@ -591,7 +573,7 @@ export default function DashboardPage() {
             </div>
             <button
               type="button"
-              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors flex-shrink-0"
+              className="p-1.5 rounded-lg text-[#c7c4d7] hover:text-[#e5e1e4] hover:bg-muted/50 transition-colors flex-shrink-0"
               onClick={() => setDismissed((prev) => new Set([...prev, topPlay.signal.id]))}
             >
               <X className="w-4 h-4" />
@@ -603,7 +585,7 @@ export default function DashboardPage() {
       {/* ── Today's tasks strip ───────────────────────────────────────────── */}
       {todayTasks.length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <p className="text-xs font-semibold text-[#c7c4d7] uppercase tracking-wider mb-2 flex items-center gap-1.5">
             <ListChecks className="w-3.5 h-3.5" />
             Due today
           </p>
@@ -611,7 +593,7 @@ export default function DashboardPage() {
             {todayTasks.map((task) => (
               <div
                 key={task.id}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-lg border border-border bg-card/50 flex-shrink-0 min-w-[200px] max-w-[260px]"
+                className="flex items-center gap-2.5 px-3 py-2 rounded-lg border border-[#464554] bg-[#201f22]/50 flex-shrink-0 min-w-[200px] max-w-[260px]"
               >
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium truncate">{task.title}</p>
@@ -632,70 +614,38 @@ export default function DashboardPage() {
       )}
 
       {/* ── 7-day activity bar chart ──────────────────────────────────────── */}
-      {(() => {
-        const total = dayCounts.reduce((a, b) => a + b, 0);
-        const avg = total / 7;
-        const teamBenchmark = 4; // team avg drafts/day
-        return (
-          <div>
-            <div className="flex items-baseline justify-between mb-2">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                <Activity className="w-3.5 h-3.5" />
-                Personalized drafts this week
-              </p>
-              <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-                <span>{total} this week</span>
-                <span>Avg {avg.toFixed(1)}/day</span>
-                <span className="flex items-center gap-1">
-                  <span className="w-3 h-px border-t border-dashed border-emerald-500/60" />
-                  Team benchmark {teamBenchmark}/day
-                </span>
-              </div>
-            </div>
-            <div className="relative flex items-end gap-1 h-20 pl-8 pr-1">
-              {/* Y-axis ticks */}
-              <div className="absolute left-0 top-0 bottom-5 w-7 flex flex-col justify-between text-[9px] text-muted-foreground/50 tabular-nums pr-1 text-right">
-                <span>{maxDayCount}</span>
-                <span>{Math.round(maxDayCount / 2)}</span>
-                <span>0</span>
-              </div>
-              {/* Benchmark line */}
-              <div
-                className="absolute left-8 right-1 border-t border-dashed border-emerald-500/40 pointer-events-none"
-                style={{ bottom: `${20 + (teamBenchmark / maxDayCount) * 60}px` }}
-              />
-              {weekDays.map((day, i) => {
-                const count = dayCounts[i];
-                const heightPct = count > 0 ? Math.max(8, (count / maxDayCount) * 100) : 3;
-                const isToday = i === 6;
-                const label = day.toLocaleDateString("en-US", { weekday: "short" });
-                return (
+      <div>
+        <p className="text-xs font-semibold text-[#c7c4d7] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <Activity className="w-3.5 h-3.5" />
+          Personalized drafts this week
+        </p>
+        <div className="flex items-end gap-1 h-14">
+          {weekDays.map((day, i) => {
+            const count = dayCounts[i];
+            const heightPct = count > 0 ? Math.max(15, (count / maxDayCount) * 100) : 4;
+            const isToday = i === 6;
+            const label = day.toLocaleDateString("en-US", { weekday: "short" });
+            return (
+              <div key={day.toDateString()} className="flex flex-col items-center gap-1 flex-1">
+                <div className="w-full flex items-end justify-center" style={{ height: 40 }}>
                   <div
-                    key={day.toDateString()}
-                    className="flex flex-col items-center gap-1 flex-1 relative"
-                  >
-                    <div className="w-full flex items-end justify-center" style={{ height: 60 }}>
-                      <div
-                        className={`w-full rounded-sm transition-all ${isToday ? "bg-[#8083ff]" : "bg-[#8083ff]/30"}`}
-                        style={{ height: `${heightPct}%` }}
-                        title={`${label}: ${count} drafts`}
-                      />
-                    </div>
-                    <span
-                      className={`text-[9px] ${isToday ? "text-[#4edea3] font-semibold" : "text-muted-foreground/60"}`}
-                    >
-                      {label}
-                    </span>
-                    {count > 0 && (
-                      <span className="text-[9px] text-muted-foreground tabular-nums">{count}</span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })()}
+                    className={`w-full rounded-sm transition-all ${isToday ? "bg-[#8083ff]" : "bg-[#8083ff]/30"}`}
+                    style={{ height: `${heightPct}%` }}
+                  />
+                </div>
+                <span
+                  className={`text-[9px] ${isToday ? "text-[#4edea3] font-semibold" : "text-[#c7c4d7]/60"}`}
+                >
+                  {label}
+                </span>
+                {count > 0 && (
+                  <span className="text-[9px] text-[#c7c4d7] tabular-nums">{count}</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
       <div className="grid lg:grid-cols-[1fr_320px] gap-6">
         {/* ── Left column ──────────────────────────────────────────────────── */}
@@ -704,13 +654,13 @@ export default function DashboardPage() {
           {plays.length > 1 && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                <p className="text-xs font-semibold text-[#c7c4d7] uppercase tracking-wider flex items-center gap-1.5">
                   <Zap className="w-3.5 h-3.5" />
                   More warm plays
                 </p>
                 <Link
                   href="/warm-leads"
-                  className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-0.5"
+                  className="text-[11px] text-[#c7c4d7] hover:text-[#e5e1e4] flex items-center gap-0.5"
                 >
                   All accounts <ChevronRight className="w-3 h-3" />
                 </Link>
@@ -719,7 +669,7 @@ export default function DashboardPage() {
                 {plays.slice(1).map(({ signal, account, contact, via, urgency }) => (
                   <div
                     key={signal.id}
-                    className={`flex-shrink-0 w-56 snap-start rounded-xl border border-l-2 p-3 bg-card ${URGENCY_RING[urgency]}`}
+                    className={`flex-shrink-0 w-56 snap-start rounded-xl border border-l-2 p-3 bg-[#201f22] ${URGENCY_RING[urgency]}`}
                   >
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="text-xs font-semibold truncate">{account?.name}</span>
@@ -731,18 +681,14 @@ export default function DashboardPage() {
                       </Badge>
                     </div>
                     {contact && (
-                      <p className="text-[11px] text-muted-foreground truncate mb-1">
-                        {contact.name}
-                      </p>
+                      <p className="text-[11px] text-[#c7c4d7] truncate mb-1">{contact.name}</p>
                     )}
                     {via ? (
                       <p className="text-[11px] text-[#4edea3] font-medium truncate mb-2">
                         via {via}
                       </p>
                     ) : (
-                      <p className="text-[11px] text-muted-foreground truncate mb-2">
-                        No warm path
-                      </p>
+                      <p className="text-[11px] text-[#c7c4d7] truncate mb-2">No warm path</p>
                     )}
                     <Button
                       size="sm"
@@ -757,7 +703,7 @@ export default function DashboardPage() {
               {dismissed.size > 0 && (
                 <button
                   type="button"
-                  className="text-[11px] text-muted-foreground hover:text-foreground w-full text-center py-1"
+                  className="text-[11px] text-[#c7c4d7] hover:text-[#e5e1e4] w-full text-center py-1"
                   onClick={() => setDismissed(new Set())}
                 >
                   Restore {dismissed.size} dismissed
@@ -767,24 +713,21 @@ export default function DashboardPage() {
           )}
 
           {plays.length === 0 && (
-            <div className="rounded-xl border border-border bg-card/50 p-8 text-center">
-              <Zap className="w-6 h-6 text-muted-foreground/40 mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">No high-urgency signals right now.</p>
-              <p className="text-xs text-muted-foreground/70 mt-1">
+            <div className="rounded-xl border border-[#464554] bg-[#201f22]/50 p-8 text-center">
+              <Zap className="w-6 h-6 text-[#c7c4d7]/40 mx-auto mb-2" />
+              <p className="text-sm text-[#c7c4d7]">No high-urgency signals right now.</p>
+              <p className="text-xs text-[#c7c4d7]/70 mt-1">
                 Your agent is monitoring 50+ sources.
               </p>
             </div>
           )}
 
-          {/* Signals (champion job-change) */}
+          {/* Champion moves */}
           {championSignals.length > 0 && (
             <Card className="border-violet-500/20 bg-violet-500/[0.02]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-xs font-semibold flex items-center gap-1.5">
-                    <Trophy className="w-3.5 h-3.5 text-violet-500" />
-                    Signals · Champion job changes
-                  </p>
+                  <p className="text-xs font-semibold flex items-center gap-1.5">Champion moves</p>
                   <Badge
                     variant="outline"
                     className="text-[10px] bg-violet-500/10 text-violet-500 border-violet-500/20"
@@ -792,9 +735,9 @@ export default function DashboardPage() {
                     {championSignals.length}
                   </Badge>
                 </div>
-                <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
-                  Champions in your network changed jobs. Reach out now — your relationship gives
-                  you a warm-path advantage at their new company.
+                <p className="text-[11px] text-[#c7c4d7] mb-3 leading-relaxed">
+                  Your champions changed jobs. Reach out now your relationship gives you a warm path
+                  advantage at their new company.
                 </p>
                 <div className="space-y-2.5 mb-3">
                   {championSignals.map((signal) => {
@@ -815,16 +758,13 @@ export default function DashboardPage() {
                           {initials}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-foreground truncate">
+                          <p className="font-medium text-[#e5e1e4] truncate">
                             {contactName}
                             {newCo && (
-                              <span className="font-normal text-muted-foreground"> → {newCo}</span>
+                              <span className="font-normal text-[#c7c4d7]"> → {newCo}</span>
                             )}
                             {newTitle && (
-                              <span className="font-normal text-muted-foreground">
-                                {" "}
-                                as {newTitle}
-                              </span>
+                              <span className="font-normal text-[#c7c4d7]"> as {newTitle}</span>
                             )}
                           </p>
                           <span className="text-[10px] text-violet-500">
@@ -857,11 +797,11 @@ export default function DashboardPage() {
         {/* ── Right column ─────────────────────────────────────────────────── */}
         <div className="space-y-4">
           {/* Pending approvals */}
-          <Card className="border-border">
+          <Card className="border-[#464554]">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs font-semibold flex items-center gap-1.5">
-                  <Bell className="w-3.5 h-3.5 text-muted-foreground" />
+                  <Bell className="w-3.5 h-3.5 text-[#c7c4d7]" />
                   Pending review
                 </p>
                 {totalPending > 0 && (
@@ -897,7 +837,7 @@ export default function DashboardPage() {
                             <p className="text-xs font-medium truncate">
                               {msg.subject ?? `${msg.channel.replace("_", " ")} message`}
                             </p>
-                            <p className="text-[10px] text-muted-foreground truncate">
+                            <p className="text-[10px] text-[#c7c4d7] truncate">
                               {msg.contact?.name ?? "Contact"} · {msg.account?.name ?? "Account"}
                             </p>
                           </div>
@@ -912,9 +852,7 @@ export default function DashboardPage() {
                       );
                     })}
                     {totalPending > 2 && (
-                      <p className="text-[11px] text-muted-foreground pl-1">
-                        +{totalPending - 2} more
-                      </p>
+                      <p className="text-[11px] text-[#c7c4d7] pl-1">+{totalPending - 2} more</p>
                     )}
                   </div>
                   <Button size="sm" className="w-full h-8 text-xs" asChild>
@@ -926,76 +864,56 @@ export default function DashboardPage() {
               )}
             </CardContent>
           </Card>
-        </div>
-      </div>
 
-      {/* ── Horizontal cards (moved out of right rail) ───────────────────── */}
-      {/* Warm paths · horizontal */}
-      <Card className="border-border">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-semibold flex items-center gap-1.5">
-              <GitFork className="w-3.5 h-3.5 text-muted-foreground" />
-              Warm paths
-            </p>
-            <Link
-              href="/relationship-graph"
-              className="text-[11px] text-muted-foreground hover:text-foreground"
-            >
-              View graph
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {warmPaths.slice(0, 4).map((wp) => {
-              const acc = accounts.find((a) => a.id === wp.account_id);
-              const label = warmthLabel(wp.warmth_score);
-              const labelColor = warmthLabelColor(wp.warmth_score);
-              return (
+          {/* Warm paths quick view */}
+          <Card className="border-[#464554]">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold flex items-center gap-1.5">
+                  <GitFork className="w-3.5 h-3.5 text-[#c7c4d7]" />
+                  Warm paths
+                </p>
                 <Link
-                  key={wp.id}
-                  href={`/accounts/${wp.account_id}`}
-                  className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-border bg-card/40 hover:bg-card transition-colors"
+                  href="/relationship-graph"
+                  className="text-[11px] text-[#c7c4d7] hover:text-[#e5e1e4]"
                 >
-                  <div className="w-7 h-7 rounded-md bg-[#8083ff]/10 flex items-center justify-center text-[11px] font-bold text-[#4edea3] flex-shrink-0">
-                    {acc?.name?.[0] ?? "?"}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium truncate">{acc?.name}</p>
-                    <p className="text-[10px] text-muted-foreground truncate">
-                      via {wp.recommended_intro_person ?? "—"}
-                    </p>
-                  </div>
-                  <div className={`text-[10px] font-semibold ${labelColor} flex-shrink-0`}>
-                    {label}
-                  </div>
+                  View graph
                 </Link>
-              );
-            })}
-          </div>
-          <Button size="sm" variant="outline" className="h-8 text-xs mt-3" asChild>
-            <Link href="/warm-leads">Find more warm paths</Link>
-          </Button>
-        </CardContent>
-      </Card>
+              </div>
+              <div className="space-y-2.5">
+                {warmPaths.slice(0, 4).map((wp) => {
+                  const acc = accounts.find((a) => a.id === wp.account_id);
+                  const label = warmthLabel(wp.warmth_score);
+                  const labelColor = warmthLabelColor(wp.warmth_score);
+                  return (
+                    <div key={wp.id} className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-md bg-[#8083ff]/10 flex items-center justify-center text-[10px] font-bold text-[#4edea3] flex-shrink-0">
+                        {acc?.name?.[0] ?? "?"}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium truncate">{acc?.name}</p>
+                        <p className="text-[10px] text-[#c7c4d7] truncate">
+                          via {wp.recommended_intro_person ?? "your network"}
+                        </p>
+                      </div>
+                      <div className={`text-[10px] font-semibold ${labelColor}`}>{label}</div>
+                    </div>
+                  );
+                })}
+              </div>
+              <Button size="sm" variant="outline" className="w-full h-8 text-xs mt-3" asChild>
+                <Link href="/warm-leads">Find more warm paths</Link>
+              </Button>
+            </CardContent>
+          </Card>
 
-      {/* Network health · horizontal */}
-      <Card className="border-border">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-semibold flex items-center gap-1.5">
-              <Network className="w-3.5 h-3.5 text-muted-foreground" />
-              Network health
-            </p>
-            <Link
-              href="/relationship-graph?view=coverage"
-              className="text-[11px] text-muted-foreground hover:text-foreground"
-            >
-              View full network
-            </Link>
-          </div>
-          <div className="grid md:grid-cols-[1fr_2fr] gap-5 items-start">
-            {/* Left: composition */}
-            <div>
+          {/* Network health */}
+          <Card className="border-[#464554]">
+            <CardContent className="p-4">
+              <p className="text-xs font-semibold mb-3 flex items-center gap-1.5">
+                <Network className="w-3.5 h-3.5 text-[#c7c4d7]" />
+                Network health
+              </p>
               <div className="flex h-2.5 rounded-full overflow-hidden mb-2">
                 <div
                   className="bg-emerald-500 h-full"
@@ -1007,7 +925,7 @@ export default function DashboardPage() {
                 />
                 <div className="bg-muted h-full flex-1" />
               </div>
-              <div className="flex flex-wrap items-center gap-3 text-[11px]">
+              <div className="flex items-center gap-3 text-[11px] mb-3">
                 <span className="flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-emerald-500" />
                   {warmEdges} warm
@@ -1021,42 +939,73 @@ export default function DashboardPage() {
                   {coldEdges} cold
                 </span>
               </div>
-            </div>
-            {/* Right: decaying connections inline */}
-            {decayingConnections.length > 0 && (
-              <div className="grid sm:grid-cols-2 gap-2 border-l border-border/40 pl-5">
-                {decayingConnections.slice(0, 4).map(({ edge }) => {
-                  const isFrom = edge.from_type === "team_member" || edge.from_type === "user";
-                  const name = isFrom ? edge.to_name : edge.from_name;
-                  const days = Math.round(
-                    (Date.now() - new Date(edge.last_interaction_at).getTime()) / 86400000,
-                  );
-                  return (
-                    <div
-                      key={edge.id}
-                      className="flex items-center gap-2 text-xs px-2 py-1.5 rounded-md bg-card/40 border border-border"
-                    >
-                      <Link2Off className="w-3 h-3 text-[#4edea3] flex-shrink-0" />
-                      <span className="flex-1 truncate font-medium">{name}</span>
-                      <span className="text-[10px] text-[#4edea3] tabular-nums flex-shrink-0">
-                        {days}d
-                      </span>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-6 text-[10px] px-2 border-[#8083ff]/30 text-[#4edea3] hover:bg-[#8083ff]/10 flex-shrink-0"
-                        onClick={() => openReEngage(edge)}
-                      >
-                        Re-engage
-                      </Button>
+              {decayingConnections.length > 0 && (
+                <div className="space-y-2 border-t border-border/40 pt-3">
+                  {decayingConnections.slice(0, 2).map(({ edge }) => {
+                    const isFrom = edge.from_type === "team_member" || edge.from_type === "user";
+                    const name = isFrom ? edge.to_name : edge.from_name;
+                    const days = Math.round(
+                      (Date.now() - new Date(edge.last_interaction_at).getTime()) / 86400000,
+                    );
+                    return (
+                      <div key={edge.id} className="flex items-center gap-2 text-xs">
+                        <Link2Off className="w-3 h-3 text-[#4edea3] flex-shrink-0" />
+                        <span className="flex-1 truncate font-medium">{name}</span>
+                        <span className="text-[10px] text-[#4edea3]">{days}d ago</span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-6 text-[10px] border-[#8083ff]/30 text-[#4edea3] hover:bg-[#8083ff]/10 flex-shrink-0"
+                          onClick={() => openReEngage(edge)}
+                        >
+                          Re-engage
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              <Button size="sm" variant="outline" className="w-full h-8 text-xs mt-3" asChild>
+                <Link href="/relationship-graph?view=coverage">View full network</Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Team */}
+          {teamMembers.length > 0 && (
+            <Card className="border-[#464554]">
+              <CardContent className="p-4">
+                <p className="text-xs font-semibold mb-3 flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5 text-[#c7c4d7]" />
+                  Your network ({teamMembers.length} members)
+                </p>
+                <div className="space-y-2">
+                  {teamMembers.slice(0, 4).map((tm) => (
+                    <div key={tm.id} className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-[#c7c4d7] flex-shrink-0">
+                        {tm.name[0]}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium truncate">{tm.name}</p>
+                        <p className="text-[10px] text-[#c7c4d7] truncate">{tm.title}</p>
+                      </div>
+                      <div className="w-12 h-1.5 rounded-full bg-muted overflow-hidden flex-shrink-0">
+                        <div
+                          className="h-full bg-[#8083ff] rounded-full"
+                          style={{ width: `${tm.relationship_score}%` }}
+                        />
+                      </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+                  ))}
+                </div>
+                <Button size="sm" variant="outline" className="w-full h-8 text-xs mt-3" asChild>
+                  <Link href="/relationship-graph">Explore relationship graph</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
 
       {/* ── Re-engage Sheet ───────────────────────────────────────────────── */}
       <ReEngageSheet
@@ -1073,133 +1022,6 @@ export default function DashboardPage() {
         onOpenChange={setChampSheetOpen}
         userName={user?.name ?? "You"}
       />
-
-      {/* ── Daily Briefing Sheet ─────────────────────────────────────────── */}
-      <Sheet open={briefingOpen} onOpenChange={setBriefingOpen}>
-        <SheetContent className="w-[420px] sm:w-[420px] overflow-y-auto">
-          <SheetHeader className="pb-4 border-b">
-            <SheetTitle className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4" style={{ color: "#8083ff" }} />
-              Daily Briefing
-            </SheetTitle>
-            <p className="text-xs text-muted-foreground">
-              {greeting}, {user?.name?.split(" ")[0]}. Here's your warm path summary for today.
-            </p>
-          </SheetHeader>
-
-          <div className="py-5 flex flex-col gap-5">
-            {/* Top warm plays */}
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                Top warm plays
-              </p>
-              {plays.slice(0, 3).length === 0 ? (
-                <p className="text-sm text-muted-foreground italic">No urgent plays today.</p>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  {plays.slice(0, 3).map((p) => (
-                    <div
-                      key={p.signal.id}
-                      className="flex items-center gap-3 rounded-lg border p-3"
-                      style={{ borderColor: "var(--border)", backgroundColor: "var(--card)" }}
-                    >
-                      <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold"
-                        style={{ backgroundColor: "rgba(128,131,255,0.15)", color: "#8083ff" }}
-                      >
-                        {p.account?.name?.[0] ?? "?"}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {p.account?.name ?? "Unknown"}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground truncate">
-                          {p.signal.title}
-                        </p>
-                      </div>
-                      <span
-                        className="text-[11px] font-bold px-1.5 py-0.5 rounded"
-                        style={{ backgroundColor: "rgba(78,222,163,0.1)", color: "#4edea3" }}
-                      >
-                        {p.signal.urgency_score}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Pending approvals */}
-            <div
-              className="rounded-lg border p-4 flex items-center justify-between"
-              style={{
-                borderColor: totalPending > 0 ? "rgba(128,131,255,0.3)" : "var(--border)",
-                backgroundColor: totalPending > 0 ? "rgba(128,131,255,0.06)" : "var(--card)",
-              }}
-            >
-              <div>
-                <p className="text-sm font-semibold">{totalPending} pending approvals</p>
-                <p className="text-xs text-muted-foreground">Messages awaiting your review</p>
-              </div>
-              <Link
-                href="/approval-queue"
-                onClick={() => setBriefingOpen(false)}
-                className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
-                style={{ backgroundColor: "#8083ff", color: "#fff" }}
-              >
-                Review
-              </Link>
-            </div>
-
-            {/* Overdue tasks */}
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                Overdue tasks ({todayTasks.length})
-              </p>
-              {todayTasks.slice(0, 3).length === 0 ? (
-                <p className="text-sm text-muted-foreground italic">
-                  All clear — no overdue tasks.
-                </p>
-              ) : (
-                <div className="flex flex-col gap-1.5">
-                  {todayTasks.slice(0, 3).map((t) => (
-                    <div key={t.id} className="flex items-center gap-2 py-1">
-                      <div className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
-                      <p className="text-sm flex-1 truncate">{t.title}</p>
-                    </div>
-                  ))}
-                  {todayTasks.length > 3 && (
-                    <p className="text-xs text-muted-foreground pl-3.5">
-                      + {todayTasks.length - 3} more
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Email briefing CTA */}
-            <div
-              className="rounded-lg border border-dashed p-4 text-center"
-              style={{ borderColor: "var(--border)" }}
-            >
-              <p className="text-xs text-muted-foreground mb-2">
-                Get this briefing in your inbox every morning at 8 AM
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  toast.success("Email briefing enabled — check your inbox tomorrow morning!");
-                  setBriefingOpen(false);
-                }}
-                className="text-xs font-semibold px-4 py-2 rounded-lg border transition-colors"
-                style={{ borderColor: "rgba(128,131,255,0.4)", color: "#8083ff" }}
-              >
-                Enable email briefing
-              </button>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
     </div>
   );
 }

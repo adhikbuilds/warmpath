@@ -1,18 +1,19 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/db/client";
-import { getWorkspaceContext } from "@/lib/db/workspace";
+import { auth } from "@/lib/auth";
+import { getWorkspaceId } from "@/lib/db/workspace";
 import { DEMO_CAMPAIGNS } from "@/lib/demo-data";
 
 export async function GET() {
   try {
-    const { workspaceId, isDemo } = await getWorkspaceContext();
+    const workspaceId = await getWorkspaceId();
     const campaigns = await prisma.campaign.findMany({
       where: { workspaceId },
       include: { steps: { orderBy: { stepNumber: "asc" } } },
       orderBy: { createdAt: "desc" },
     });
     if (campaigns.length === 0) {
-      return NextResponse.json(isDemo ? DEMO_CAMPAIGNS : []);
+      return NextResponse.json(DEMO_CAMPAIGNS);
     }
     return NextResponse.json(
       campaigns.map((c) => ({
@@ -47,10 +48,32 @@ export async function GET() {
       })),
     );
   } catch {
-    return NextResponse.json([]);
+    return NextResponse.json(DEMO_CAMPAIGNS);
   }
 }
 
-export async function POST() {
-  return NextResponse.json({ error: "Not implemented" }, { status: 501 });
+export async function POST(req: Request) {
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const workspaceId = await getWorkspaceId();
+
+  const body = await req.json().catch(() => ({}));
+  const { name, type, goal, status, targetSegment, channelsJson } = body;
+
+  if (!name?.trim()) return NextResponse.json({ error: "Name required" }, { status: 400 });
+
+  const campaign = await prisma.campaign.create({
+    data: {
+      workspaceId,
+      ownerId: session.user.id,
+      name: name.trim(),
+      type: type ?? null,
+      goal: goal ?? null,
+      status: status ?? "draft",
+      targetSegment: targetSegment ?? null,
+      channelsJson: channelsJson ? JSON.stringify(channelsJson) : null,
+    },
+  });
+  return NextResponse.json(campaign, { status: 201 });
 }
