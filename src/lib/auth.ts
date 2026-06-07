@@ -65,24 +65,51 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async signIn({ user, account }) {
       // Auto-provision a workspace for first-time OAuth sign-ins
-      if (account?.type === "oauth" && user.id) {
+      if (account?.type === "oauth" && user.id && user.email) {
         try {
           const existing = await prisma.workspaceMember.findFirst({
             where: { userId: user.id },
           });
           if (!existing) {
-            const workspaceId = `ws-${user.id}`;
-            const wsName = user.name
-              ? `${user.name}'s workspace`
-              : `${user.email?.split("@")[0] ?? "My"} workspace`;
-            await prisma.$transaction([
-              prisma.workspace.create({
-                data: { id: workspaceId, name: wsName, ownerId: user.id, plan: "free" },
-              }),
-              prisma.workspaceMember.create({
-                data: { workspaceId, userId: user.id, role: "owner", seatStatus: "active" },
-              }),
-            ]);
+            // Check for a pending invite before creating a personal workspace
+            const invite = await prisma.workspaceInvitation.findFirst({
+              where: {
+                email: user.email.toLowerCase(),
+                status: "pending",
+                expiresAt: { gt: new Date() },
+              },
+              orderBy: { createdAt: "desc" },
+            });
+
+            if (invite) {
+              await prisma.$transaction([
+                prisma.workspaceMember.create({
+                  data: {
+                    workspaceId: invite.workspaceId,
+                    userId: user.id,
+                    role: invite.role,
+                    seatStatus: "active",
+                  },
+                }),
+                prisma.workspaceInvitation.update({
+                  where: { id: invite.id },
+                  data: { status: "accepted", acceptedAt: new Date(), acceptedByUserId: user.id },
+                }),
+              ]);
+            } else {
+              const workspaceId = `ws-${user.id}`;
+              const wsName = user.name
+                ? `${user.name}'s workspace`
+                : `${user.email.split("@")[0] ?? "My"} workspace`;
+              await prisma.$transaction([
+                prisma.workspace.create({
+                  data: { id: workspaceId, name: wsName, ownerId: user.id, plan: "free" },
+                }),
+                prisma.workspaceMember.create({
+                  data: { workspaceId, userId: user.id, role: "owner", seatStatus: "active" },
+                }),
+              ]);
+            }
           }
         } catch {}
       }

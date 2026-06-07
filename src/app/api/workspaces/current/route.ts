@@ -33,7 +33,13 @@ export async function GET() {
       });
     }
 
-    return NextResponse.json(workspace);
+    const pendingInvitations = await prisma.workspaceInvitation.findMany({
+      where: { workspaceId: workspace.id, status: "pending", expiresAt: { gt: new Date() } },
+      include: { invitedBy: { select: { name: true, email: true } } },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return NextResponse.json({ ...workspace, pendingInvitations });
   } catch (err) {
     console.error("[workspaces/current]", err);
     return NextResponse.json({}, { status: 500 });
