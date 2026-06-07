@@ -13,6 +13,8 @@ name: Deploy frontend to Azure Container Apps
 #   NEXTAUTH_SECRET    — random secret (openssl rand -base64 32)
 #   NEXTAUTH_URL       — full public URL of the app, e.g. https://warmpath-frontend.xyz.centralindia.azurecontainerapps.io
 #   AZURE_COMMUNICATION_CONNECTION_STRING — from Azure Communication Services resource (Keys tab)
+#   TWENTY_API_URL  — URL of self-hosted Twenty CRM (e.g. https://twenty-crm.xyz.azurecontainerapps.io/api)
+#   TWENTY_API_KEY  — API key from Twenty Settings → API & Webhooks (optional; omit if not using Twenty)
 #
 # One-time: make the GHCR package public (Packages → settings) so Container Apps
 # can pull without registry credentials, OR add registry creds to the app.
@@ -96,4 +98,6 @@ jobs:
                 "LINKEDIN_CLIENT_ID=${{ secrets.LINKEDIN_CLIENT_ID }}" \
                 "LINKEDIN_CLIENT_SECRET=${{ secrets.LINKEDIN_CLIENT_SECRET }}" \
                 "AZURE_COMMUNICATION_CONNECTION_STRING=${{ secrets.AZURE_COMMUNICATION_CONNECTION_STRING }}" \
+                "TWENTY_API_URL=${{ secrets.TWENTY_API_URL }}" \
+                "TWENTY_API_KEY=${{ secrets.TWENTY_API_KEY }}" \
               --query properties.configuration.ingress.fqdn

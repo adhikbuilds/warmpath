@@ -1,7 +1,7 @@
 "use client";
 
-import { AlertCircle, CheckCircle, ChevronDown, ChevronRight, Shield, Zap } from "lucide-react";
-import { useState } from "react";
+import { AlertCircle, CheckCircle, ChevronDown, ChevronRight, RefreshCw, Shield, Zap } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useSalesStore } from "@/stores/salesStore";
 
@@ -269,6 +269,137 @@ function RequestCard({ item }: { item: (typeof REQUEST_CONNECTORS)[0] }) {
   );
 }
 
+// ─── Twenty CRM card ──────────────────────────────────────────────────────────
+
+function TwentyCrmCard() {
+  const { accounts, contacts, setAccounts, setContacts } = useSalesStore();
+  const [configured, setConfigured] = useState<boolean | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [lastSync, setLastSync] = useState<{ accounts: number; contacts: number } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/twenty/status")
+      .then((r) => r.json())
+      .then((d) => setConfigured(d.configured))
+      .catch(() => setConfigured(false));
+  }, []);
+
+  async function handleSync() {
+    setSyncing(true);
+    try {
+      const r = await fetch("/api/twenty/sync");
+      const d = await r.json();
+      if (!r.ok || !d.ok) throw new Error(d.error ?? "Sync failed");
+      // Merge Twenty data into the store (prepend, deduplicate by id)
+      const existingAccountIds = new Set(accounts.map((a) => a.id));
+      const existingContactIds = new Set(contacts.map((c) => c.id));
+      const newAccounts = (d.data?.accounts ?? []).filter(
+        (a: { id: string }) => !existingAccountIds.has(a.id),
+      );
+      const newContacts = (d.data?.contacts ?? []).filter(
+        (c: { id: string }) => !existingContactIds.has(c.id),
+      );
+      if (newAccounts.length > 0) setAccounts([...newAccounts, ...accounts]);
+      if (newContacts.length > 0) setContacts([...newContacts, ...contacts]);
+      setLastSync({ accounts: d.accounts, contacts: d.contacts });
+      toast.success(
+        `Synced ${d.accounts} accounts · ${d.contacts} contacts from Twenty CRM`,
+      );
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Sync failed");
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  const isLoading = configured === null;
+
+  return (
+    <div
+      className="rounded-xl border overflow-hidden mb-8"
+      style={{ borderColor: "var(--border)", backgroundColor: "var(--background)" }}
+    >
+      {/* Section header */}
+      <div
+        className="px-6 py-3 border-b"
+        style={{ borderColor: "var(--border)", backgroundColor: "var(--muted)" }}
+      >
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-[#c7c4d7]">
+          CRM Backend
+        </p>
+      </div>
+
+      <div className="flex items-center gap-4 px-6 py-4">
+        {/* Logo */}
+        <div
+          className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shrink-0 select-none"
+          style={{ backgroundColor: "#1d2433", color: "#fff", border: "1.5px solid #374151" }}
+        >
+          20
+        </div>
+
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="text-[13px] font-semibold" style={{ color: "var(--foreground)" }}>
+              Twenty CRM
+            </span>
+            {!isLoading && configured && (
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                Connected
+              </span>
+            )}
+            {!isLoading && !configured && (
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                Not configured
+              </span>
+            )}
+          </div>
+          <p className="text-[12px] leading-snug" style={{ color: "var(--muted-foreground)" }}>
+            {configured
+              ? "Your self-hosted Twenty CRM is connected. Sync accounts and contacts into WarmPath."
+              : "Self-hosted open-source CRM. Deploy Twenty on Azure and set TWENTY_API_URL + TWENTY_API_KEY to connect."}
+          </p>
+          {lastSync && (
+            <p className="text-[11px] mt-1 text-emerald-500">
+              Last sync: +{lastSync.accounts} accounts · +{lastSync.contacts} contacts
+            </p>
+          )}
+        </div>
+
+        {/* Action */}
+        <div className="shrink-0">
+          {configured ? (
+            <button
+              type="button"
+              onClick={handleSync}
+              disabled={syncing}
+              className="flex items-center gap-1.5 text-[12px] font-semibold px-4 py-1.5 rounded-lg text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+              style={{ backgroundColor: "#5456d4" }}
+            >
+              <RefreshCw className={`w-3 h-3 ${syncing ? "animate-spin" : ""}`} />
+              {syncing ? "Syncing…" : "Sync now"}
+            </button>
+          ) : (
+            <a
+              href="https://github.com/twentyhq/twenty"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[12px] font-semibold px-4 py-1.5 rounded-lg border transition-colors"
+              style={{
+                borderColor: "var(--border)",
+                color: "var(--muted-foreground)",
+              }}
+            >
+              Deploy guide ↗
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function IntegrationsPage() {
@@ -325,6 +456,9 @@ export default function IntegrationsPage() {
           <span style={{ color: "var(--muted-foreground)" }}>· your network is being mapped</span>
         </div>
       )}
+
+      {/* Twenty CRM */}
+      <TwentyCrmCard />
 
       {/* Main connectors list */}
       <div

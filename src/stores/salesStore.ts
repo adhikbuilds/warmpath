@@ -124,6 +124,8 @@ interface SalesState {
   setTourOpen: (open: boolean) => void;
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (v: boolean) => void;
+  setAccounts: (accounts: Account[]) => void;
+  setContacts: (contacts: Contact[]) => void;
 
   // Init
   initialize: () => Promise<void>;
@@ -619,6 +621,8 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
   setTourOpen: (open) => set({ tourOpen: open }),
   sidebarCollapsed: false,
   setSidebarCollapsed: (v) => set({ sidebarCollapsed: v }),
+  setAccounts: (accounts) => set({ accounts }),
+  setContacts: (contacts) => set({ contacts }),
 
   // ─── Initialize: fetch all data from API ─────────────────────────────────
 
