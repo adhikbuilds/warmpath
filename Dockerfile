@@ -36,12 +36,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-cert
 COPY --from=build /app/public ./public
 COPY --from=build --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=build --chown=nextjs:nodejs /app/.next/static ./.next/static
-# Prisma engine + schema + migration files needed at runtime
+# Prisma engine + schema + migration files + CLI needed at runtime
 COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=build /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=build /app/node_modules/prisma ./node_modules/prisma
 COPY --from=build /app/prisma ./prisma
 
 USER nextjs
 EXPOSE 3000
-# Run pending migrations before starting the server
-CMD ["sh", "-c", "npx prisma migrate deploy && node server.js"]
+# Run pending migrations (prisma CLI is in node_modules/prisma, no npx download needed)
+CMD ["sh", "-c", "node node_modules/prisma/build/index.js migrate deploy && node server.js"]

@@ -1,7 +1,7 @@
 // GraphQL client for Twenty CRM API
 // Docs: https://twenty.com/developers/api
 
-const TWENTY_API_URL = process.env.TWENTY_API_URL ?? "http://localhost:3001/api";
+const TWENTY_API_URL = process.env.TWENTY_API_URL ?? "http://localhost:3000/graphql";
 const TWENTY_API_KEY = process.env.TWENTY_API_KEY ?? "";
 
 async function twentyQuery<T = unknown>(
