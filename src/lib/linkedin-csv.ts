@@ -275,7 +275,7 @@ export function parseLinkedInCsv(text: string): ImportResult {
     companyMap.set(row.company, {
       name: row.company,
       domain: `${row.company.toLowerCase().replace(/[^a-z0-9]/g, "")}.com`,
-      industry: "Technology",
+      industry: "",
       employee_count: 50,
       location: "India",
       description: `${row.company} — imported from LinkedIn network`,

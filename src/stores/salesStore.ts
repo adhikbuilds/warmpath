@@ -34,23 +34,23 @@ import type {
 
 const DEFAULT_AI_SETTINGS: WorkspaceAISettings = {
   workspace_id: "",
-  ai_mode: "azure",
+  ai_mode: "mock",
   monthly_budget_usd: 50,
   usage_this_month_usd: 0,
-  allow_remote_generation: true,
-  require_approval_for_remote: false,
+  allow_remote_generation: false,
+  require_approval_for_remote: true,
   fallback_to_mock: true,
-  provider: "azure",
-  model: "gpt-4.1-nano",
+  provider: "mock",
+  model: "mock-v1",
 };
 
 const DEFAULT_WORKSPACE: Workspace = {
   id: "",
-  name: "WarmBlue",
-  domain: "warmblue.ai",
-  industry: "AI / Sales Tech",
-  company_size: "1–10",
-  website: "https://warmblue.ai",
+  name: "",
+  domain: "",
+  industry: "",
+  company_size: "",
+  website: "",
   description: "",
   plan: "growth",
   onboarding_stage: "complete",
@@ -1274,9 +1274,10 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
 
   importLinkedInContacts: (contacts, accounts, campaigns) => {
     const now = new Date().toISOString();
-    const mappedAccounts = accounts.map((a, i) => ({
+    // Account IDs must match the account_id references in contacts (li-acc-{company-slug})
+    const mappedAccounts = accounts.map((a) => ({
       ...a,
-      id: `li-acc-${i}-${Date.now()}`,
+      id: `li-acc-${a.name.toLowerCase().replace(/\s+/g, "-")}`,
       created_at: now,
     }));
     const mappedContacts = contacts.map((c, i) => ({
