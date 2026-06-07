@@ -555,6 +555,8 @@ export default function WarmLeadsPage() {
     warmPaths,
     relationshipEdges,
     teamMembers,
+    loading: storeLoading,
+    initialized: storeInitialized,
     createFollowUpTask,
     addMessageToQueue,
   } = useSalesStore();
@@ -580,6 +582,15 @@ export default function WarmLeadsPage() {
   const [pipelineItems, setPipelineItems] = useState<PipelineItem[]>(() =>
     buildPipelineItems(warmPaths, accounts, contacts, signals),
   );
+  // Sync pipeline items once the store finishes loading (useState initializer runs before data arrives)
+  const pipelineSynced = useRef(false);
+  useEffect(() => {
+    if (!pipelineSynced.current && storeInitialized && warmPaths.length > 0) {
+      pipelineSynced.current = true;
+      setPipelineItems(buildPipelineItems(warmPaths, accounts, contacts, signals));
+    }
+  }, [storeInitialized, warmPaths, accounts, contacts, signals]);
+
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [introDialogOpen, setIntroDialogOpen] = useState(false);
@@ -840,18 +851,32 @@ Thanks,
           {/* Leads grid */}
           <div className="grid gap-2.5 animate-fade-up delay-2">
             {filteredAccounts.length === 0 ? (
-              <EmptyState
-                variant="no-results"
-                title="No accounts found"
-                description="Try adjusting your search or industry filter."
-                action={{
-                  label: "Clear filters",
-                  onClick: () => {
-                    setSearch("");
-                    setIndustryFilter("all");
-                  },
-                }}
-              />
+              storeLoading || !storeInitialized ? (
+                <EmptyState variant="no-results" title="Loading your accounts…" description="Fetching your workspace data." />
+              ) : accounts.length === 0 ? (
+                <EmptyState
+                  variant="no-results"
+                  title="No accounts yet"
+                  description="Connect an integration or import your contacts to start finding warm paths."
+                  action={{
+                    label: "Go to Integrations",
+                    onClick: () => router.push("/integrations"),
+                  }}
+                />
+              ) : (
+                <EmptyState
+                  variant="no-results"
+                  title="No accounts match"
+                  description="Try adjusting your search or industry filter."
+                  action={{
+                    label: "Clear filters",
+                    onClick: () => {
+                      setSearch("");
+                      setIndustryFilter("all");
+                    },
+                  }}
+                />
+              )
             ) : (
               filteredAccounts.map((account, idx) => {
                 const accountContacts = contacts.filter((c) => c.account_id === account.id);
