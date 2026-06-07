@@ -7,6 +7,24 @@ const APP_URL =
   process.env.NEXTAUTH_URL ??
   "https://warmpath-frontend.ashysea-7d3de045.centralindia.azurecontainerapps.io";
 
+const SENDER = "DoNotReply@f9c936e5-ece1-4698-ae75-dec1ed6b5c30.azurecomm.net";
+
+async function sendEmail(to: string, subject: string, html: string): Promise<string | null> {
+  const connStr = process.env.AZURE_COMMUNICATION_CONNECTION_STRING;
+  if (!connStr) return "AZURE_COMMUNICATION_CONNECTION_STRING not configured";
+
+  const { EmailClient } = await import("@azure/communication-email");
+  const client = new EmailClient(connStr);
+
+  const poller = await client.beginSend({
+    senderAddress: SENDER,
+    content: { subject, html },
+    recipients: { to: [{ address: to }] },
+  });
+  await poller.pollUntilDone();
+  return null; // null = success
+}
+
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id || !session.user.email) {
@@ -29,7 +47,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No workspace found" }, { status: 404 });
   }
 
-  // Validate requester is an active workspace member
   const requesterMember = await prisma.workspaceMember.findFirst({
     where: { workspaceId, userId: session.user.id, seatStatus: "active" },
   });
@@ -37,10 +54,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Not a workspace member" }, { status: 403 });
   }
 
-  const resendKey = process.env.RESEND_API_KEY;
-  if (!resendKey) {
+  if (!process.env.AZURE_COMMUNICATION_CONNECTION_STRING) {
     return NextResponse.json(
-      { success: false, error: "RESEND_API_KEY not configured — contact your admin" },
+      { success: false, error: "Email service not configured — contact your admin" },
       { status: 500 },
     );
   }
@@ -52,7 +68,6 @@ export async function POST(req: NextRequest) {
   const workspaceName = workspace?.name ?? "WarmPath";
   const inviterName = session.user.name ?? session.user.email;
 
-  // Get emails of current active members to skip duplicates
   const existingMembers = await prisma.workspaceMember.findMany({
     where: { workspaceId, seatStatus: "active" },
     include: { user: { select: { email: true } } },
@@ -61,15 +76,11 @@ export async function POST(req: NextRequest) {
     existingMembers.map((m) => m.user.email?.toLowerCase()).filter(Boolean),
   );
 
-  // Get emails with an active pending invite already
   const pendingInvites = await prisma.workspaceInvitation.findMany({
     where: { workspaceId, status: "pending", expiresAt: { gt: new Date() } },
     select: { email: true },
   });
   const pendingEmails = new Set(pendingInvites.map((i) => i.email));
-
-  const { Resend } = await import("resend");
-  const resend = new Resend(resendKey);
 
   const results: Array<{
     email: string;
@@ -97,16 +108,14 @@ export async function POST(req: NextRequest) {
     });
 
     const acceptUrl = `${APP_URL}/invite/accept?token=${invite.token}`;
-    const { error: sendError } = await resend.emails.send({
-      from: "WarmPath <noreply@warmpath.app>",
-      to: email,
-      subject: `${inviterName} invited you to join ${workspaceName} on WarmPath`,
-      html: buildInviteEmail({ inviterName, workspaceName, acceptUrl }),
-    });
+    const sendError = await sendEmail(
+      email,
+      `${inviterName} invited you to join ${workspaceName} on WarmPath`,
+      buildInviteEmail({ inviterName, workspaceName, acceptUrl }),
+    );
 
     if (sendError) {
-      // Keep invitation record; caller can retry
-      results.push({ email, status: "failed", reason: sendError.message, inviteId: invite.id });
+      results.push({ email, status: "failed", reason: sendError, inviteId: invite.id });
     } else {
       results.push({ email, status: "sent", inviteId: invite.id });
     }

@@ -12,6 +12,7 @@ name: Deploy frontend to Azure Container Apps
 #   DIRECT_URL         — Neon direct connection string
 #   NEXTAUTH_SECRET    — random secret (openssl rand -base64 32)
 #   NEXTAUTH_URL       — full public URL of the app, e.g. https://warmpath-frontend.xyz.centralindia.azurecontainerapps.io
+#   AZURE_COMMUNICATION_CONNECTION_STRING — from Azure Communication Services resource (Keys tab)
 #
 # One-time: make the GHCR package public (Packages → settings) so Container Apps
 # can pull without registry credentials, OR add registry creds to the app.
@@ -94,4 +95,5 @@ jobs:
                 "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" \
                 "LINKEDIN_CLIENT_ID=${{ secrets.LINKEDIN_CLIENT_ID }}" \
                 "LINKEDIN_CLIENT_SECRET=${{ secrets.LINKEDIN_CLIENT_SECRET }}" \
+                "AZURE_COMMUNICATION_CONNECTION_STRING=${{ secrets.AZURE_COMMUNICATION_CONNECTION_STRING }}" \
               --query properties.configuration.ingress.fqdn
