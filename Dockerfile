@@ -44,5 +44,4 @@ COPY --from=build /app/prisma ./prisma
 
 USER nextjs
 EXPOSE 3000
-# Run pending migrations (prisma CLI is in node_modules/prisma, no npx download needed)
-CMD ["sh", "-c", "node node_modules/prisma/build/index.js migrate deploy && node server.js"]
+CMD ["node", "server.js"]
