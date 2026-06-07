@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/db/client";
-import { getWorkspaceContext, getWorkspaceId } from "@/lib/db/workspace";
-import { DEMO_WORKSPACE, DEMO_WORKSPACE_MEMBERS } from "@/lib/demo-data-extended";
+import { getWorkspaceId } from "@/lib/db/workspace";
+import { DEMO_WORKSPACE } from "@/lib/demo-data-extended";
 
 export async function GET() {
   try {
-    const { workspaceId, isDemo } = await getWorkspaceContext();
+    const workspaceId = await getWorkspaceId();
     const workspace = await prisma.workspace.findUnique({
       where: { id: workspaceId },
       include: {
@@ -20,28 +20,12 @@ export async function GET() {
       },
     });
     if (!workspace) {
-      return NextResponse.json(
-        isDemo
-          ? { ...DEMO_WORKSPACE, members: DEMO_WORKSPACE_MEMBERS, pendingInvitations: [] }
-          : null,
-      );
+      return NextResponse.json(DEMO_WORKSPACE);
     }
     const { invitations, ...rest } = workspace;
-    // Empty workspace in demo mode — overlay demo members so relationship graph has team nodes
-    if (isDemo && rest.members.length <= 1) {
-      return NextResponse.json({
-        ...rest,
-        members: DEMO_WORKSPACE_MEMBERS,
-        pendingInvitations: invitations,
-      });
-    }
     return NextResponse.json({ ...rest, pendingInvitations: invitations });
   } catch {
-    return NextResponse.json({
-      ...DEMO_WORKSPACE,
-      members: DEMO_WORKSPACE_MEMBERS,
-      pendingInvitations: [],
-    });
+    return NextResponse.json(DEMO_WORKSPACE);
   }
 }
 

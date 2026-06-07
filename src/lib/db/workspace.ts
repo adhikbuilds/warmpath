@@ -5,28 +5,19 @@ const DEMO_USER_EMAIL = "demo@warmpath.ai";
 
 export type WorkspaceContext = { workspaceId: string; isDemo: boolean };
 
-/** Returns workspace ID + whether the workspace should receive demo data.
- *  isDemo is true for the named demo user OR any workspace with no real
- *  accounts yet — giving new sign-ups a populated first-run experience. */
+/** Returns workspace ID + whether the current user is the demo user.
+ *  Use this instead of getWorkspaceId() in routes that conditionally
+ *  show demo data — only the demo workspace gets the demo data fallback. */
 export async function getWorkspaceContext(): Promise<WorkspaceContext> {
   try {
     const session = await auth();
     if (session?.user?.id) {
-      const isDemoEmail = session.user.email === DEMO_USER_EMAIL;
+      const isDemo = session.user.email === DEMO_USER_EMAIL;
       const member = await prisma.workspaceMember.findFirst({
         where: { userId: session.user.id },
         select: { workspaceId: true },
       });
-      if (member?.workspaceId) {
-        let isDemo = isDemoEmail;
-        if (!isDemo) {
-          const accountCount = await prisma.bizAccount.count({
-            where: { workspaceId: member.workspaceId },
-          });
-          isDemo = accountCount === 0;
-        }
-        return { workspaceId: member.workspaceId, isDemo };
-      }
+      if (member?.workspaceId) return { workspaceId: member.workspaceId, isDemo };
 
       const workspaceId = `ws-${session.user.id}`;
       await prisma
@@ -39,8 +30,7 @@ export async function getWorkspaceContext(): Promise<WorkspaceContext> {
           }),
         ])
         .catch(() => {});
-      // Freshly created workspace has no accounts → demo data until real data arrives
-      return { workspaceId, isDemo: true };
+      return { workspaceId, isDemo };
     }
   } catch {}
   return { workspaceId: "", isDemo: false };
