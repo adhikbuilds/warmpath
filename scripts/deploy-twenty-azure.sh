@@ -66,8 +66,14 @@ az containerapp up \
   --environment "$CONTAINER_ENV" \
   --image "$SERVER_IMAGE" \
   --target-port 3000 \
-  --ingress external \
-  --only-show-errors
+  --ingress external
+
+# Get FQDN before update so SERVER_URL is correct
+TWENTY_FQDN_EARLY=$(az containerapp show \
+  --name "$APP_NAME" \
+  --resource-group "$RESOURCE_GROUP" \
+  --query "properties.configuration.ingress.fqdn" \
+  -o tsv)
 
 az containerapp update \
   --name "$APP_NAME" \
@@ -75,7 +81,7 @@ az containerapp update \
   --min-replicas 0 \
   --set-env-vars \
     "NODE_ENV=production" \
-    "SERVER_URL=https://$(az containerapp show --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" --query properties.configuration.ingress.fqdn -o tsv)" \
+    "SERVER_URL=https://${TWENTY_FQDN_EARLY}" \
     "PG_DATABASE_URL=${TWENTY_DB_URL}" \
     "APP_SECRET=${APP_SECRET}" \
     "SIGN_IN_PREFILLED=false" \
