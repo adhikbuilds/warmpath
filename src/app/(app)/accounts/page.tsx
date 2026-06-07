@@ -39,9 +39,20 @@ import { scoreBgColor } from "@/lib/utils";
 import { useSalesStore } from "@/stores/salesStore";
 import type { Account } from "@/types";
 
-function CompanyLogo({ name, domain, size = 36 }: { name: string; domain?: string; size?: number }) {
+function CompanyLogo({
+  name,
+  domain,
+  size = 36,
+}: {
+  name: string;
+  domain?: string;
+  size?: number;
+}) {
   const [failed, setFailed] = useState(false);
-  const cleanDomain = domain?.replace(/^https?:\/\//, "").replace(/\/.*$/, "").trim();
+  const cleanDomain = domain
+    ?.replace(/^https?:\/\//, "")
+    .replace(/\/.*$/, "")
+    .trim();
   const showLogo = !failed && cleanDomain && cleanDomain.includes(".");
 
   if (showLogo) {
@@ -445,31 +456,35 @@ export default function AccountsPage() {
                       size="sm"
                       variant="ghost"
                       className="h-7 w-7 p-0 text-muted-foreground hover:text-brand"
-                      onClick={() => {
+                      onClick={async () => {
                         const topContact = contacts.find((c) => c.account_id === account.id);
                         const warmPath = warmPaths.find((wp) => wp.account_id === account.id);
                         const topSignal = signals.find((s) => s.account_id === account.id);
-                        addMessageToQueue({
-                          account_id: account.id,
-                          contact_id: topContact?.id ?? "",
-                          warm_path_id: warmPath?.id,
-                          signal_id: topSignal?.id,
-                          channel: warmPath ? "warm_intro" : "email",
-                          subject: `Outreach — ${account.name}`,
-                          body: `Hi,\n\nI've been following ${account.name} and wanted to reach out about how we might help your team.\n\nWould love to find 15 minutes to share what we're working on.\n\nBest,\nAdhik`,
-                          status: "draft",
-                          approval_status: "pending",
-                          generated_by_ai: true,
-                          confidence_score: 0.82,
-                          personalization_reason: `Account-level outreach to ${account.name} (${account.industry})`,
-                          factual_claims: [],
-                          supporting_sources: [],
-                          risk_flags: [],
-                        });
-                        toast.success(
-                          `Outreach drafted for ${account.name} — review in Approval Queue`,
-                        );
-                        router.push("/approval-queue");
+                        try {
+                          await addMessageToQueue({
+                            account_id: account.id,
+                            contact_id: topContact?.id ?? "",
+                            warm_path_id: warmPath?.id,
+                            signal_id: topSignal?.id,
+                            channel: warmPath ? "warm_intro" : "email",
+                            subject: `Outreach — ${account.name}`,
+                            body: `Hi,\n\nI've been following ${account.name} and wanted to reach out about how we might help your team.\n\nWould love to find 15 minutes to share what we're working on.\n\nBest,\nAdhik`,
+                            status: "draft",
+                            approval_status: "pending",
+                            generated_by_ai: true,
+                            confidence_score: 0.82,
+                            personalization_reason: `Account-level outreach to ${account.name} (${account.industry})`,
+                            factual_claims: [],
+                            supporting_sources: [],
+                            risk_flags: [],
+                          });
+                          toast.success(
+                            `Outreach drafted for ${account.name} — review in Approval Queue`,
+                          );
+                          router.push("/approval-queue");
+                        } catch {
+                          toast.error("Failed to save message");
+                        }
                       }}
                     >
                       <Sparkles className="w-3.5 h-3.5" />

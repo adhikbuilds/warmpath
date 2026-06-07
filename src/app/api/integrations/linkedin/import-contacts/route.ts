@@ -64,6 +64,9 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      const repName = session.user.name ?? session.user.email?.split("@")[0] ?? "Team Member";
+      let newContactId: string | null = null;
+
       if (email) {
         const existingContact = await prisma.contact.findFirst({
           where: { workspaceId, email },
@@ -74,9 +77,10 @@ export async function POST(req: NextRequest) {
             data: { name, title: position || existingContact.title, accountId },
           });
         } else {
-          await prisma.contact.create({
+          const c = await prisma.contact.create({
             data: { workspaceId, name, email, title: position, accountId, warmthScore: 40 },
           });
+          newContactId = c.id;
         }
       } else {
         // No email — still create/update by name+company
@@ -86,10 +90,31 @@ export async function POST(req: NextRequest) {
             })
           : null;
         if (!existingContact) {
-          await prisma.contact.create({
+          const c = await prisma.contact.create({
             data: { workspaceId, name, title: position, accountId, warmthScore: 40 },
           });
+          newContactId = c.id;
         }
+      }
+
+      if (newContactId) {
+        // Seed a relationship edge so the graph engine can find this contact
+        await prisma.relationshipEdge
+          .create({
+            data: {
+              workspaceId,
+              fromType: "user",
+              fromId: session.user.id,
+              fromName: repName,
+              toType: "contact",
+              toId: newContactId,
+              toName: name,
+              relationshipType: "linkedin_connection",
+              strengthScore: 50,
+              source: "linkedin_csv_import",
+            },
+          })
+          .catch(() => null); // non-fatal
       }
 
       imported++;

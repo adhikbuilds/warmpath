@@ -95,9 +95,26 @@ export async function POST() {
           data: { name, title, accountId },
         });
       } else {
-        await prisma.contact.create({
+        const newContact = await prisma.contact.create({
           data: { workspaceId, name, email, title, accountId, warmthScore: 30 },
         });
+        // Seed a relationship edge so the graph engine can find this contact
+        await prisma.relationshipEdge
+          .create({
+            data: {
+              workspaceId,
+              fromType: "user",
+              fromId: session.user.id,
+              fromName: session.user.name ?? session.user.email?.split("@")[0] ?? "Team Member",
+              toType: "contact",
+              toId: newContact.id,
+              toName: name,
+              relationshipType: "linkedin_connection",
+              strengthScore: 40,
+              source: "google_contacts_import",
+            },
+          })
+          .catch(() => null); // non-fatal: edge creation failure shouldn't abort the import
       }
 
       imported++;

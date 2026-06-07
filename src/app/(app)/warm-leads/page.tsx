@@ -288,31 +288,35 @@ function ComposeSheet({ open, onClose, account, contact, signal, warmPath }: Com
     onClose();
   }
 
-  function handleAddToQueue() {
+  async function handleAddToQueue() {
     if (!account || !contact) return;
-    addMessageToQueue({
-      account_id: account.id,
-      contact_id: contact.id,
-      warm_path_id: warmPath?.id,
-      signal_id: signal?.id,
-      channel,
-      subject: subject || undefined,
-      body,
-      intro_request: introRequest || undefined,
-      status: "draft",
-      approval_status: "pending",
-      generated_by_ai: true,
-      confidence_score: confidenceScore,
-      personalization_reason: personalizationReason,
-      factual_claims: factualClaims,
-      supporting_sources: supportingSources,
-      risk_flags: [],
-    });
-    toast.success(`Added to approval queue`, {
-      description: `${account.name} · ${CHANNEL_LABELS[channel]}`,
-      action: { label: "Review now", onClick: () => router.push("/approval-queue") },
-    });
-    handleClose();
+    try {
+      await addMessageToQueue({
+        account_id: account.id,
+        contact_id: contact.id,
+        warm_path_id: warmPath?.id,
+        signal_id: signal?.id,
+        channel,
+        subject: subject || undefined,
+        body,
+        intro_request: introRequest || undefined,
+        status: "draft",
+        approval_status: "pending",
+        generated_by_ai: true,
+        confidence_score: confidenceScore,
+        personalization_reason: personalizationReason,
+        factual_claims: factualClaims,
+        supporting_sources: supportingSources,
+        risk_flags: [],
+      });
+      toast.success(`Added to approval queue`, {
+        description: `${account.name} · ${CHANNEL_LABELS[channel]}`,
+        action: { label: "Review now", onClick: () => router.push("/approval-queue") },
+      });
+      handleClose();
+    } catch {
+      toast.error("Failed to save message — check your connection and try again");
+    }
   }
 
   if (!account || !contact) return null;
@@ -852,7 +856,11 @@ Thanks,
           <div className="grid gap-2.5 animate-fade-up delay-2">
             {filteredAccounts.length === 0 ? (
               storeLoading || !storeInitialized ? (
-                <EmptyState variant="no-results" title="Loading your accounts…" description="Fetching your workspace data." />
+                <EmptyState
+                  variant="no-results"
+                  title="Loading your accounts…"
+                  description="Fetching your workspace data."
+                />
               ) : accounts.length === 0 ? (
                 <EmptyState
                   variant="no-results"
@@ -1052,32 +1060,36 @@ Thanks,
                             <Button
                               size="sm"
                               className="h-7 text-xs gap-1 px-3"
-                              onClick={() => {
-                                addMessageToQueue({
-                                  account_id: account.id,
-                                  contact_id: topContact?.id ?? "",
-                                  warm_path_id: storeWarmBlue?.id,
-                                  signal_id: topSignal?.id,
-                                  channel: "warm_intro",
-                                  subject: topSignal
-                                    ? `${topSignal.title} — ${account.name}`
-                                    : `Outreach — ${account.name}`,
-                                  body: `Hi ${topContact?.name?.split(" ")[0] ?? "there"},\n\n${topSignal ? topSignal.description + "\n\n" : ""}I wanted to reach out about ${account.name} — we have a warm path through your network.\n\nWould love 15 minutes to share what we're working on.\n\nBest,\n${senderFirstName}`,
-                                  status: "draft",
-                                  approval_status: "pending",
-                                  generated_by_ai: true,
-                                  confidence_score: 0.88,
-                                  personalization_reason:
-                                    topSignal?.description ??
-                                    `Warm leads outreach to ${account.industry}`,
-                                  factual_claims: topSignal ? [topSignal.title] : [],
-                                  supporting_sources: ["WarmBlue signal monitor"],
-                                  risk_flags: [],
-                                });
-                                toast.success(`Outreach drafted for ${account.name}`, {
-                                  description: "Review and approve it in the Approval Queue.",
-                                });
-                                router.push("/approval-queue");
+                              onClick={async () => {
+                                try {
+                                  await addMessageToQueue({
+                                    account_id: account.id,
+                                    contact_id: topContact?.id ?? "",
+                                    warm_path_id: storeWarmBlue?.id,
+                                    signal_id: topSignal?.id,
+                                    channel: "warm_intro",
+                                    subject: topSignal
+                                      ? `${topSignal.title} — ${account.name}`
+                                      : `Outreach — ${account.name}`,
+                                    body: `Hi ${topContact?.name?.split(" ")[0] ?? "there"},\n\n${topSignal ? topSignal.description + "\n\n" : ""}I wanted to reach out about ${account.name} — we have a warm path through your network.\n\nWould love 15 minutes to share what we're working on.\n\nBest,\n${senderFirstName}`,
+                                    status: "draft",
+                                    approval_status: "pending",
+                                    generated_by_ai: true,
+                                    confidence_score: 0.88,
+                                    personalization_reason:
+                                      topSignal?.description ??
+                                      `Warm leads outreach to ${account.industry}`,
+                                    factual_claims: topSignal ? [topSignal.title] : [],
+                                    supporting_sources: ["WarmBlue signal monitor"],
+                                    risk_flags: [],
+                                  });
+                                  toast.success(`Outreach drafted for ${account.name}`, {
+                                    description: "Review and approve it in the Approval Queue.",
+                                  });
+                                  router.push("/approval-queue");
+                                } catch {
+                                  toast.error("Failed to save message");
+                                }
                               }}
                             >
                               <MessageSquare className="w-3 h-3" />
@@ -1380,27 +1392,31 @@ Thanks,
                                     size="sm"
                                     variant="outline"
                                     className="h-7 flex-1 text-[10px]"
-                                    onClick={(e) => {
+                                    onClick={async (e) => {
                                       e.stopPropagation();
-                                      addMessageToQueue({
-                                        account_id: item.accountId,
-                                        contact_id: item.contactId,
-                                        warm_path_id: item.warmPathId,
-                                        signal_id: item.signalId,
-                                        channel: item.stage === "active" ? "warm_intro" : "email",
-                                        subject: `Follow-up — ${item.contactName} at ${item.accountName}`,
-                                        body: `Hi ${item.contactName.split(" ")[0]},\n\nFollowing up on our conversation — wanted to share how WarmBlue can help ${item.accountName} with warm outbound.\n\nBest,\n${senderFirstName}`,
-                                        status: "draft",
-                                        approval_status: "pending",
-                                        generated_by_ai: true,
-                                        confidence_score: 0.85,
-                                        personalization_reason: `Pipeline follow-up at ${STAGE_LABELS[item.stage]} stage`,
-                                        factual_claims: [],
-                                        supporting_sources: [],
-                                        risk_flags: [],
-                                      });
-                                      toast.success(`Message drafted for ${item.contactName}`);
-                                      router.push("/approval-queue");
+                                      try {
+                                        await addMessageToQueue({
+                                          account_id: item.accountId,
+                                          contact_id: item.contactId,
+                                          warm_path_id: item.warmPathId,
+                                          signal_id: item.signalId,
+                                          channel: item.stage === "active" ? "warm_intro" : "email",
+                                          subject: `Follow-up — ${item.contactName} at ${item.accountName}`,
+                                          body: `Hi ${item.contactName.split(" ")[0]},\n\nFollowing up on our conversation — wanted to share how WarmBlue can help ${item.accountName} with warm outbound.\n\nBest,\n${senderFirstName}`,
+                                          status: "draft",
+                                          approval_status: "pending",
+                                          generated_by_ai: true,
+                                          confidence_score: 0.85,
+                                          personalization_reason: `Pipeline follow-up at ${STAGE_LABELS[item.stage]} stage`,
+                                          factual_claims: [],
+                                          supporting_sources: [],
+                                          risk_flags: [],
+                                        });
+                                        toast.success(`Message drafted for ${item.contactName}`);
+                                        router.push("/approval-queue");
+                                      } catch {
+                                        toast.error("Failed to save message");
+                                      }
                                     }}
                                   >
                                     <MessageSquare className="h-3 w-3" />
@@ -1469,26 +1485,30 @@ Thanks,
                       <Button
                         size="sm"
                         className="mt-2 h-6 text-[11px] bg-[#4a8a6a] hover:bg-[#3d7559] text-white"
-                        onClick={() => {
-                          addMessageToQueue({
-                            account_id: selectedCard.accountId,
-                            contact_id: selectedCard.contactId,
-                            warm_path_id: selectedCard.warmPathId,
-                            signal_id: selectedCard.signalId,
-                            channel: "email",
-                            subject: `Following up — ${selectedCard.contactName}`,
-                            body: `Hi ${selectedCard.contactName.split(" ")[0]},\n\nThanks for accepting the intro from ${selectedCard.introBy}! Wanted to reach out directly and share how we could help ${selectedCard.accountName}.\n\nWould you have 20 minutes this week?\n\nBest,\n${senderFirstName}`,
-                            status: "draft",
-                            approval_status: "pending",
-                            generated_by_ai: true,
-                            confidence_score: 0.92,
-                            personalization_reason: `Intro accepted follow-up via ${selectedCard.introBy}`,
-                            factual_claims: [],
-                            supporting_sources: [],
-                            risk_flags: [],
-                          });
-                          toast.success(`Follow-up drafted for ${selectedCard.contactName}`);
-                          router.push("/approval-queue");
+                        onClick={async () => {
+                          try {
+                            await addMessageToQueue({
+                              account_id: selectedCard.accountId,
+                              contact_id: selectedCard.contactId,
+                              warm_path_id: selectedCard.warmPathId,
+                              signal_id: selectedCard.signalId,
+                              channel: "email",
+                              subject: `Following up — ${selectedCard.contactName}`,
+                              body: `Hi ${selectedCard.contactName.split(" ")[0]},\n\nThanks for accepting the intro from ${selectedCard.introBy}! Wanted to reach out directly and share how we could help ${selectedCard.accountName}.\n\nWould you have 20 minutes this week?\n\nBest,\n${senderFirstName}`,
+                              status: "draft",
+                              approval_status: "pending",
+                              generated_by_ai: true,
+                              confidence_score: 0.92,
+                              personalization_reason: `Intro accepted follow-up via ${selectedCard.introBy}`,
+                              factual_claims: [],
+                              supporting_sources: [],
+                              risk_flags: [],
+                            });
+                            toast.success(`Follow-up drafted for ${selectedCard.contactName}`);
+                            router.push("/approval-queue");
+                          } catch {
+                            toast.error("Failed to save message");
+                          }
                         }}
                       >
                         Draft follow-up message
@@ -1638,27 +1658,31 @@ Thanks,
                     variant="outline"
                     size="sm"
                     className="w-full"
-                    onClick={() => {
-                      addMessageToQueue({
-                        account_id: selectedCard.accountId,
-                        contact_id: selectedCard.contactId,
-                        warm_path_id: selectedCard.warmPathId,
-                        signal_id: selectedCard.signalId,
-                        channel: "email",
-                        subject: `Following up — ${selectedCard.contactName} at ${selectedCard.accountName}`,
-                        body: `Hi ${selectedCard.contactName.split(" ")[0]},\n\nWanted to follow up and see if you'd have time this week to connect about ${selectedCard.accountName}.\n\nWould 20 minutes work?\n\nBest,\n${senderFirstName}`,
-                        status: "draft",
-                        approval_status: "pending",
-                        generated_by_ai: true,
-                        confidence_score: 0.84,
-                        personalization_reason: `Pipeline follow-up at ${STAGE_LABELS[selectedCard.stage]} stage`,
-                        factual_claims: [],
-                        supporting_sources: [],
-                        risk_flags: [],
-                      });
-                      toast.success(`Follow-up drafted for ${selectedCard.contactName}`);
-                      setSheetOpen(false);
-                      router.push("/approval-queue");
+                    onClick={async () => {
+                      try {
+                        await addMessageToQueue({
+                          account_id: selectedCard.accountId,
+                          contact_id: selectedCard.contactId,
+                          warm_path_id: selectedCard.warmPathId,
+                          signal_id: selectedCard.signalId,
+                          channel: "email",
+                          subject: `Following up — ${selectedCard.contactName} at ${selectedCard.accountName}`,
+                          body: `Hi ${selectedCard.contactName.split(" ")[0]},\n\nWanted to follow up and see if you'd have time this week to connect about ${selectedCard.accountName}.\n\nWould 20 minutes work?\n\nBest,\n${senderFirstName}`,
+                          status: "draft",
+                          approval_status: "pending",
+                          generated_by_ai: true,
+                          confidence_score: 0.84,
+                          personalization_reason: `Pipeline follow-up at ${STAGE_LABELS[selectedCard.stage]} stage`,
+                          factual_claims: [],
+                          supporting_sources: [],
+                          risk_flags: [],
+                        });
+                        toast.success(`Follow-up drafted for ${selectedCard.contactName}`);
+                        setSheetOpen(false);
+                        router.push("/approval-queue");
+                      } catch {
+                        toast.error("Failed to save message");
+                      }
                     }}
                   >
                     Draft follow-up

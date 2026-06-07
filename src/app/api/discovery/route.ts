@@ -116,9 +116,9 @@ export async function POST(req: NextRequest) {
       technologies,
       emails_found: [`hello@${domain}`, `sales@${domain}`],
       fit_score_estimate: fitScore,
-      source: "Apollo DB",
+      source: "ai_generated",
     };
   });
 
-  return NextResponse.json({ leads, mode: "ai_stub" });
+  return NextResponse.json({ leads, mode: "ai_generated" });
 }

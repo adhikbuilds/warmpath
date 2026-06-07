@@ -1,8 +1,12 @@
-import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => ({}));
-  const leads: unknown[] = Array.isArray(body.leads) ? body.leads : [];
-  return NextResponse.json({ imported: leads.length, status: "ok" });
+export async function POST() {
+  return NextResponse.json(
+    {
+      imported: 0,
+      status: "not_implemented",
+      message: "Discovery import requires a real prospecting integration (Apollo, etc.)",
+    },
+    { status: 501 },
+  );
 }
