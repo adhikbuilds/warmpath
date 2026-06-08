@@ -15,7 +15,7 @@ import {
   Megaphone,
   Network,
   Settings,
-  TrendingUp,
+  Sparkles,
   Users,
   Zap,
 } from "lucide-react";
@@ -213,6 +213,12 @@ export function AppSidebar({ onSearchOpen }: { onSearchOpen?: () => void }) {
             collapsed={collapsed}
           />
           <NavItem
+            href="/network-search"
+            icon={Sparkles}
+            label="Network Search"
+            collapsed={collapsed}
+          />
+          <NavItem
             href="/approval-queue"
             icon={Bell}
             label="Approval Queue"
@@ -246,7 +252,6 @@ export function AppSidebar({ onSearchOpen }: { onSearchOpen?: () => void }) {
           />
           <NavItem href="/accounts" icon={Building2} label="Accounts" collapsed={collapsed} />
           <NavItem href="/contacts" icon={Users} label="Contacts" collapsed={collapsed} />
-          <NavItem href="/analytics" icon={TrendingUp} label="Analytics" collapsed={collapsed} />
         </NavSection>
 
         <NavSection label="Tools" collapsed={collapsed}>
