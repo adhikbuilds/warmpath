@@ -1,6 +1,15 @@
 "use client";
 
-import { AlertCircle, CheckCircle, ChevronDown, ChevronRight, RefreshCw, Shield, Zap } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle,
+  ChevronDown,
+  ChevronRight,
+  RefreshCw,
+  Shield,
+  Zap,
+} from "lucide-react";
+import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useSalesStore } from "@/stores/salesStore";
@@ -302,9 +311,7 @@ function TwentyCrmCard() {
       if (newAccounts.length > 0) setAccounts([...newAccounts, ...accounts]);
       if (newContacts.length > 0) setContacts([...newContacts, ...contacts]);
       setLastSync({ accounts: d.accounts, contacts: d.contacts });
-      toast.success(
-        `Synced ${d.accounts} accounts · ${d.contacts} contacts from Twenty CRM`,
-      );
+      toast.success(`Synced ${d.accounts} accounts · ${d.contacts} contacts from Twenty CRM`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Sync failed");
     } finally {
@@ -400,6 +407,207 @@ function TwentyCrmCard() {
   );
 }
 
+// ─── Brevo email (bring-your-own SMTP) ────────────────────────────────────────
+
+interface BrevoStatus {
+  ready: boolean;
+  sender_email: string | null;
+  sender_name: string | null;
+  smtp_user: string | null;
+}
+
+function BrevoEmailCard() {
+  const [status, setStatus] = useState<BrevoStatus | null>(null);
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    smtp_host: "smtp-relay.brevo.com",
+    smtp_port: "587",
+    smtp_user: "",
+    smtp_password: "",
+    sender_name: "",
+    sender_email: "",
+    reply_to: "",
+  });
+
+  function refresh() {
+    fetch("/api/integrations/brevo/status")
+      .then((r) => r.json())
+      .then((d) => setStatus(d))
+      .catch(() => setStatus(null));
+  }
+
+  useEffect(refresh, []);
+
+  async function handleConnect() {
+    setSaving(true);
+    try {
+      const r = await fetch("/api/integrations/brevo/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, smtp_port: Number(form.smtp_port) }),
+      });
+      const d = await r.json();
+      if (!r.ok || !d.ok) throw new Error(d.error ?? "Connection failed");
+      toast.success(`Brevo connected — verified sender ${d.sender_email}`);
+      setForm((f) => ({ ...f, smtp_password: "" }));
+      setOpen(false);
+      refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Connection failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const ready = status?.ready ?? false;
+  const inputStyle: CSSProperties = {
+    backgroundColor: "var(--muted)",
+    borderColor: "var(--border)",
+    color: "var(--foreground)",
+  };
+
+  return (
+    <div
+      className="rounded-xl border overflow-hidden mb-8"
+      style={{ borderColor: "var(--border)", backgroundColor: "var(--background)" }}
+    >
+      <div
+        className="px-6 py-3 border-b"
+        style={{ borderColor: "var(--border)", backgroundColor: "var(--muted)" }}
+      >
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-[#c7c4d7]">
+          Email sending
+        </p>
+      </div>
+
+      <div className="flex items-center gap-4 px-6 py-4">
+        <div
+          className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shrink-0 select-none"
+          style={{ backgroundColor: "#0B996E", color: "#fff" }}
+        >
+          B
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="text-[13px] font-semibold" style={{ color: "var(--foreground)" }}>
+              Brevo
+            </span>
+            {ready ? (
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                Connected
+              </span>
+            ) : (
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                Not connected
+              </span>
+            )}
+          </div>
+          <p className="text-[12px] leading-snug" style={{ color: "var(--muted-foreground)" }}>
+            {ready
+              ? `Sending from ${status?.sender_email} via your own Brevo account. Approved messages are emailed automatically.`
+              : "Connect your own Brevo account to send approved outreach over email. Uses your Brevo SMTP credentials — your sending reputation, your billing."}
+          </p>
+        </div>
+
+        <div className="shrink-0">
+          <button
+            type="button"
+            onClick={() => setOpen((o) => !o)}
+            className="flex items-center gap-1.5 text-[12px] font-semibold px-4 py-1.5 rounded-lg text-white transition-opacity hover:opacity-90"
+            style={{ backgroundColor: "#5456d4" }}
+          >
+            {ready ? "Reconnect" : "Connect"}
+            {open ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+          </button>
+        </div>
+      </div>
+
+      {open && (
+        <div className="px-6 py-4 border-t space-y-3" style={{ borderColor: "var(--border)" }}>
+          <p className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+            From Brevo → <strong>SMTP &amp; API → SMTP</strong>: copy your login and master
+            password. The sender email must be a <strong>verified sender</strong> in your Brevo
+            account.
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="text-[11px] font-medium" style={{ color: "var(--muted-foreground)" }}>
+              SMTP host
+              <input
+                value={form.smtp_host}
+                onChange={(e) => setForm({ ...form, smtp_host: e.target.value })}
+                className="mt-1 w-full text-[13px] px-2.5 py-1.5 rounded-md border"
+                style={inputStyle}
+              />
+            </label>
+            <label className="text-[11px] font-medium" style={{ color: "var(--muted-foreground)" }}>
+              Port
+              <input
+                value={form.smtp_port}
+                onChange={(e) => setForm({ ...form, smtp_port: e.target.value })}
+                className="mt-1 w-full text-[13px] px-2.5 py-1.5 rounded-md border"
+                style={inputStyle}
+              />
+            </label>
+            <label className="text-[11px] font-medium" style={{ color: "var(--muted-foreground)" }}>
+              SMTP login
+              <input
+                value={form.smtp_user}
+                onChange={(e) => setForm({ ...form, smtp_user: e.target.value })}
+                placeholder="xxxx@smtp-brevo.com"
+                className="mt-1 w-full text-[13px] px-2.5 py-1.5 rounded-md border"
+                style={inputStyle}
+              />
+            </label>
+            <label className="text-[11px] font-medium" style={{ color: "var(--muted-foreground)" }}>
+              SMTP password
+              <input
+                type="password"
+                value={form.smtp_password}
+                onChange={(e) => setForm({ ...form, smtp_password: e.target.value })}
+                placeholder="master password"
+                className="mt-1 w-full text-[13px] px-2.5 py-1.5 rounded-md border"
+                style={inputStyle}
+              />
+            </label>
+            <label className="text-[11px] font-medium" style={{ color: "var(--muted-foreground)" }}>
+              Sender name
+              <input
+                value={form.sender_name}
+                onChange={(e) => setForm({ ...form, sender_name: e.target.value })}
+                placeholder="Adhik Agarwal"
+                className="mt-1 w-full text-[13px] px-2.5 py-1.5 rounded-md border"
+                style={inputStyle}
+              />
+            </label>
+            <label className="text-[11px] font-medium" style={{ color: "var(--muted-foreground)" }}>
+              Sender email (verified)
+              <input
+                value={form.sender_email}
+                onChange={(e) => setForm({ ...form, sender_email: e.target.value })}
+                placeholder="you@yourdomain.com"
+                className="mt-1 w-full text-[13px] px-2.5 py-1.5 rounded-md border"
+                style={inputStyle}
+              />
+            </label>
+          </div>
+          <button
+            type="button"
+            onClick={handleConnect}
+            disabled={saving}
+            className="flex items-center gap-1.5 text-[12px] font-semibold px-4 py-2 rounded-lg text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+            style={{ backgroundColor: "#0B996E" }}
+          >
+            <RefreshCw className={`w-3 h-3 ${saving ? "animate-spin" : ""}`} />
+            {saving ? "Verifying…" : "Connect & verify"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function IntegrationsPage() {
@@ -457,6 +665,9 @@ export default function IntegrationsPage() {
         </div>
       )}
 
+      {/* Email sending (Brevo, bring-your-own SMTP) */}
+      <BrevoEmailCard />
+
       {/* Twenty CRM */}
       <TwentyCrmCard />
 
@@ -503,11 +714,11 @@ export default function IntegrationsPage() {
         <Shield className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
         <div>
           <p className="text-[12px] font-medium" style={{ color: "var(--foreground)" }}>
-            OAuth 2.0 only · no passwords stored
+            Your credentials are encrypted at rest
           </p>
           <p className="text-[11px] mt-0.5" style={{ color: "var(--muted-foreground)" }}>
-            All connections use OAuth. We read only what's needed: email headers (not bodies),
-            calendar titles, and contact names.
+            OAuth connections (Google, LinkedIn) use tokens, not passwords. Email-sending
+            credentials (Brevo SMTP) are encrypted with AES-256 before storage and never logged.
           </p>
         </div>
       </div>

@@ -47,13 +47,17 @@ export async function POST() {
     for (const person of connections) {
       const rawName = person.names?.[0]?.displayName;
       const email = person.emailAddresses?.[0]?.value;
-      const company = person.organizations?.[0]?.name;
       const title = person.organizations?.[0]?.title;
 
       if (!email) {
         skipped++;
         continue;
       }
+
+      // Use the Google-provided org name; otherwise derive a company from the
+      // email's business domain so the contact isn't orphaned (and never store
+      // an email string as a company name). Returns null for free providers.
+      const company = person.organizations?.[0]?.name || deriveCompanyFromEmail(email);
 
       // Google sometimes sets displayName = email for contacts with no name
       const nameIsEmail = !rawName || rawName === email || rawName.includes("@");
@@ -144,3 +148,36 @@ type GooglePerson = {
   emailAddresses?: Array<{ value?: string }>;
   organizations?: Array<{ name?: string; title?: string }>;
 };
+
+// Personal / free email providers — never treat their domain as a company.
+const FREE_EMAIL_DOMAINS = new Set([
+  "gmail.com",
+  "googlemail.com",
+  "outlook.com",
+  "hotmail.com",
+  "live.com",
+  "yahoo.com",
+  "yahoo.co.in",
+  "icloud.com",
+  "me.com",
+  "proton.me",
+  "protonmail.com",
+  "aol.com",
+  "msn.com",
+  "rediffmail.com",
+  "zoho.com",
+  "ymail.com",
+]);
+
+// Derive a human company name from a business email domain.
+// "jane@acme-corp.com" -> "Acme Corp"; free providers -> null.
+function deriveCompanyFromEmail(email: string): string | undefined {
+  const domain = email.split("@")[1]?.toLowerCase().trim();
+  if (!domain || FREE_EMAIL_DOMAINS.has(domain)) return undefined;
+  const label = domain.split(".")[0];
+  if (!label) return undefined;
+  return label
+    .replace(/[._-]+/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .trim();
+}
