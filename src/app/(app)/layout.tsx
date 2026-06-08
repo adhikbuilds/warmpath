@@ -18,6 +18,7 @@ import { useSalesStore } from "@/stores/salesStore";
 const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/warm-leads": "Warm Leads",
+  "/network-search": "Network Search",
   "/approval-queue": "Approval Queue",
   "/tasks": "Tasks",
   "/campaigns": "Campaigns",
@@ -26,7 +27,6 @@ const PAGE_TITLES: Record<string, string> = {
   "/accounts": "Accounts",
   "/contacts": "Contacts",
   "/discover": "Discover",
-  "/analytics": "Analytics",
   "/knowledge-base": "Knowledge Base",
   "/integrations": "Integrations",
   "/team": "Team",

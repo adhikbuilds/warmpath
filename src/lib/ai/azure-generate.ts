@@ -243,3 +243,37 @@ export async function callAzureOpenAI(req: AzureGenerateRequest): Promise<AzureG
     },
   };
 }
+
+// Generic single-turn chat call against the same Azure deployment. Used by
+// features that need raw model output (e.g. Network Search ranking) rather than
+// the structured message-generation contract above. Returns the content string.
+export async function callAzureChat(
+  systemPrompt: string,
+  userPrompt: string,
+  opts?: { jsonObject?: boolean; maxTokens?: number; temperature?: number },
+): Promise<string> {
+  const url = `${AZURE_ENDPOINT.replace(/\/$/, "")}/openai/deployments/${AZURE_DEPLOYMENT}/chat/completions?api-version=${API_VERSION}`;
+
+  const azureRes = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "api-key": AZURE_API_KEY },
+    body: JSON.stringify({
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      max_tokens: opts?.maxTokens ?? 800,
+      temperature: opts?.temperature ?? 0.3,
+      ...(opts?.jsonObject ? { response_format: { type: "json_object" } } : {}),
+    }),
+    signal: AbortSignal.timeout(30_000),
+  });
+
+  if (!azureRes.ok) {
+    const errText = await azureRes.text();
+    throw new Error(`Azure OpenAI ${azureRes.status}: ${errText.slice(0, 300)}`);
+  }
+
+  const data = (await azureRes.json()) as { choices: Array<{ message: { content: string } }> };
+  return data.choices?.[0]?.message?.content ?? "";
+}
