@@ -90,10 +90,21 @@ export default function TeamPage() {
         toast.success(`${data.sent} invite${data.sent > 1 ? "s" : ""} sent`, {
           description: "They'll receive an email with a link to join your workspace.",
         });
+      } else if (data.links?.length > 0) {
+        // No email provider (or send failed) — copy the first invite link to share.
+        const link = data.links[0].acceptUrl as string;
+        try {
+          await navigator.clipboard.writeText(link);
+          toast.success("Invite link copied to clipboard", {
+            description: "Email isn't configured — share this link directly with your teammate.",
+          });
+        } catch {
+          toast.info("Invite created — share this link:", { description: link });
+        }
       } else if (data.skipped > 0) {
         toast.info("All emails are already members or have pending invites");
       } else {
-        toast.error("Failed to send invites — check email configuration");
+        toast.error("Failed to create invite");
       }
     } catch {
       toast.error("Could not reach the invite API");
@@ -113,6 +124,14 @@ export default function TeamPage() {
       const data = await res.json();
       if (data.sent > 0) {
         toast.success(`Invite resent to ${email}`);
+      } else if (data.links?.length > 0) {
+        const link = data.links[0].acceptUrl as string;
+        try {
+          await navigator.clipboard.writeText(link);
+          toast.success("Invite link copied to clipboard", { description: link });
+        } catch {
+          toast.info("Invite link:", { description: link });
+        }
       } else {
         toast.error(data.error ?? "Failed to resend invite");
       }

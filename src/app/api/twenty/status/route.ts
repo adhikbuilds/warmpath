@@ -17,14 +17,14 @@ export async function GET() {
     })
     .catch(() => null);
 
-  if (!connection) {
-    return NextResponse.json({ configured: false });
-  }
+  // Configured = the instance has Twenty credentials (so a first sync is
+  // possible), or this workspace has already synced at least once.
+  const configured = Boolean(process.env.TWENTY_API_KEY) || !!connection;
 
   return NextResponse.json({
-    configured: true,
-    status: connection.status,
-    connectedAt: connection.createdAt,
-    lastSyncAt: connection.lastSyncAt,
+    configured,
+    status: connection?.status ?? (configured ? "ready" : "disconnected"),
+    connectedAt: connection?.createdAt ?? null,
+    lastSyncAt: connection?.lastSyncAt ?? null,
   });
 }

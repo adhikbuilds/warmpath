@@ -54,12 +54,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Not a workspace member" }, { status: 403 });
   }
 
-  if (!process.env.AZURE_COMMUNICATION_CONNECTION_STRING) {
-    return NextResponse.json(
-      { success: false, error: "Email service not configured — contact your admin" },
-      { status: 500 },
-    );
-  }
+  // Email delivery is optional. If no email provider is configured we still
+  // create the invitation and return a shareable accept link (copy-link flow).
+  const emailConfigured = Boolean(process.env.AZURE_COMMUNICATION_CONNECTION_STRING);
 
   const workspace = await prisma.workspace.findUnique({
     where: { id: workspaceId },
@@ -84,9 +81,10 @@ export async function POST(req: NextRequest) {
 
   const results: Array<{
     email: string;
-    status: "sent" | "skipped" | "failed";
+    status: "sent" | "skipped" | "failed" | "link";
     reason?: string;
     inviteId?: string;
+    acceptUrl?: string;
   }> = [];
 
   for (const rawEmail of rawEmails.slice(0, 20)) {
@@ -108,6 +106,13 @@ export async function POST(req: NextRequest) {
     });
 
     const acceptUrl = `${APP_URL}/invite/accept?token=${invite.token}`;
+
+    if (!emailConfigured) {
+      // No email provider — hand back the link for the inviter to share.
+      results.push({ email, status: "link", inviteId: invite.id, acceptUrl });
+      continue;
+    }
+
     const sendError = await sendEmail(
       email,
       `${inviterName} invited you to join ${workspaceName} on WarmPath`,
@@ -115,21 +120,24 @@ export async function POST(req: NextRequest) {
     );
 
     if (sendError) {
-      results.push({ email, status: "failed", reason: sendError, inviteId: invite.id });
+      // Email failed but the invite is valid — still return the link.
+      results.push({ email, status: "failed", reason: sendError, inviteId: invite.id, acceptUrl });
     } else {
-      results.push({ email, status: "sent", inviteId: invite.id });
+      results.push({ email, status: "sent", inviteId: invite.id, acceptUrl });
     }
   }
 
   const sent = results.filter((r) => r.status === "sent").length;
-  const failed = results.filter((r) => r.status === "failed");
+  const links = results.filter((r) => r.status === "link" || r.status === "failed");
 
   return NextResponse.json({
-    success: sent > 0,
+    success: sent > 0 || links.length > 0,
     sent,
     skipped: results.filter((r) => r.status === "skipped").length,
-    failed: failed.length,
-    emailFailed: failed.length > 0 ? failed : undefined,
+    failed: results.filter((r) => r.status === "failed").length,
+    emailConfigured,
+    // Links to share when email isn't sent (no provider, or send failed).
+    links: links.map((r) => ({ email: r.email, acceptUrl: r.acceptUrl })),
     invites: results,
   });
 }
