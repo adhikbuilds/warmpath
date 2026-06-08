@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { badRequest, getAuthContext, unauthorized } from "@/lib/db/auth-helpers";
 import prisma from "@/lib/db/client";
 import { approveAsset, approveMessage } from "@/lib/db/queries/approvals";
-import { isBrevoConfigured, parseSenderIdentity, sendEmail } from "@/lib/email/brevo";
+import { parseSmtpConfig, sendViaSmtp } from "@/lib/email/brevo";
 import { logger } from "@/lib/logger";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -39,11 +39,6 @@ async function trySendApprovedMessage(
   messageId: string,
   editedBody?: string,
 ): Promise<boolean> {
-  if (!isBrevoConfigured()) {
-    logger.warn("Brevo not configured — message approved but not sent", { messageId });
-    return false;
-  }
-
   try {
     const [message, brevoConn] = await Promise.all([
       prisma.message.findFirst({
@@ -60,11 +55,10 @@ async function trySendApprovedMessage(
       return false;
     }
 
-    const senderIdentity = brevoConn
-      ? parseSenderIdentity(brevoConn.capabilitiesJson ?? null)
-      : null;
-    if (!senderIdentity) {
-      logger.warn("No Brevo sender identity configured for workspace", { workspaceId, messageId });
+    // Bring-your-own-Brevo: use the workspace's own SMTP credentials.
+    const smtp = brevoConn ? parseSmtpConfig(brevoConn.capabilitiesJson ?? null) : null;
+    if (!smtp) {
+      logger.warn("No Brevo SMTP credentials connected for workspace", { workspaceId, messageId });
       return false;
     }
 
@@ -85,10 +79,7 @@ async function trySendApprovedMessage(
       .map((line) => `<p>${line || "&nbsp;"}</p>`)
       .join("");
 
-    const result = await sendEmail({
-      senderName: senderIdentity.senderName,
-      senderEmail: senderIdentity.senderEmail,
-      replyTo: senderIdentity.replyTo,
+    const result = await sendViaSmtp(smtp, {
       toName,
       toEmail,
       subject: message.subject ?? "A message from WarmPath",
