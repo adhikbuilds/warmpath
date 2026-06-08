@@ -1,13 +1,12 @@
 "use client";
 
-import { Inbox, Mail, Server } from "lucide-react";
+import { Inbox, Mail } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV = [
   { href: "/campaigns", label: "Email Campaigns", icon: Mail },
   { href: "/campaigns/inbox", label: "Master Inbox", icon: Inbox },
-  { href: "/campaigns/email-accounts", label: "Email Accounts", icon: Server },
 ];
 
 export default function CampaignsLayout({ children }: { children: React.ReactNode }) {
@@ -17,9 +16,7 @@ export default function CampaignsLayout({ children }: { children: React.ReactNod
     if (href === "/campaigns") {
       return (
         pathname === "/campaigns" ||
-        (pathname.startsWith("/campaigns/") &&
-          !pathname.startsWith("/campaigns/inbox") &&
-          !pathname.startsWith("/campaigns/email-accounts"))
+        (pathname.startsWith("/campaigns/") && !pathname.startsWith("/campaigns/inbox"))
       );
     }
     return pathname.startsWith(href);
