@@ -103,22 +103,46 @@ function ResearchAPersonSection({
   const [state, setState] = useState<"idle" | "loading" | "result">("idle");
   const [result, setResult] = useState<ResearchResult | null>(null);
 
-  function runResearch(q: string) {
+  async function runResearch(q: string) {
     if (!q.trim()) return;
     setState("loading");
-    const { name, title, company } = parseResearchQuery(q);
-    setTimeout(() => {
-      setResult({
-        name: name || "Unknown",
-        title: title || "Executive",
-        company: company || q.trim(),
-        linkedin: `linkedin.com/in/${(name || q).toLowerCase().replace(/\s+/g, "")}`,
-        warmth: Math.floor(Math.random() * 30) + 50,
-        mutual: [],
-        summary: `${name || title} at ${company || q}. Add them as a contact to start finding warm paths through your team's network.`,
+    try {
+      const r = await fetch("/api/network-search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: q, limit: 5 }),
       });
+      const d = await r.json();
+      const first = d.results?.[0];
+      if (!first) {
+        const { name, title, company } = parseResearchQuery(q);
+        setResult({
+          name: name || q.trim(),
+          title: title || "",
+          company: company || "",
+          linkedin: "",
+          warmth: 0,
+          mutual: [],
+          summary:
+            "No matching contacts found in your network. Import contacts via Google or add them manually.",
+        });
+      } else {
+        setResult({
+          name: first.name,
+          title: first.title ?? "",
+          company: first.company ?? "",
+          linkedin: first.linkedin_url ?? "",
+          warmth: 60,
+          mutual: [],
+          summary:
+            first.summary ?? [first.title, first.company].filter(Boolean).join(" · ") ?? "",
+        });
+      }
       setState("result");
-    }, 1200);
+    } catch {
+      toast.error("Network search failed — check your connection");
+      setState("idle");
+    }
   }
 
   return (

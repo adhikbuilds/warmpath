@@ -10,11 +10,13 @@ import {
   ChevronUp,
   Edit3,
   Plus,
+  RefreshCw,
   Send,
   Shield,
   Sparkles,
   Tag,
   Trash2,
+  Upload,
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -93,63 +95,6 @@ type ChatMessage = {
   sources?: string[];
 };
 
-// ─── KB AI Chat simulation ────────────────────────────────────────────────────
-
-function simulateKBResponse(
-  question: string,
-  items: KnowledgeBaseItem[],
-): { thinking: string[]; answer: string; sources: string[] } {
-  const q = question.toLowerCase();
-
-  const relevant = items
-    .filter(
-      (item) =>
-        item.approved_for_ai &&
-        (item.title
-          .toLowerCase()
-          .split(" ")
-          .some((w) => q.includes(w)) ||
-          item.content
-            .toLowerCase()
-            .split(" ")
-            .some((w) => w.length > 4 && q.includes(w)) ||
-          item.type === "product" ||
-          item.type === "value_prop"),
-    )
-    .slice(0, 3);
-
-  const topItems =
-    relevant.length > 0 ? relevant : items.filter((i) => i.approved_for_ai).slice(0, 2);
-  const sources = topItems.map((i) => i.title);
-
-  const thinking = [
-    `Searching ${items.length} knowledge base items for context…`,
-    topItems.length > 0
-      ? `Found ${topItems.length} relevant item${topItems.length > 1 ? "s" : ""}: ${topItems.map((i) => `"${i.title}"`).join(", ")}`
-      : "No exact match — using approved product and value prop items as fallback context",
-    "Grounding answer in approved content only…",
-  ];
-
-  let answer = "";
-  if (q.includes("price") || q.includes("cost") || q.includes("pricing")) {
-    const pricingItem = items.find((i) => i.type === "pricing" && i.approved_for_ai);
-    answer = pricingItem
-      ? `Based on the pricing documentation: ${pricingItem.content.slice(0, 300)}…`
-      : "Pricing details aren't yet in the knowledge base. Add a Pricing item to get accurate answers.";
-  } else if (q.includes("competitor") || q.includes("vs ") || q.includes("compare")) {
-    const compItem = items.find((i) => i.type === "competitor" && i.approved_for_ai);
-    answer = compItem
-      ? `Competitive positioning from the KB: ${compItem.content.slice(0, 300)}…`
-      : "No competitor analysis is approved yet. Add a Competitor item to enable this.";
-  } else if (topItems.length > 0) {
-    answer = `Based on ${topItems.map((i) => `"${i.title}"`).join(" and ")}: ${topItems[0].content.slice(0, 280)}${topItems.length > 1 ? `\n\nAdditionally from "${topItems[1].title}": ${topItems[1].content.slice(0, 200)}` : ""}`;
-  } else {
-    answer =
-      "I couldn't find an approved KB item directly answering this. Consider adding more content or approving existing items for AI use.";
-  }
-
-  return { thinking, answer, sources };
-}
 
 // ─── Add Item Form ────────────────────────────────────────────────────────────
 
@@ -457,45 +402,57 @@ function AIChatPanel({ items }: { items: KnowledgeBaseItem[] }) {
 
     setMessages((prev) => [...prev, userMsg, assistantMsg]);
 
-    const { thinking, answer, sources } = simulateKBResponse(text, items);
+    // Show a "searching" thinking step while the real API responds
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === assistantId
+          ? { ...m, thinking: [{ text: "Searching knowledge base…", done: false }] }
+          : m,
+      ),
+    );
 
-    // Stream thinking steps one by one
-    for (let i = 0; i < thinking.length; i++) {
-      await new Promise((r) => setTimeout(r, 600));
+    try {
+      const r = await fetch("/api/knowledge-base/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: text }),
+      });
+      const d = await r.json();
+      const answer: string = d.answer ?? "I could not find a relevant answer.";
+      const sources: string[] = d.sources ?? [];
+
       setMessages((prev) =>
         prev.map((m) =>
           m.id === assistantId
             ? {
                 ...m,
-                thinking: thinking.slice(0, i + 1).map((t, idx) => ({ text: t, done: idx < i })),
+                thinkingDone: true,
+                thinking: [
+                  { text: "Searching knowledge base…", done: true },
+                  { text: d.used_azure ? "Answered via Azure OpenAI" : "Answered via keyword match", done: true },
+                ],
+                content: answer,
+                sources,
+                thinkingExpanded: false,
               }
             : m,
         ),
       );
-    }
 
-    // Mark thinking done, show answer
-    await new Promise((r) => setTimeout(r, 400));
-    setMessages((prev) =>
-      prev.map((m) =>
-        m.id === assistantId
-          ? {
-              ...m,
-              thinkingDone: true,
-              thinking: thinking.map((t) => ({ text: t, done: true })),
-              content: answer,
-              sources,
-              thinkingExpanded: false,
-            }
-          : m,
-      ),
-    );
-
-    // Highlight referenced KB items
-    const refItems = items.filter((item) => sources.includes(item.title));
-    if (refItems.length > 0) {
-      setHighlightedItems(new Set(refItems.map((i) => i.id)));
-      setTimeout(() => setHighlightedItems(new Set()), 4000);
+      // Highlight referenced KB items
+      const refItems = items.filter((item) => sources.includes(item.title));
+      if (refItems.length > 0) {
+        setHighlightedItems(new Set(refItems.map((i) => i.id)));
+        setTimeout(() => setHighlightedItems(new Set()), 4000);
+      }
+    } catch {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId
+            ? { ...m, thinkingDone: true, content: "Failed to get answer. Please try again.", thinkingExpanded: false }
+            : m,
+        ),
+      );
     }
 
     setIsLoading(false);
@@ -661,11 +618,32 @@ function AIChatPanel({ items }: { items: KnowledgeBaseItem[] }) {
 const PAGE_SIZE = 5;
 
 export default function KnowledgeBasePage() {
-  const { kbItems, addKBItem, deleteKBItem, toggleKBItemApproval } = useSalesStore();
+  const { kbItems, addKBItem, deleteKBItem, toggleKBItemApproval, initialize } = useSalesStore();
   const [showAddForm, setShowAddForm] = useState(false);
   const [typeFilter, setTypeFilter] = useState<KBItemType | "all">("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
+  const [uploading, setUploading] = useState(false);
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setUploading(true);
+    const fd = new FormData();
+    fd.append("file", file);
+    try {
+      const r = await fetch("/api/knowledge-base/upload", { method: "POST", body: fd });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error ?? "Upload failed");
+      toast.success(`Imported ${d.created} KB item${d.created !== 1 ? "s" : ""} — review and approve for AI use`);
+      initialize();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   const filtered = kbItems.filter((item) => {
     const matchType = typeFilter === "all" || item.type === typeFilter;
@@ -708,14 +686,41 @@ export default function KnowledgeBasePage() {
                 {approvedCount}/{kbItems.length} approved for AI
               </p>
             </div>
-            <Button
-              size="sm"
-              className="h-7 text-[11px]"
-              onClick={() => setShowAddForm(!showAddForm)}
-            >
-              <Plus className="w-3 h-3 mr-1" />
-              Add
-            </Button>
+            <div className="flex items-center gap-1.5">
+              <label className="cursor-pointer">
+                <input
+                  type="file"
+                  accept=".csv,.txt,.md"
+                  className="hidden"
+                  onChange={handleFileUpload}
+                  disabled={uploading}
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-[11px] pointer-events-none"
+                  disabled={uploading}
+                  asChild
+                >
+                  <span>
+                    {uploading ? (
+                      <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+                    ) : (
+                      <Upload className="w-3 h-3 mr-1" />
+                    )}
+                    {uploading ? "…" : "Upload"}
+                  </span>
+                </Button>
+              </label>
+              <Button
+                size="sm"
+                className="h-7 text-[11px]"
+                onClick={() => setShowAddForm(!showAddForm)}
+              >
+                <Plus className="w-3 h-3 mr-1" />
+                Add
+              </Button>
+            </div>
           </div>
 
           {/* Stats pills */}
