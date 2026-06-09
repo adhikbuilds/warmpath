@@ -17,9 +17,11 @@ export async function GET() {
     })
     .catch(() => null);
 
-  // Configured = the instance has Twenty credentials (so a first sync is
-  // possible), or this workspace has already synced at least once.
-  const configured = Boolean(process.env.TWENTY_API_KEY) || !!connection;
+  // Configured = the instance has both Twenty credentials set (so a first
+  // sync is possible), or this workspace has already synced at least once.
+  const hasCredentials =
+    Boolean(process.env.TWENTY_API_KEY) && Boolean(process.env.TWENTY_API_URL);
+  const configured = hasCredentials || !!connection;
 
   return NextResponse.json({
     configured,

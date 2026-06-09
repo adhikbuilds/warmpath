@@ -1,13 +1,14 @@
 // GraphQL client for Twenty CRM API
 // Docs: https://twenty.com/developers/api
 
-const TWENTY_API_URL = process.env.TWENTY_API_URL ?? "http://localhost:3000/graphql";
+const TWENTY_API_URL = process.env.TWENTY_API_URL ?? "";
 const TWENTY_API_KEY = process.env.TWENTY_API_KEY ?? "";
 
 async function twentyQuery<T = unknown>(
   query: string,
   variables?: Record<string, unknown>,
 ): Promise<T> {
+  if (!TWENTY_API_URL) throw new Error("TWENTY_API_URL is not configured");
   const res = await fetch(TWENTY_API_URL, {
     method: "POST",
     headers: {
