@@ -31,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuthStore } from "@/stores/authStore";
 import { useSalesStore } from "@/stores/salesStore";
 
 // ── Filter option lists ───────────────────────────────────────────────────────
@@ -530,8 +531,9 @@ export default function DiscoverPage() {
   const [importingAll, setImportingAll] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // ── Visitors — demo sample data shown until website tracker is connected ──
-  const isDemoVisitors = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+  // ── Visitors — demo sample data shown to demo@warmpath.ai only ──
+  const { user } = useAuthStore();
+  const isDemoVisitors = user?.email === "demo@warmpath.ai";
   const [visitors, setVisitors] = useState(isDemoVisitors ? DEMO_VISITORS : []);
   const [convertingId, setConvertingId] = useState<string | null>(null);
   const [selectedVisitorIds, setSelectedVisitorIds] = useState<Set<string>>(new Set());
