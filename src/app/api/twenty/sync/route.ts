@@ -13,11 +13,12 @@ export async function GET() {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!process.env.TWENTY_API_KEY) {
+  if (!process.env.TWENTY_API_KEY || !process.env.TWENTY_API_URL) {
     return NextResponse.json(
       {
         ok: false,
-        error: "Twenty CRM is not configured (TWENTY_API_KEY missing on this instance)",
+        error:
+          "Twenty CRM is not configured — set TWENTY_API_URL and TWENTY_API_KEY in your environment",
       },
       { status: 400 },
     );
