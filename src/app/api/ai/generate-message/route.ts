@@ -140,6 +140,11 @@ export async function POST(req: NextRequest) {
     intelBody.intro_person = pathNames[1] ?? undefined;
   }
 
+  // Pass sender identity so the AI signs with the actual user's name, not a hardcoded default.
+  intelBody.sender_name =
+    session.user?.name?.split(" ")[0] ?? session.user?.email?.split("@")[0] ?? "Your Rep";
+  intelBody.workspace_name = "WarmPath";
+
   // Azure-first: call Azure OpenAI directly when credentials are available.
   // Falls back to the Python intelligence service if Azure is not configured.
   if (isAzureConfigured()) {

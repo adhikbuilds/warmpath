@@ -41,6 +41,8 @@ export interface AzureGenerateRequest {
   intro_person?: string;
   linkedin_connected?: boolean;
   kb_items?: KBItem[];
+  sender_name?: string;
+  workspace_name?: string;
 }
 
 export interface AzureGenerateResult {
@@ -57,60 +59,71 @@ export interface AzureGenerateResult {
 }
 
 // ── System prompt ──────────────────────────────────────────────────────────────
-// kb-9 (Banned Claims) has approved_for_ai: false and is intentionally excluded
-// from the KB filter. Its guardrails are hardcoded here so the model always sees them.
-export function buildSystemPrompt(kbItems: KBItem[]): string {
+export function buildSystemPrompt(
+  kbItems: KBItem[],
+  senderName = "Your Rep",
+  workspaceName = "our solution",
+): string {
   const approved = kbItems.filter((k) => k.approved_for_ai).slice(0, 6);
-  const kbContext =
-    approved.length > 0
-      ? approved
-          .map((k) => `[${k.type.toUpperCase()}] ${k.title}:\n${k.content.slice(0, 400)}`)
+
+  // Product/value KB items surface as PRODUCT FACTS; others as additional context.
+  const PRODUCT_TYPES = new Set([
+    "product_overview",
+    "value_proposition",
+    "case_study",
+    "product",
+    "value_prop",
+    "pricing",
+    "custom",
+  ]);
+  const productKb = approved.filter((k) => PRODUCT_TYPES.has(k.type));
+  const otherKb = approved.filter((k) => !PRODUCT_TYPES.has(k.type));
+
+  const productContext =
+    productKb.length > 0
+      ? productKb
+          .map((k) => `[${k.type.toUpperCase()}] ${k.title}:\n${k.content.slice(0, 500)}`)
+          .join("\n\n")
+      : "";
+  const otherContext =
+    otherKb.length > 0
+      ? otherKb
+          .map((k) => `[${k.type.toUpperCase()}] ${k.title}:\n${k.content.slice(0, 300)}`)
           .join("\n\n")
       : "";
 
-  return `You are WarmBlue's AI sales writer. WarmBlue is a B2B outbound platform that maps a company's existing relationship graph, finds warm intro paths to prospects, and generates personalized multi-channel outreach — with a human-approval gate before anything sends. WarmBlue is NOT an autonomous AI SDR; every message is approved by a human first.
-
-PRODUCT FACTS (cite only these — never fabricate metrics):
-• Reply rates: warm-path outreach achieves 5× higher reply rates (Gartner 2025 B2B Outbound Benchmark)
-• Close rate: 47% close rate on warm-path sourced meetings (WarmBlue dataset, n=400)
-• Case study: Series A SaaS, 3 SDRs, 7% → 38% reply rate in 6 weeks, discovered 14 warm paths through advisor network
-• Setup: live in under 5 minutes, zero RevOps configuration required
-• HITL: every message passes human review before sending — WarmBlue is not "set and forget"
-
-BANNED CLAIMS — NEVER write these (legal risk):
-• "guaranteed results" or any promise of specific outcomes
-• "AI replaces SDRs" or "eliminate your sales team"
-• Revenue numbers not listed above
-• GDPR / SOC 2 / compliance certifications
-• Negative statements about specific competitors by name
+  return `You are an AI sales writer for ${workspaceName}. You write concise, personalized B2B outreach messages on behalf of ${senderName}.
+${productContext ? `\nPRODUCT & COMPANY FACTS (cite only these — never fabricate metrics or outcomes not listed here):\n${productContext}\n` : ""}
+BANNED CLAIMS — NEVER write:
+• "guaranteed results" or any specific outcome promise not in PRODUCT FACTS
+• Claims about revenue, compliance certifications (GDPR / SOC 2), or negative competitor comparisons
+• AI as a replacement for humans / "eliminate your team"
 
 BANNED WORDS (instant spam / trust killers — using any is a failure):
 synergy, synergies, leverage, paradigm, game-changer, cutting-edge, revolutionary, exciting opportunity, touch base, circle back, reach out, hope this finds you well, I wanted to reach out, I'm reaching out
 
 ICP PERSONA HOOKS (tailor opener to persona):
-• VP Sales / CRO / Sales Leader → Lead with quota and pipeline outcomes. Skeptical of AI hype. Use the 47% close rate or 7%→38% case study. Ask about current SDR reply rates — not "improving productivity."
-• Founder / CEO → Warm intros close faster than cold sequences — they know this from fundraising. WarmBlue is the GTM equivalent of how they grew their investor network.
-• VC / Investor → Deal flow and portfolio context. WarmBlue surfaces connections they didn't know existed. Ask about their investment thesis, not about using the product.
-• Marketing Leader → Pipeline quality vs volume. Warm-path sourced meetings convert differently. Ask if they measure meeting quality vs meeting count.
+• VP Sales / CRO / Sales Leader → Lead with quota and pipeline outcomes. Skeptical of AI hype. Ask about their current SDR reply rates, not "improving productivity."
+• Founder / CEO → Speed-to-pipeline. Warm intros close faster than cold — they know this from fundraising.
+• VC / Investor → Deal flow and portfolio context. Ask about their investment thesis, not about using the product.
+• Marketing Leader → Pipeline quality vs volume. Ask if they measure meeting quality vs meeting count.
 • GTM / Growth → Fast setup, zero RevOps overhead. Ask how they're bridging the cold-to-warm gap at their current stage.
 
 SIGNAL-SPECIFIC OPENING HOOKS:
-• funding_round → "Congrats on the raise" then: "When companies at [stage] raise and plan to grow GTM, the first bottleneck is usually outbound quality — reps get hired, sequences get built, reply rates disappoint."
-• job_posting (SDR / AE hire) → Ask what reply rate they're targeting for the new reps. Most B2B SDR sequences get sub-10%; warm paths flip that.
-• champion_job_change → "Congrats on the move to [Company]" — they're building a new GTM motion from scratch. Perfect timing.
-• pricing_page_visit → They already know the product. Skip the intro; ask a direct question.
-• No signal → Lead with something specific to their company, recent news, or their LinkedIn context.
+• funding_round → "Congrats on the raise" then connect to their likely GTM challenges at this stage
+• job_posting (SDR / AE hire) → Ask what reply rate they're targeting for the new reps
+• champion_job_change → "Congrats on the move to [Company]" — they're building new GTM from scratch
+• pricing_page_visit → They already know the product; skip the intro, ask a direct question
+• No signal → Lead with something specific to their company, recent news, or LinkedIn context
 
-STYLE GUIDE (modeled on best-performing WarmBlue email):
+STYLE GUIDE:
 • 3–4 short paragraphs, each under 3 sentences
-• P1: specific hook (signal or context, never generic opener)
+• P1: specific hook (signal or context, never a generic opener)
 • P2: bridge to the problem they're likely feeling right now
-• P3: WarmBlue as the answer — outcome-framed, never a feature list
+• P3: your solution framed around outcomes, never a feature list
 • CTA: "Worth 15 minutes this week?" or "Worth a quick look?" — specific, low-friction
-• Sign as "Adhik" — first name only
-
-${kbContext ? `ADDITIONAL KNOWLEDGE BASE CONTEXT (use facts here; do not contradict PRODUCT FACTS above):\n${kbContext}` : ""}
-
+• Sign as "${senderName}" — first name only
+${otherContext ? `\nADDITIONAL CONTEXT:\n${otherContext}\n` : ""}
 ABSOLUTE FORMAT RULES:
 • Email body: under 120 words
 • LinkedIn DM: under 300 characters
@@ -162,8 +175,9 @@ export function buildUserPrompt(req: AzureGenerateRequest): string {
   }
 
   if (req.linkedin_connected) {
+    const senderFirst = (req.sender_name ?? "the sender").split(" ")[0];
     lines.push(
-      `NOTE: Sender (Adhik) is already connected with ${req.contact_name} on LinkedIn — reference this naturally if relevant.`,
+      `NOTE: ${senderFirst} is already connected with ${req.contact_name} on LinkedIn — reference this naturally if relevant.`,
     );
   }
 
@@ -178,7 +192,8 @@ export function buildUserPrompt(req: AzureGenerateRequest): string {
   }
 
   lines.push(`TONE: ${req.tone}`);
-  lines.push(`SENDER: Adhik (WarmBlue founder)`);
+  if (req.sender_name)
+    lines.push(`SENDER: ${req.sender_name}${req.workspace_name ? ` (${req.workspace_name})` : ""}`);
 
   return lines.join("\n");
 }
@@ -187,7 +202,7 @@ export function buildUserPrompt(req: AzureGenerateRequest): string {
 export async function callAzureOpenAI(req: AzureGenerateRequest): Promise<AzureGenerateResult> {
   const url = `${AZURE_ENDPOINT.replace(/\/$/, "")}/openai/deployments/${AZURE_DEPLOYMENT}/chat/completions?api-version=${API_VERSION}`;
 
-  const systemPrompt = buildSystemPrompt(req.kb_items ?? []);
+  const systemPrompt = buildSystemPrompt(req.kb_items ?? [], req.sender_name, req.workspace_name);
   const userPrompt = buildUserPrompt(req);
 
   const azureRes = await fetch(url, {
