@@ -18,6 +18,7 @@ type Workspace = {
   memberCount: number;
   ownerId: string;
   role: string;
+  onboardingStage?: string;
 };
 
 const PLAN_LABELS: Record<string, string> = {
@@ -82,7 +83,11 @@ export default function WorkspaceSelectPage() {
   function enterWorkspace(ws: Workspace) {
     setEntering(ws.id);
     setWorkspace(ws.id, ws.name);
-    router.push("/dashboard");
+    if (ws.onboardingStage && ws.onboardingStage !== "completed") {
+      router.push("/onboarding");
+    } else {
+      router.push("/dashboard");
+    }
   }
 
   async function handleCreate(e: React.FormEvent) {

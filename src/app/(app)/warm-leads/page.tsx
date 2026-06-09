@@ -565,7 +565,7 @@ export default function WarmLeadsPage() {
     addMessageToQueue,
   } = useSalesStore();
   const { user } = useAuthStore();
-  const senderFirstName = user?.name?.split(" ")[0] ?? "Adhik";
+  const senderFirstName = user?.name?.split(" ")[0] ?? "me";
 
   const [view, setView] = useState<"list" | "pipeline">("list");
   const [focusMode, setFocusMode] = useState(false);

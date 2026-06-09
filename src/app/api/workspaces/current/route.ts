@@ -34,6 +34,9 @@ export async function GET() {
 export async function PATCH(request: Request) {
   try {
     const workspaceId = await getWorkspaceId();
+    if (!workspaceId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const body = await request.json();
 
     const allowedFields: (keyof {

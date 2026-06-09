@@ -26,6 +26,7 @@ export async function GET() {
       plan: workspace.plan,
       memberCount: workspace._count.members,
       ownerId: workspace.ownerId,
+      onboardingStage: workspace.onboardingStage,
       role,
     })),
   );

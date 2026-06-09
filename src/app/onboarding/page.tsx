@@ -373,13 +373,11 @@ export default function OnboardingPage() {
         const ws = workspaces[0];
         if (ws) {
           const finalName = workspaceName.trim() || ws.name;
-          if (finalName !== ws.name) {
-            await fetch("/api/workspaces/current", {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ name: finalName, onboardingStage: "completed" }),
-            }).catch(() => {});
-          }
+          await fetch("/api/workspaces/current", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: finalName, onboardingStage: "completed" }),
+          }).catch(() => {});
           setAuthenticated(true);
           setWorkspace(ws.id, finalName);
         }
