@@ -97,7 +97,7 @@ export default function OnboardingPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const { user, setWorkspace, setAuthenticated } = useAuthStore();
-  const { importLinkedInContacts } = useSalesStore();
+  const { addContact, addAccount, addCampaign } = useSalesStore();
 
   const [stepIdx, setStepIdx] = useState(0);
   const [selectedRole, setSelectedRole] = useState("");
@@ -352,7 +352,10 @@ export default function OnboardingPage() {
           (a, i, arr) => arr.findIndex((x) => x.name === a.name) === i,
         );
 
-        importLinkedInContacts(contactsToImport, result.accounts.slice(0, 300), autoCampaigns);
+        // Seed in-memory store for immediate UI feedback
+        for (const acc of uniqueAccounts) addAccount(acc);
+        for (const c of contactsToImport) addContact(c);
+        for (const camp of autoCampaigns) addCampaign(camp);
 
         // Persist to DB via discovery import — batch all contacts in one request
         // so RelationshipEdges are created for each contact.

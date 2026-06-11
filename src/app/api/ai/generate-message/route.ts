@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
   let account: Awaited<ReturnType<typeof prisma.bizAccount.findFirst>>;
   let contact: Awaited<ReturnType<typeof prisma.contact.findFirst>>;
   let kbItems: Awaited<ReturnType<typeof prisma.knowledgeBaseItem.findMany>>;
-  let workspace: Awaited<ReturnType<typeof prisma.workspace.findUnique>>;
+  let workspace: { name: string } | null;
 
   try {
     [account, contact, kbItems, workspace] = await Promise.all([

@@ -87,6 +87,7 @@ interface SalesState {
   // Workspace
   workspace: Workspace;
   workspaceMembers: WorkspaceMember[];
+  pendingInvitations: { id: string; email: string; role: WorkspaceMember["role"]; expiresAt: string }[];
 
   // Knowledge Base
   kbItems: KnowledgeBaseItem[];
@@ -125,6 +126,10 @@ interface SalesState {
   setApprovalFilter: (f: SalesState["approvalFilter"]) => void;
   setApprovalChannelFilter: (f: SalesState["approvalChannelFilter"]) => void;
 
+  // Actions CRM bulk setters
+  setAccounts: (accounts: Account[]) => void;
+  setContacts: (contacts: Contact[]) => void;
+
   // Actions Messages (optimistic + API)
   approveMessage: (id: string, editedBody?: string) => Promise<void>;
   rejectMessage: (id: string, reason?: string) => Promise<void>;
@@ -142,6 +147,8 @@ interface SalesState {
   createFollowUpTask: (task: Omit<FollowUpTask, "id" | "created_at" | "status">) => void;
   completeFollowUpTask: (id: string) => void;
   dismissFollowUpTask: (id: string) => void;
+  snoozeFollowUpTask: (id: string, hours: number) => void;
+  reassignFollowUpTask: (id: string, assignee: string) => void;
 
   // Actions WhatsApp (local only)
   approveWhatsApp: (id: string) => void;
@@ -196,8 +203,9 @@ interface SalesState {
   updateCampaignStep: (
     campaignId: string,
     stepId: string,
-    updates: { delay_days?: number; template_hint?: string },
+    updates: { delay_days?: number; template_hint?: string; subject_a?: string; subject_b?: string; email_body?: string },
   ) => void;
+  deleteCampaignStep: (campaignId: string, stepId: string) => void;
 
   // Actions Warm paths
   addWarmPath: (wp: WarmPath) => void;
@@ -583,6 +591,7 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
   gtmMissions: [],
   workspace: DEFAULT_WORKSPACE,
   workspaceMembers: [],
+  pendingInvitations: [],
   kbItems: [],
   aiSettings: DEFAULT_AI_SETTINGS,
   aiUsageLogs: [],
@@ -757,6 +766,8 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
 
   setApprovalFilter: (f) => set({ approvalFilter: f }),
   setApprovalChannelFilter: (f) => set({ approvalChannelFilter: f }),
+  setAccounts: (accounts) => set({ accounts }),
+  setContacts: (contacts) => set({ contacts }),
 
   // ─── Messages ─────────────────────────────────────────────────────────────
 
@@ -990,6 +1001,34 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
     }).catch(() => {}); // fire-and-forget
   },
 
+  snoozeFollowUpTask: (id, hours) => {
+    set((state) => ({
+      followUpTasks: state.followUpTasks.map((t) => {
+        if (t.id !== id) return t;
+        const snoozedUntil = new Date(Date.now() + hours * 3_600_000).toISOString();
+        return { ...t, due_date: snoozedUntil };
+      }),
+    }));
+    fetch(`/api/tasks/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ snooze_hours: hours }),
+    }).catch(() => {});
+  },
+
+  reassignFollowUpTask: (id, assignee) => {
+    set((state) => ({
+      followUpTasks: state.followUpTasks.map((t) =>
+        t.id === id ? { ...t, assignee_name: assignee } : t,
+      ),
+    }));
+    fetch(`/api/tasks/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ assignee_name: assignee }),
+    }).catch(() => {});
+  },
+
   // ─── Missions ─────────────────────────────────────────────────────────────
 
   completeMission: (id) => {
@@ -1214,6 +1253,16 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
               ...c,
               steps: c.steps.map((s) => (s.id === stepId ? { ...s, ...updates } : s)),
             }
+          : c,
+      ),
+    }));
+  },
+
+  deleteCampaignStep: (campaignId, stepId) => {
+    set((state) => ({
+      campaigns: state.campaigns.map((c) =>
+        c.id === campaignId
+          ? { ...c, steps: c.steps.filter((s) => s.id !== stepId) }
           : c,
       ),
     }));
