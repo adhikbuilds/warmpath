@@ -1,9 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db/client";
-import { getWorkspaceContext } from "@/lib/db/workspace";
+import { getWorkspaceId } from "@/lib/db/workspace";
 
 const ALLOWED_TYPES = new Set(["text/csv", "text/plain", "text/markdown"]);
-const CHUNK_SIZE = 800;
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+const TARGET_CHUNK_MIN = 400;
+const TARGET_CHUNK_MAX = 600;
 
 function parseSimpleCsv(text: string): string[][] {
   const rows: string[][] = [];
@@ -40,25 +42,50 @@ function parseSimpleCsv(text: string): string[][] {
   return rows;
 }
 
-function chunkText(text: string, maxChars = CHUNK_SIZE): string[] {
-  const paragraphs = text.split(/\n\s*\n/).filter((p) => p.trim().length > 50);
+/**
+ * Split text into chunks targeting TARGET_CHUNK_MIN–TARGET_CHUNK_MAX chars.
+ * Strategy: split by paragraph (\n\n), then split long paragraphs by sentence.
+ */
+function chunkContent(text: string): string[] {
+  const paragraphs = text.split(/\n\s*\n/).filter((p) => p.trim().length > 0);
   const chunks: string[] = [];
-  let buf = "";
+
   for (const para of paragraphs) {
-    if (buf.length + para.length > maxChars && buf.length > 0) {
-      chunks.push(buf.trim());
-      buf = "";
+    const trimmed = para.trim();
+    if (trimmed.length === 0) continue;
+
+    if (trimmed.length <= TARGET_CHUNK_MAX) {
+      // Paragraph fits in one chunk; merge with previous if both are small
+      const last = chunks[chunks.length - 1];
+      if (last && last.length + trimmed.length + 2 <= TARGET_CHUNK_MAX) {
+        chunks[chunks.length - 1] = `${last}\n\n${trimmed}`;
+      } else {
+        chunks.push(trimmed);
+      }
+    } else {
+      // Paragraph too long — split by sentence
+      const sentences = trimmed.split(/(?<=[.!?])\s+/);
+      let buf = "";
+      for (const sentence of sentences) {
+        if (buf.length + sentence.length + 1 > TARGET_CHUNK_MAX && buf.length >= TARGET_CHUNK_MIN) {
+          chunks.push(buf.trim());
+          buf = sentence;
+        } else {
+          buf = buf ? `${buf} ${sentence}` : sentence;
+        }
+      }
+      if (buf.trim()) chunks.push(buf.trim());
     }
-    buf += (buf ? "\n\n" : "") + para;
   }
-  if (buf.trim()) chunks.push(buf.trim());
-  // If no paragraph structure, just slice
+
+  // Fallback: if no paragraph structure, slice at TARGET_CHUNK_MAX boundaries
   if (chunks.length === 0) {
-    for (let i = 0; i < text.length; i += maxChars) {
-      const slice = text.slice(i, i + maxChars).trim();
+    for (let i = 0; i < text.length; i += TARGET_CHUNK_MAX) {
+      const slice = text.slice(i, i + TARGET_CHUNK_MAX).trim();
       if (slice.length > 50) chunks.push(slice);
     }
   }
+
   return chunks;
 }
 
@@ -82,9 +109,25 @@ const VALID_TYPES = new Set([
   "custom",
 ]);
 
+async function createChunks(workspaceId: string, itemId: string, content: string): Promise<void> {
+  const chunks = chunkContent(content);
+  await Promise.all(
+    chunks.map((chunk, i) =>
+      prisma.knowledgeBaseChunk.create({
+        data: {
+          workspaceId,
+          knowledgeBaseItemId: itemId,
+          content: chunk,
+          metadataJson: JSON.stringify({ chunkIndex: i, totalChunks: chunks.length }),
+        },
+      }),
+    ),
+  );
+}
+
 export async function POST(req: NextRequest) {
-  const { workspaceId } = await getWorkspaceContext();
-  if (!workspaceId) {
+  const workspaceId = await getWorkspaceId();
+  if (!workspaceId || workspaceId === "ws-1") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -98,6 +141,14 @@ export async function POST(req: NextRequest) {
   const file = formData.get("file");
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "file field is required" }, { status: 400 });
+  }
+
+  // File size check — reject files over 5 MB
+  if (file.size > MAX_FILE_SIZE) {
+    return NextResponse.json(
+      { error: `File too large: ${(file.size / 1024 / 1024).toFixed(1)} MB. Maximum is 5 MB.` },
+      { status: 413 },
+    );
   }
 
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
@@ -125,7 +176,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Detect header columns (case-insensitive)
     const header = rows[0].map((h) => h.toLowerCase().replace(/[^a-z_]/g, ""));
     const titleIdx = header.findIndex((h) => h.includes("title") || h.includes("name"));
     const contentIdx = header.findIndex(
@@ -165,7 +215,7 @@ export async function POST(req: NextRequest) {
         : [];
 
       try {
-        await prisma.knowledgeBaseItem.create({
+        const item = await prisma.knowledgeBaseItem.create({
           data: {
             workspaceId,
             type: itemType,
@@ -177,21 +227,22 @@ export async function POST(req: NextRequest) {
             usedInMessages: 0,
           },
         });
+        await createChunks(workspaceId, item.id, content.trim());
         created++;
       } catch (err) {
         errors.push(`Row ${i + 1}: ${String(err).slice(0, 80)}`);
       }
     }
   } else {
-    // TXT / MD — chunk into paragraphs
-    const chunks = chunkText(text);
+    // TXT / MD — chunk the whole document, create one KBItem per logical chunk
+    const chunks = chunkContent(text);
     const baseName = file.name.replace(/\.[^.]+$/, "").slice(0, 80);
 
     for (let i = 0; i < chunks.length; i++) {
       const chunk = chunks[i];
       const title = chunks.length === 1 ? baseName : `${baseName} (part ${i + 1})`;
       try {
-        await prisma.knowledgeBaseItem.create({
+        const item = await prisma.knowledgeBaseItem.create({
           data: {
             workspaceId,
             type: "custom",
@@ -201,6 +252,15 @@ export async function POST(req: NextRequest) {
             confidenceScore: 0.7,
             approvedForAi: false,
             usedInMessages: 0,
+          },
+        });
+        // Also create the chunk row so the generation prompt can query it
+        await prisma.knowledgeBaseChunk.create({
+          data: {
+            workspaceId,
+            knowledgeBaseItemId: item.id,
+            content: chunk,
+            metadataJson: JSON.stringify({ chunkIndex: 0, totalChunks: 1 }),
           },
         });
         created++;

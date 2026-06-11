@@ -2,19 +2,15 @@
 
 import {
   AlertTriangle,
-  ArrowRight,
   Check,
   CheckCircle2,
-  ChevronDown,
-  ChevronRight,
-  Clock,
   ExternalLink,
+  Filter,
   Flame,
   GitFork,
   Info,
   MoreVertical,
   RefreshCw,
-  Send,
   Sparkles,
   TrendingUp,
   X,
@@ -105,17 +101,17 @@ function QualityScorer({ message }: { message: GeneratedMessage }) {
   return (
     <div
       className="rounded-lg border flex flex-col gap-3 p-4"
-      style={{ backgroundColor: "var(--background)", borderColor: "var(--border)" }}
+      style={{ backgroundColor: "#09090b", borderColor: "#27272a" }}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <TrendingUp className="w-3.5 h-3.5" style={{ color: "#10b981" }} />
-          <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+          <span className="text-sm font-semibold" style={{ color: "#e5e5e5" }}>
             Message Quality
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+          <span className="text-xs" style={{ color: "#a1a1aa" }}>
             {q.wordCount} words
           </span>
           <span
@@ -130,7 +126,7 @@ function QualityScorer({ message }: { message: GeneratedMessage }) {
         {dimensions.map((dim) => (
           <div key={dim.label}>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+              <span className="text-[11px]" style={{ color: "#a1a1aa" }}>
                 {dim.label}
               </span>
               <span
@@ -142,7 +138,7 @@ function QualityScorer({ message }: { message: GeneratedMessage }) {
             </div>
             <div
               className="h-1.5 rounded-full overflow-hidden"
-              style={{ backgroundColor: "var(--border)" }}
+              style={{ backgroundColor: "#27272a" }}
             >
               <div
                 className="h-full rounded-full transition-all duration-700"
@@ -160,8 +156,8 @@ function QualityScorer({ message }: { message: GeneratedMessage }) {
         >
           <div className="flex items-start gap-1.5">
             <AlertTriangle className="w-3 h-3 text-amber-500 flex-shrink-0 mt-0.5" />
-            <p className="text-[11px] leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
-              <span className="font-semibold" style={{ color: "var(--foreground)" }}>
+            <p className="text-[11px] leading-relaxed" style={{ color: "#a1a1aa" }}>
+              <span className="font-semibold" style={{ color: "#e5e5e5" }}>
                 Tip ({weakest.label}):{" "}
               </span>
               {tips[weakest.label]}
@@ -183,11 +179,11 @@ function ResearchCard({ message }: { message: GeneratedMessage }) {
   return (
     <div
       className="rounded-lg border flex flex-col gap-3 p-4"
-      style={{ backgroundColor: "var(--background)", borderColor: "var(--border)" }}
+      style={{ backgroundColor: "#09090b", borderColor: "#27272a" }}
     >
       <div className="flex items-center gap-1.5">
         <Sparkles className="w-3.5 h-3.5" style={{ color: "#10b981" }} />
-        <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+        <span className="text-sm font-semibold" style={{ color: "#e5e5e5" }}>
           Personalization Hooks
         </span>
         <span
@@ -203,7 +199,7 @@ function ResearchCard({ message }: { message: GeneratedMessage }) {
       </div>
 
       {!hasContent ? (
-        <p className="text-[11px] italic" style={{ color: "var(--muted-foreground)" }}>
+        <p className="text-[11px] italic" style={{ color: "#a1a1aa" }}>
           No research hooks — add specifics to increase reply rate.
         </p>
       ) : (
@@ -227,11 +223,11 @@ function ResearchCard({ message }: { message: GeneratedMessage }) {
             <div
               key={claim}
               className="flex items-start gap-2 rounded-lg border p-3"
-              style={{ borderColor: "var(--border)", backgroundColor: "var(--card)" }}
+              style={{ borderColor: "#27272a", backgroundColor: "#18181b" }}
             >
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
-                <p className="text-[11px] leading-relaxed" style={{ color: "var(--foreground)" }}>
+                <p className="text-[11px] leading-relaxed" style={{ color: "#e5e5e5" }}>
                   {claim}
                 </p>
                 <span className="text-[10px] text-emerald-500 font-medium">Verified</span>
@@ -245,11 +241,7 @@ function ResearchCard({ message }: { message: GeneratedMessage }) {
                 <span
                   key={source}
                   className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px]"
-                  style={{
-                    borderColor: "var(--border)",
-                    backgroundColor: "var(--background)",
-                    color: "var(--muted-foreground)",
-                  }}
+                  style={{ borderColor: "#27272a", backgroundColor: "#09090b", color: "#a1a1aa" }}
                 >
                   <ExternalLink className="w-2.5 h-2.5" />
                   {source}
@@ -260,10 +252,7 @@ function ResearchCard({ message }: { message: GeneratedMessage }) {
         </div>
       )}
 
-      <p
-        className="text-[10px] border-t pt-2"
-        style={{ borderColor: "var(--border)", color: "var(--muted-foreground)" }}
-      >
+      <p className="text-[10px] border-t pt-2" style={{ borderColor: "#27272a", color: "#71717a" }}>
         Messages with 2+ specific hooks get 2.4× more replies
       </p>
     </div>
@@ -280,43 +269,6 @@ function getConnectorName(message: GeneratedMessage): string {
   return message.warm_path?.recommended_intro_person ?? "Direct Outreach";
 }
 
-// Synthetic SLA: drafts expire 48h after they enter the queue.
-// We don't have a real created_at on demo messages, so derive a stable
-// "hours remaining" from the message id hash.
-function expiresInHours(msgId: string): number {
-  let hash = 0;
-  for (let i = 0; i < msgId.length; i++) {
-    hash = (hash * 31 + msgId.charCodeAt(i)) | 0;
-  }
-  return 2 + (Math.abs(hash) % 47);
-}
-
-function slaTone(hours: number): { label: string; cls: string; urgent: boolean } {
-  if (hours <= 6)
-    return {
-      label: `${hours}h left`,
-      cls: "text-red-400 bg-red-500/10 border-red-500/30",
-      urgent: true,
-    };
-  if (hours <= 12)
-    return {
-      label: `${hours}h left`,
-      cls: "text-amber-400 bg-amber-500/10 border-amber-500/30",
-      urgent: false,
-    };
-  if (hours <= 24)
-    return {
-      label: `${hours}h left`,
-      cls: "text-yellow-400 bg-yellow-500/10 border-yellow-500/30",
-      urgent: false,
-    };
-  return {
-    label: `${hours}h left`,
-    cls: "text-zinc-400 bg-zinc-500/10 border-zinc-500/30",
-    urgent: false,
-  };
-}
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ApprovalQueuePage() {
@@ -327,104 +279,13 @@ export default function ApprovalQueuePage() {
   const [editedBody, setEditedBody] = useState("");
   const [editedSubject, setEditedSubject] = useState("");
   const [showHistory, setShowHistory] = useState(false);
-  const [filterRep, setFilterRep] = useState<string>("all");
-  const [filterAccount, setFilterAccount] = useState<string>("all");
-  const [filterChannel, setFilterChannel] = useState<string>("all");
-  const [filterWarmthMin, setFilterWarmthMin] = useState(0);
-  const [filterSlaHours, setFilterSlaHours] = useState<string>("all");
-  const [noteDismissed, setNoteDismissed] = useState(false);
-  // Collapse state for groups
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
-  // Discard reason modal
-  const [discardModalOpen, setDiscardModalOpen] = useState(false);
-  const [discardReason, setDiscardReason] = useState("");
-  // Save state
-  const [saveState, setSaveState] = useState<"idle" | "unsaved" | "saved">("idle");
-  // AI rewrite
-  const [aiPromptOpen, setAiPromptOpen] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState("");
-  const [aiLoading, setAiLoading] = useState(false);
-  // Re-route modal
-  const [reroutePreview, setReroutePreview] = useState<{
-    path: string;
-    warmth: number;
-    replyRate: string;
-  } | null>(null);
-  // Account stage + persona tier filters
-  const [filterAccountStage, setFilterAccountStage] = useState<string>("all");
-  const [filterPersonaTier, setFilterPersonaTier] = useState<string>("all");
-  // Undo state
-  const [undoStack, setUndoStack] = useState<{
-    id: string;
-    action: "approved" | "rejected";
-    body: string;
-  } | null>(null);
-
-  const allPending = useMemo(
-    () => messages.filter((m) => m.approval_status === "pending"),
-    [messages],
-  );
-
-  const repOptions = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          allPending
-            .map((m) => m.warm_path?.recommended_intro_person)
-            .filter((x): x is string => !!x),
-        ),
-      ),
-    [allPending],
-  );
-  const accountOptions = useMemo(
-    () =>
-      Array.from(new Set(allPending.map((m) => m.account?.name).filter((x): x is string => !!x))),
-    [allPending],
-  );
-  const channelOptions = useMemo(
-    () => Array.from(new Set(allPending.map((m) => m.channel))),
-    [allPending],
-  );
 
   const pendingMessages = useMemo(
     () =>
-      allPending
-        .filter((m) => filterRep === "all" || m.warm_path?.recommended_intro_person === filterRep)
-        .filter((m) => filterAccount === "all" || m.account?.name === filterAccount)
-        .filter((m) => filterChannel === "all" || m.channel === filterChannel)
-        .filter((m) => filterWarmthMin === 0 || getWarmthScore(m) >= filterWarmthMin)
-        .filter((m) => {
-          if (filterSlaHours === "all") return true;
-          const h = expiresInHours(m.id);
-          if (filterSlaHours === "6") return h <= 6;
-          if (filterSlaHours === "12") return h <= 12;
-          if (filterSlaHours === "24") return h <= 24;
-          return true;
-        })
-        .filter(
-          (m) => filterAccountStage === "all" || (m.account as any)?.stage === filterAccountStage,
-        )
-        .filter((m) => {
-          if (filterPersonaTier === "all") return true;
-          const s = m.contact?.seniority ?? (m.contact as any)?.seniority;
-          return s === filterPersonaTier;
-        })
-        .sort((a, b) => {
-          const ha = expiresInHours(a.id);
-          const hb = expiresInHours(b.id);
-          if (ha !== hb) return ha - hb;
-          return getWarmthScore(b) - getWarmthScore(a);
-        }),
-    [
-      allPending,
-      filterRep,
-      filterAccount,
-      filterChannel,
-      filterWarmthMin,
-      filterSlaHours,
-      filterAccountStage,
-      filterPersonaTier,
-    ],
+      messages
+        .filter((m) => m.approval_status === "pending")
+        .sort((a, b) => getWarmthScore(b) - getWarmthScore(a)),
+    [messages],
   );
 
   const selectedMessage =
@@ -436,14 +297,10 @@ export default function ApprovalQueuePage() {
     if (!selectedMessage) {
       setEditedBody("");
       setEditedSubject("");
-      setSaveState("idle");
       return;
     }
     setEditedBody(selectedMessage.body ?? "");
     setEditedSubject(selectedMessage.subject ?? "Warm intro request");
-    setSaveState("idle");
-    setAiPromptOpen(false);
-    setAiPrompt("");
   }, [selectedMessage?.id]);
 
   // Group pending messages by connector
@@ -472,32 +329,42 @@ export default function ApprovalQueuePage() {
     }
   }
 
-  function handleApprove() {
+  async function handleApprove() {
     if (!selectedMessage) return;
+    // Optimistic store update
     approveMessage(selectedMessage.id, editedBody);
-    toast.success(`Approved & sent via ${getConnectorName(selectedMessage)}`);
     advanceSelection(selectedMessage.id);
+
+    // Read the API response to check send status
+    try {
+      const res = await fetch(`/api/approvals/${selectedMessage.id}/approve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "message", editedBody }),
+      });
+      if (res.ok) {
+        const data = await res.json().catch(() => ({}));
+        if (data.sent === false && data.reason === "no_email_channel") {
+          toast.warning("Approved — waiting for email channel", {
+            description: data.message ?? "Connect Brevo in Integrations to send.",
+            duration: 6000,
+          });
+        } else {
+          toast.success(`Approved & sent via ${getConnectorName(selectedMessage)}`);
+        }
+      } else {
+        toast.success(`Approved & queued via ${getConnectorName(selectedMessage)}`);
+      }
+    } catch {
+      toast.success(`Approved & queued via ${getConnectorName(selectedMessage)}`);
+    }
   }
 
   function handleDiscard() {
-    setDiscardReason("");
-    setDiscardModalOpen(true);
-  }
-
-  function handleDiscardConfirm() {
     if (!selectedMessage) return;
-    const msgId = selectedMessage.id;
-    const msgContact = selectedMessage.contact?.name ?? "contact";
-    setDiscardModalOpen(false);
-    rejectMessage(msgId);
-    advanceSelection(msgId);
-    toast.info(`Draft for ${msgContact} discarded${discardReason ? ` — ${discardReason}` : ""}`, {
-      action: {
-        label: "Undo",
-        onClick: () => toast.info("Undo not available in demo mode"),
-      },
-      duration: 5000,
-    });
+    rejectMessage(selectedMessage.id);
+    toast.info("Draft discarded");
+    advanceSelection(selectedMessage.id);
   }
 
   function handleRegenerate() {
@@ -510,70 +377,7 @@ export default function ApprovalQueuePage() {
   }
 
   function handleReroute() {
-    if (!selectedMessage) return;
-    const paths = ["Sarah Chen → Elena Rodriguez", "Marcus Williams → David Park"];
-    const nextPath = paths[Math.floor(Math.random() * paths.length)];
-    toast.info(`Re-routing via ${nextPath}…`, {
-      action: {
-        label: "Confirm",
-        onClick: () => toast.success(`Re-routed via ${nextPath}`),
-      },
-    });
-  }
-
-  function handleGroupApprove(connectorName: string) {
-    const groupMsgs = groups.get(connectorName) ?? [];
-    for (const msg of groupMsgs) approveMessage(msg.id, msg.body ?? "");
-    toast.success(
-      `${groupMsgs.length} draft${groupMsgs.length > 1 ? "s" : ""} approved via ${connectorName}`,
-    );
-    const remaining = pendingMessages.filter((m) => !groupMsgs.some((g) => g.id === m.id));
-    if (remaining.length > 0) setSelectedId(remaining[0].id);
-    else setSelectedId(null);
-  }
-
-  function toggleGroupCollapse(connectorName: string) {
-    setCollapsedGroups((prev) => {
-      const next = new Set(prev);
-      if (next.has(connectorName)) next.delete(connectorName);
-      else next.add(connectorName);
-      return next;
-    });
-  }
-
-  function handleSaveDraft() {
-    setSaveState("saved");
-    toast.success("Draft saved");
-    setTimeout(() => setSaveState("idle"), 2000);
-  }
-
-  function handleAiRewrite() {
-    if (!aiPrompt.trim() || !selectedMessage) return;
-    setAiLoading(true);
-    setTimeout(() => {
-      const instruction = aiPrompt.toLowerCase();
-      let newBody = editedBody;
-      if (instruction.includes("shorter") || instruction.includes("shorten")) {
-        const sentences = editedBody.split(/[.!?]+/).filter(Boolean);
-        newBody =
-          sentences.slice(0, Math.max(2, Math.floor(sentences.length * 0.6))).join(". ") + ".";
-      } else if (instruction.includes("formal") || instruction.includes("professional")) {
-        newBody = editedBody
-          .replace(/hi |hey /gi, "Dear ")
-          .replace(/\bwant to\b/gi, "would like to")
-          .replace(/\bthanks\b/gi, "Thank you");
-      } else if (instruction.includes("casual") || instruction.includes("friendly")) {
-        newBody = editedBody.replace(/Dear /gi, "Hey ").replace(/would like to/gi, "want to");
-      } else {
-        newBody = editedBody + `\n\n[Rewritten per instruction: ${aiPrompt}]`;
-      }
-      setEditedBody(newBody);
-      setSaveState("unsaved");
-      setAiLoading(false);
-      setAiPrompt("");
-      setAiPromptOpen(false);
-      toast.success("Message rewritten by AI");
-    }, 1200);
+    toast.info("Re-routing to next best path...");
   }
 
   if (!loading && pendingMessages.length === 0) {
@@ -590,166 +394,44 @@ export default function ApprovalQueuePage() {
 
   const connector = selectedMessage ? getConnectorName(selectedMessage) : "";
   const warmthScore = selectedMessage ? getWarmthScore(selectedMessage) : 0;
-  const isDirectOutreachSelected = connector === "Direct Outreach";
 
   return (
-    <main className="flex-1 flex h-full relative" style={{ backgroundColor: "var(--background)" }}>
+    <main className="flex-1 flex h-full relative" style={{ backgroundColor: "#09090b" }}>
       {/* ── Left Pane: Queue List (35%, max 400px) ── */}
       <div
         className="w-[35%] min-w-[320px] max-w-[400px] border-r flex flex-col"
-        style={{ borderColor: "var(--border)", backgroundColor: "var(--background)" }}
+        style={{ borderColor: "#27272a", backgroundColor: "#09090b" }}
       >
         {/* Queue Header */}
-        <div className="border-b shrink-0" style={{ borderColor: "var(--border)" }}>
-          <div className="h-12 flex items-center justify-between px-4">
-            <h2 className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
-              Pending Intros
-              <span
-                className="ml-2 text-xs font-normal"
-                style={{ color: "var(--muted-foreground)" }}
-              >
-                {pendingMessages.length} of {allPending.length}
-              </span>
-            </h2>
+        <div
+          className="h-12 border-b flex items-center justify-between px-4 shrink-0"
+          style={{ borderColor: "#27272a" }}
+        >
+          <h2 className="text-sm font-semibold" style={{ color: "#e5e5e5" }}>
+            Pending Intros
+          </h2>
+          <div className="flex gap-1">
             <button
               type="button"
               className="p-1.5 rounded transition-colors"
-              style={{ color: "var(--muted-foreground)" }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "var(--foreground)")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "var(--muted-foreground)")}
+              style={{ color: "#a1a1aa" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#e5e5e5")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#a1a1aa")}
+              aria-label="Filter"
+            >
+              <Filter className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              className="p-1.5 rounded transition-colors"
+              style={{ color: "#a1a1aa" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#e5e5e5")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#a1a1aa")}
               aria-label="More options"
             >
               <MoreVertical className="w-4 h-4" />
             </button>
           </div>
-
-          {/* Filters — row 1 */}
-          <div className="px-3 pb-1.5 flex gap-1.5">
-            <select
-              value={filterRep}
-              onChange={(e) => setFilterRep(e.target.value)}
-              className="flex-1 h-7 rounded px-2 text-[11px] border bg-transparent outline-none"
-              style={{
-                borderColor: "var(--border)",
-                color: "var(--foreground)",
-                backgroundColor: "var(--background)",
-              }}
-              title="Filter by rep / connector"
-            >
-              <option value="all">All connectors</option>
-              {repOptions.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </select>
-            <select
-              value={filterAccount}
-              onChange={(e) => setFilterAccount(e.target.value)}
-              className="flex-1 h-7 rounded px-2 text-[11px] border bg-transparent outline-none"
-              style={{
-                borderColor: "var(--border)",
-                color: "var(--foreground)",
-                backgroundColor: "var(--background)",
-              }}
-              title="Filter by account"
-            >
-              <option value="all">All accounts</option>
-              {accountOptions.map((a) => (
-                <option key={a} value={a}>
-                  {a}
-                </option>
-              ))}
-            </select>
-            <select
-              value={filterChannel}
-              onChange={(e) => setFilterChannel(e.target.value)}
-              className="w-24 h-7 rounded px-2 text-[11px] border bg-transparent outline-none"
-              style={{
-                borderColor: "var(--border)",
-                color: "var(--foreground)",
-                backgroundColor: "var(--background)",
-              }}
-              title="Filter by channel"
-            >
-              <option value="all">Channel</option>
-              {channelOptions.map((c) => (
-                <option key={c} value={c}>
-                  {c.replace("_", " ")}
-                </option>
-              ))}
-            </select>
-          </div>
-          {/* Filters — row 2: warmth + SLA */}
-          <div className="px-3 pb-3 flex gap-1.5 items-center">
-            <div
-              className="flex-1 flex items-center gap-2 border rounded h-7 px-2"
-              style={{ borderColor: "var(--border)", backgroundColor: "var(--background)" }}
-            >
-              <Flame className="w-3 h-3 shrink-0" style={{ color: "#10b981" }} />
-              <input
-                type="range"
-                min={0}
-                max={90}
-                step={10}
-                value={filterWarmthMin}
-                onChange={(e) => setFilterWarmthMin(+e.target.value)}
-                className="flex-1 h-1 cursor-pointer"
-                style={{ accentColor: "#10b981" }}
-                title={`Min warmth: ${filterWarmthMin}`}
-              />
-              <span
-                className="text-[10px] tabular-nums w-6 text-right"
-                style={{ color: "var(--muted-foreground)" }}
-              >
-                {filterWarmthMin > 0 ? `${filterWarmthMin}+` : "All"}
-              </span>
-            </div>
-            <select
-              value={filterSlaHours}
-              onChange={(e) => setFilterSlaHours(e.target.value)}
-              className="w-28 h-7 rounded px-2 text-[11px] border bg-transparent outline-none"
-              style={{
-                borderColor: "var(--border)",
-                color: "var(--foreground)",
-                backgroundColor: "var(--background)",
-              }}
-              title="Filter by SLA urgency"
-            >
-              <option value="all">All SLA</option>
-              <option value="6">Expires &lt;6h</option>
-              <option value="12">Expires &lt;12h</option>
-              <option value="24">Expires &lt;24h</option>
-            </select>
-          </div>
-
-          {/* Info note */}
-          {!noteDismissed && (
-            <div
-              className="mx-3 mb-3 flex items-start gap-2 rounded-md border p-2.5"
-              style={{
-                backgroundColor: "rgba(59,130,246,0.06)",
-                borderColor: "rgba(59,130,246,0.25)",
-              }}
-            >
-              <Info className="w-3 h-3 text-blue-400 flex-shrink-0 mt-0.5" />
-              <p
-                className="text-[10.5px] leading-relaxed flex-1"
-                style={{ color: "var(--muted-foreground)" }}
-              >
-                The queue populates automatically once signal detection runs — every entry has been
-                AI-drafted from a verified buying signal and a warm relationship path.
-              </p>
-              <button
-                type="button"
-                onClick={() => setNoteDismissed(true)}
-                className="text-zinc-500 hover:text-zinc-300"
-                aria-label="Dismiss"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Queue Scrollable List */}
@@ -763,203 +445,118 @@ export default function ApprovalQueuePage() {
               />
             </div>
           ) : (
-            Array.from(groups.entries()).map(([connectorName, groupMessages]) => {
-              const isDirectOutreach = connectorName === "Direct Outreach";
-              const isCollapsed = collapsedGroups.has(connectorName);
-              return (
-                <div key={connectorName}>
-                  {/* Group Header (sticky) */}
-                  <div
-                    className="px-3 py-2 border-b sticky top-0 z-10 flex items-center gap-2"
-                    style={{ borderColor: "var(--border)", backgroundColor: "var(--background)" }}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => toggleGroupCollapse(connectorName)}
-                      className="flex items-center gap-1.5 flex-1 min-w-0"
-                    >
-                      {isCollapsed ? (
-                        <ChevronRight
-                          className="w-3.5 h-3.5 shrink-0"
-                          style={{ color: "var(--muted-foreground)" }}
-                        />
-                      ) : (
-                        <ChevronDown
-                          className="w-3.5 h-3.5 shrink-0"
-                          style={{ color: "var(--muted-foreground)" }}
-                        />
-                      )}
-                      {isDirectOutreach ? (
-                        <ArrowRight
-                          className="w-3 h-3 shrink-0"
-                          style={{ color: "var(--muted-foreground)" }}
-                        />
-                      ) : null}
-                      <span
-                        className="text-[11px] font-semibold truncate uppercase tracking-wider"
-                        style={{
-                          color: isDirectOutreach ? "var(--muted-foreground)" : "var(--foreground)",
-                        }}
-                      >
-                        {isDirectOutreach ? "Direct Outreach" : `Via ${connectorName}`}
-                      </span>
-                      <span
-                        className="text-[10px] ml-1 px-1.5 py-0.5 rounded-full"
-                        style={{
-                          backgroundColor: "var(--border)",
-                          color: "var(--muted-foreground)",
-                        }}
-                      >
-                        {groupMessages.length}
-                      </span>
-                    </button>
-                    {!isDirectOutreach && !isCollapsed && (
-                      <button
-                        type="button"
-                        onClick={() => handleGroupApprove(connectorName)}
-                        className="shrink-0 text-[10px] font-semibold px-2 py-1 rounded transition-colors"
-                        style={{
-                          backgroundColor: "rgba(16,185,129,0.1)",
-                          color: "#10b981",
-                          border: "1px solid rgba(16,185,129,0.2)",
-                        }}
-                        title={`Approve all ${groupMessages.length} drafts via ${connectorName}`}
-                      >
-                        Approve all
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Group Items */}
-                  {!isCollapsed &&
-                    groupMessages.map((msg) => {
-                      const isSelected = selectedMessage?.id === msg.id;
-                      const ws = getWarmthScore(msg);
-                      const contextTag = msg.warm_path?.path_explanation
-                        ?.split(" ")
-                        .slice(0, 3)
-                        .join(" ");
-                      const hoursLeft = expiresInHours(msg.id);
-                      const sla = slaTone(hoursLeft);
-
-                      return (
-                        <button
-                          key={msg.id}
-                          type="button"
-                          onClick={() => handleSelect(msg.id)}
-                          className={cn(
-                            "w-full text-left p-4 border-b cursor-pointer transition-colors",
-                            isSelected
-                              ? "border-l-[4px] border-l-blue-500"
-                              : "border-l-4 border-l-transparent hover:border-l-muted",
-                          )}
-                          style={{
-                            borderBottomColor: "var(--border)",
-                            backgroundColor: isSelected ? "var(--card)" : "transparent",
-                          }}
-                          onMouseEnter={(e) => {
-                            if (!isSelected) e.currentTarget.style.backgroundColor = "var(--card)";
-                          }}
-                          onMouseLeave={(e) => {
-                            if (!isSelected) e.currentTarget.style.backgroundColor = "transparent";
-                          }}
-                        >
-                          <div className="flex justify-between items-start mb-2 gap-2">
-                            <h3
-                              className="font-semibold text-sm"
-                              style={{ color: "var(--foreground)" }}
-                            >
-                              {msg.contact?.name ?? "Unknown Contact"}
-                            </h3>
-                            <span
-                              className={cn(
-                                "inline-flex items-center gap-1 border px-1.5 py-0.5 rounded text-[10px] font-medium flex-shrink-0",
-                                sla.cls,
-                                sla.urgent && "animate-pulse",
-                              )}
-                            >
-                              <Clock className="w-2.5 h-2.5" />
-                              {sla.label}
-                            </span>
-                          </div>
-                          <p className="text-xs mb-2" style={{ color: "var(--muted-foreground)" }}>
-                            {msg.contact?.title ?? "Prospect"}
-                            {msg.account?.name ? ` at ${msg.account.name}` : ""}
-                          </p>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            {isDirectOutreach ? (
-                              <span
-                                className="border px-2 py-0.5 rounded text-xs flex items-center gap-1"
-                                style={{ borderColor: "rgba(99,102,241,0.3)", color: "#818cf8" }}
-                              >
-                                <ArrowRight className="w-3 h-3" />
-                                Direct
-                              </span>
-                            ) : ws > 0 ? (
-                              <span
-                                className="border px-2 py-0.5 rounded text-xs flex items-center gap-1"
-                                style={{ borderColor: "rgba(16,185,129,0.2)", color: "#10b981" }}
-                              >
-                                <Flame className="w-3 h-3" />
-                                {ws} Warmth
-                              </span>
-                            ) : null}
-                            <span
-                              className="px-1.5 py-0.5 rounded text-[10px] capitalize"
-                              style={{
-                                backgroundColor: "var(--border)",
-                                color: "var(--muted-foreground)",
-                              }}
-                            >
-                              {msg.channel.replace("_", " ")}
-                            </span>
-                            {contextTag && !isDirectOutreach && (
-                              <span
-                                className="px-2 py-0.5 rounded text-xs"
-                                style={{
-                                  backgroundColor: "var(--border)",
-                                  color: "var(--muted-foreground)",
-                                }}
-                              >
-                                {contextTag}
-                              </span>
-                            )}
-                          </div>
-                        </button>
-                      );
-                    })}
+            Array.from(groups.entries()).map(([connectorName, groupMessages]) => (
+              <div key={connectorName}>
+                {/* Group Header (sticky) */}
+                <div
+                  className="px-4 py-2 border-b sticky top-0 z-10"
+                  style={{ borderColor: "#27272a", backgroundColor: "#0e0e10" }}
+                >
+                  <span className="text-xs uppercase tracking-wider" style={{ color: "#71717a" }}>
+                    Via {connectorName} ({groupMessages.length})
+                  </span>
                 </div>
-              );
-            })
+
+                {/* Group Items */}
+                {groupMessages.map((msg) => {
+                  const isSelected = selectedMessage?.id === msg.id;
+                  const ws = getWarmthScore(msg);
+                  const contextTag = msg.warm_path?.path_explanation
+                    ?.split(" ")
+                    .slice(0, 3)
+                    .join(" ");
+
+                  return (
+                    <button
+                      key={msg.id}
+                      type="button"
+                      onClick={() => handleSelect(msg.id)}
+                      className={cn(
+                        "w-full text-left p-4 border-b cursor-pointer transition-colors border-l-2",
+                        isSelected
+                          ? "border-l-[#2563eb]"
+                          : "border-l-transparent hover:border-l-[#71717a]",
+                      )}
+                      style={{
+                        borderBottomColor: "#27272a",
+                        backgroundColor: isSelected ? "#18181b" : "transparent",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.backgroundColor = "#18181b";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.backgroundColor = "transparent";
+                        }
+                      }}
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-semibold text-sm" style={{ color: "#e5e5e5" }}>
+                          {msg.contact?.name ?? "Unknown Contact"}
+                        </h3>
+                        <span className="text-xs" style={{ color: "#71717a" }}>
+                          {ws > 0 ? `${ws} warmth` : "—"}
+                        </span>
+                      </div>
+                      <p className="text-xs mb-2" style={{ color: "#a1a1aa" }}>
+                        {msg.contact?.title ?? "Prospect"}
+                        {msg.account?.name ? ` at ${msg.account.name}` : ""}
+                      </p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {ws > 0 && (
+                          <span
+                            className="border px-2 py-0.5 rounded text-xs flex items-center gap-1"
+                            style={{
+                              borderColor: "rgba(16,185,129,0.2)",
+                              color: "#10b981",
+                            }}
+                          >
+                            <Flame className="w-3 h-3" />
+                            {ws} Warmth
+                          </span>
+                        )}
+                        {contextTag && (
+                          <span
+                            className="px-2 py-0.5 rounded text-xs"
+                            style={{ backgroundColor: "#27272a", color: "#a1a1aa" }}
+                          >
+                            {contextTag}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            ))
           )}
         </div>
       </div>
 
       {/* ── Right Pane: Review Dashboard (flex-1) ── */}
-      <div
-        className="flex-1 flex flex-col overflow-y-auto"
-        style={{ backgroundColor: "var(--background)" }}
-      >
+      <div className="flex-1 flex flex-col overflow-y-auto" style={{ backgroundColor: "#09090b" }}>
         {/* Sticky TopAppBar */}
         <div
           className="h-12 border-b flex items-center justify-between px-6 sticky top-0 z-20"
-          style={{ borderColor: "var(--border)", backgroundColor: "var(--background)" }}
+          style={{ borderColor: "#27272a", backgroundColor: "#09090b" }}
         >
           <div className="flex items-center gap-4">
             {selectedMessage ? (
               <>
-                <h2 className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+                <h2 className="text-sm font-semibold" style={{ color: "#e5e5e5" }}>
                   Review Request: {selectedMessage.contact?.name}
                 </h2>
                 <span
                   className="border px-2 py-0.5 rounded text-xs"
-                  style={{ borderColor: "var(--border)", color: "var(--muted-foreground)" }}
+                  style={{ borderColor: "#27272a", color: "#a1a1aa" }}
                 >
                   ID: REQ-{selectedMessage.id.slice(0, 6).toUpperCase()}
                 </span>
               </>
             ) : (
-              <h2 className="text-sm font-semibold" style={{ color: "var(--muted-foreground)" }}>
+              <h2 className="text-sm font-semibold" style={{ color: "#71717a" }}>
                 Select a draft to review
               </h2>
             )}
@@ -970,8 +567,8 @@ export default function ApprovalQueuePage() {
                 type="button"
                 onClick={() => setShowHistory(!showHistory)}
                 className="h-8 px-3 border rounded text-xs flex items-center gap-1.5 transition-colors"
-                style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--card)")}
+                style={{ borderColor: "#27272a", color: "#e5e5e5" }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#18181b")}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
               >
                 <HistoryIcon className="w-3.5 h-3.5" />
@@ -980,8 +577,8 @@ export default function ApprovalQueuePage() {
               <button
                 type="button"
                 className="h-8 w-8 border rounded flex items-center justify-center transition-colors"
-                style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--card)")}
+                style={{ borderColor: "#27272a", color: "#e5e5e5" }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#18181b")}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                 aria-label="More options"
               >
@@ -994,43 +591,21 @@ export default function ApprovalQueuePage() {
         {/* Content Canvas */}
         {selectedMessage ? (
           <div className="p-6 max-w-[800px] mx-auto w-full flex flex-col gap-8">
-            {/* ── Path Context Banner ── */}
-            <div
-              className={cn("grid gap-1", isDirectOutreachSelected ? "grid-cols-1" : "grid-cols-3")}
-            >
-              {/* Target Card */}
+            {/* ── Path Context Banner (Bento Grid 3 cols) ── */}
+            <div className="grid grid-cols-3 gap-1">
+              {/* Target Card (col-span-2) */}
               <div
-                className={cn(
-                  "border rounded-lg p-4 flex flex-col justify-between",
-                  isDirectOutreachSelected ? "" : "col-span-2",
-                )}
-                style={{ backgroundColor: "var(--card)", borderColor: "var(--border)" }}
+                className="col-span-2 border rounded-lg p-4 flex flex-col justify-between"
+                style={{ backgroundColor: "#18181b", borderColor: "#27272a" }}
               >
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span
-                      className="text-xs uppercase tracking-wider"
-                      style={{ color: "var(--muted-foreground)" }}
-                    >
-                      Target
-                    </span>
-                    {isDirectOutreachSelected && (
-                      <span
-                        className="text-[10px] font-semibold px-2 py-0.5 rounded border"
-                        style={{
-                          backgroundColor: "rgba(99,102,241,0.08)",
-                          color: "#818cf8",
-                          borderColor: "rgba(99,102,241,0.2)",
-                        }}
-                      >
-                        Direct Outreach — no warm path
-                      </span>
-                    )}
-                  </div>
-                  <h3 className="text-lg font-semibold mt-1" style={{ color: "var(--foreground)" }}>
+                  <span className="text-xs uppercase tracking-wider" style={{ color: "#71717a" }}>
+                    Target Node
+                  </span>
+                  <h3 className="text-lg font-semibold mt-1" style={{ color: "#e5e5e5" }}>
                     {selectedMessage.contact?.name}
                   </h3>
-                  <p className="text-sm mt-1" style={{ color: "var(--muted-foreground)" }}>
+                  <p className="text-sm mt-1" style={{ color: "#a1a1aa" }}>
                     {selectedMessage.contact?.title}
                     {selectedMessage.account?.name ? ` at ${selectedMessage.account.name}` : ""}
                   </p>
@@ -1051,57 +626,53 @@ export default function ApprovalQueuePage() {
                 </div>
               </div>
 
-              {/* Path Connector Card — only for warm paths */}
-              {!isDirectOutreachSelected && (
-                <div
-                  className="col-span-1 border rounded-lg p-4 flex flex-col justify-between relative overflow-hidden"
-                  style={{ backgroundColor: "var(--card)", borderColor: "var(--border)" }}
-                >
-                  <div className="absolute top-2 right-2 opacity-5 pointer-events-none" aria-hidden>
-                    <GitFork className="w-16 h-16" style={{ color: "var(--foreground)" }} />
-                  </div>
-                  <div>
-                    <span
-                      className="text-xs uppercase tracking-wider"
-                      style={{ color: "var(--muted-foreground)" }}
-                    >
-                      Strongest Path
-                    </span>
-                    {connector && (
-                      <div className="flex items-center gap-2 mt-2">
-                        <div
-                          className="w-6 h-6 rounded-full border flex items-center justify-center text-[10px] font-bold shrink-0"
-                          style={{
-                            backgroundColor: "rgba(79,70,229,0.2)",
-                            borderColor: "rgba(79,70,229,0.3)",
-                            color: "#818cf8",
-                          }}
-                        >
-                          {getInitials(connector).slice(0, 1)}
-                        </div>
-                        <span
-                          className="font-medium text-sm truncate"
-                          style={{ color: "var(--foreground)" }}
-                        >
-                          {connector}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="mt-4">
-                    <span
-                      className="text-xs border px-2 py-0.5 rounded flex items-center gap-1 w-fit"
-                      style={{ borderColor: "rgba(16,185,129,0.2)", color: "#10b981" }}
-                    >
-                      <Flame className="w-3 h-3" />
-                      {warmthScore} Warmth
-                    </span>
-                    <p className="text-xs mt-1" style={{ color: "var(--muted-foreground)" }}>
-                      {selectedMessage.warm_path?.path_explanation}
-                    </p>
-                  </div>
+              {/* Path Connector Card (col-span-1) */}
+              <div
+                className="col-span-1 border rounded-lg p-4 flex flex-col justify-between relative overflow-hidden"
+                style={{ backgroundColor: "#18181b", borderColor: "#27272a" }}
+              >
+                {/* Decorative background icon */}
+                <div className="absolute top-2 right-2 opacity-5 pointer-events-none" aria-hidden>
+                  <GitFork className="w-16 h-16" style={{ color: "#e5e5e5" }} />
                 </div>
-              )}
+                <div>
+                  <span className="text-xs uppercase tracking-wider" style={{ color: "#71717a" }}>
+                    Strongest Path
+                  </span>
+                  {connector && (
+                    <div className="flex items-center gap-2 mt-2">
+                      <div
+                        className="w-6 h-6 rounded-full border flex items-center justify-center text-[10px] font-bold shrink-0"
+                        style={{
+                          backgroundColor: "rgba(79,70,229,0.2)",
+                          borderColor: "rgba(79,70,229,0.3)",
+                          color: "#818cf8",
+                        }}
+                      >
+                        {getInitials(connector).slice(0, 1)}
+                      </div>
+                      <span className="font-medium text-sm truncate" style={{ color: "#e5e5e5" }}>
+                        {connector}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-4">
+                  <span
+                    className="text-xs border px-2 py-0.5 rounded flex items-center gap-1 w-fit"
+                    style={{
+                      borderColor: "rgba(16,185,129,0.2)",
+                      color: "#10b981",
+                    }}
+                  >
+                    <Flame className="w-3 h-3" />
+                    {warmthScore} Warmth
+                  </span>
+                  <p className="text-xs mt-1" style={{ color: "#a1a1aa" }}>
+                    {selectedMessage.warm_path?.path_explanation ?? "Strong path available"}
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* ── Message Editor ── */}
@@ -1109,52 +680,28 @@ export default function ApprovalQueuePage() {
               <div className="flex justify-between items-end">
                 <h3
                   className="text-sm font-semibold flex items-center gap-2"
-                  style={{ color: "var(--foreground)" }}
+                  style={{ color: "#e5e5e5" }}
                 >
                   <Sparkles className="w-4 h-4" style={{ color: "#2563eb" }} />
                   AI Draft Generation
                 </h3>
-                <div className="flex items-center gap-3">
-                  {saveState === "unsaved" && (
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                      <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>
-                        Unsaved
-                      </span>
-                      <button
-                        type="button"
-                        onClick={handleSaveDraft}
-                        className="text-xs font-semibold px-2 py-0.5 rounded border transition-colors"
-                        style={{ borderColor: "rgba(245,158,11,0.3)", color: "#f59e0b" }}
-                      >
-                        Save
-                      </button>
-                    </div>
-                  )}
-                  {saveState === "saved" && (
-                    <div className="flex items-center gap-1.5">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                      <span className="text-xs text-emerald-500">Saved</span>
-                    </div>
-                  )}
-                  <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>
-                    Editing as {isDirectOutreachSelected ? "yourself" : connector}
-                  </span>
-                </div>
+                <span className="text-xs" style={{ color: "#a1a1aa" }}>
+                  Editing as {connector}
+                </span>
               </div>
               <div
                 className="border rounded-lg overflow-hidden flex flex-col"
-                style={{ backgroundColor: "var(--card)", borderColor: "var(--border)" }}
+                style={{ backgroundColor: "#18181b", borderColor: "#27272a" }}
               >
                 {/* Formatting Toolbar */}
                 <div
                   className="h-10 border-b flex items-center px-2 gap-1"
-                  style={{ borderColor: "var(--border)", backgroundColor: "var(--card)" }}
+                  style={{ borderColor: "#27272a", backgroundColor: "#201f22" }}
                 >
                   <ToolbarButton label="B" title="Bold" />
                   <ToolbarButton label="I" title="Italic" italic />
                   <ToolbarButton icon={<ExternalLink className="w-3.5 h-3.5" />} title="Link" />
-                  <div className="w-px h-4 mx-1" style={{ backgroundColor: "var(--border)" }} />
+                  <div className="w-px h-4 mx-1" style={{ backgroundColor: "#27272a" }} />
                   <ToolbarButton label="•" title="Bullet list" />
                   <ToolbarButton label="1." title="Numbered list" />
                 </div>
@@ -1162,119 +709,43 @@ export default function ApprovalQueuePage() {
                 {/* Subject Line */}
                 <div
                   className="border-b px-4 py-2 flex items-center gap-2"
-                  style={{ borderColor: "var(--border)", backgroundColor: "var(--background)" }}
+                  style={{ borderColor: "#27272a", backgroundColor: "#0e0e10" }}
                 >
-                  <span className="text-xs shrink-0" style={{ color: "var(--muted-foreground)" }}>
+                  <span className="text-xs shrink-0" style={{ color: "#71717a" }}>
                     Subject:
                   </span>
                   <input
                     type="text"
                     value={editedSubject}
-                    onChange={(e) => {
-                      setEditedSubject(e.target.value);
-                      setSaveState("unsaved");
-                    }}
+                    onChange={(e) => setEditedSubject(e.target.value)}
                     className="flex-1 bg-transparent border-none p-0 text-sm outline-none"
-                    style={{ color: "var(--foreground)" }}
+                    style={{ color: "#e5e5e5" }}
                   />
                 </div>
 
                 {/* Body Textarea */}
-                <div className="p-4 min-h-[200px]" style={{ backgroundColor: "var(--background)" }}>
+                <div className="p-4 min-h-[240px]" style={{ backgroundColor: "#0e0e10" }}>
                   <textarea
-                    rows={9}
+                    rows={10}
                     value={editedBody}
-                    onChange={(e) => {
-                      setEditedBody(e.target.value);
-                      setSaveState("unsaved");
-                    }}
+                    onChange={(e) => setEditedBody(e.target.value)}
                     className="w-full bg-transparent border-none p-0 text-sm outline-none resize-none leading-relaxed"
-                    style={{ color: "var(--foreground)" }}
+                    style={{ color: "#e5e5e5" }}
                     placeholder="Draft message here..."
                   />
-                </div>
-
-                {/* AI Rewrite Panel */}
-                <div className="border-t" style={{ borderColor: "var(--border)" }}>
-                  {!aiPromptOpen ? (
-                    <button
-                      type="button"
-                      onClick={() => setAiPromptOpen(true)}
-                      className="w-full flex items-center gap-2 px-4 py-2.5 text-xs transition-colors"
-                      style={{ color: "var(--muted-foreground)" }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--card)")}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-                    >
-                      <Sparkles
-                        className="w-3.5 h-3.5 flex-shrink-0"
-                        style={{ color: "#2563eb" }}
-                      />
-                      <span>Rewrite with AI</span>
-                      <span className="ml-auto text-[10px] opacity-60">
-                        e.g. "make it shorter", "more formal"
-                      </span>
-                    </button>
-                  ) : (
-                    <div
-                      className="flex items-center gap-2 px-3 py-2"
-                      style={{ backgroundColor: "rgba(37,99,235,0.04)" }}
-                    >
-                      <Sparkles className="w-3.5 h-3.5 shrink-0" style={{ color: "#2563eb" }} />
-                      <input
-                        type="text"
-                        value={aiPrompt}
-                        onChange={(e) => setAiPrompt(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") handleAiRewrite();
-                          if (e.key === "Escape") {
-                            setAiPromptOpen(false);
-                            setAiPrompt("");
-                          }
-                        }}
-                        placeholder='e.g. "shorten to 3 sentences" or "make more casual"'
-                        autoFocus
-                        className="flex-1 bg-transparent text-xs outline-none"
-                        style={{ color: "var(--foreground)" }}
-                      />
-                      <button
-                        type="button"
-                        onClick={handleAiRewrite}
-                        disabled={!aiPrompt.trim() || aiLoading}
-                        className="w-6 h-6 flex items-center justify-center rounded transition-colors disabled:opacity-40"
-                        style={{ backgroundColor: "#2563eb", color: "#fff" }}
-                      >
-                        {aiLoading ? (
-                          <RefreshCw className="w-3 h-3 animate-spin" />
-                        ) : (
-                          <Send className="w-3 h-3" />
-                        )}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setAiPromptOpen(false);
-                          setAiPrompt("");
-                        }}
-                        className="w-5 h-5 flex items-center justify-center"
-                        style={{ color: "var(--muted-foreground)" }}
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  )}
                 </div>
 
                 {/* AI Footer */}
                 <div
                   className="px-4 py-2 flex items-center justify-between border-t"
-                  style={{ borderColor: "var(--border)", backgroundColor: "var(--card)" }}
+                  style={{ borderColor: "#27272a", backgroundColor: "#18181b" }}
                 >
                   <div className="flex items-center gap-2">
                     <span
                       className="w-2 h-2 rounded-full animate-pulse"
                       style={{ backgroundColor: "#10b981" }}
                     />
-                    <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+                    <span className="text-xs" style={{ color: "#a1a1aa" }}>
                       Draft optimized for high response rate
                     </span>
                   </div>
@@ -1308,15 +779,15 @@ export default function ApprovalQueuePage() {
             {/* ── Action Console ── */}
             <div
               className="flex items-center justify-between pt-4 border-t"
-              style={{ borderColor: "var(--border)" }}
+              style={{ borderColor: "#27272a" }}
             >
               <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={handleReroute}
                   className="h-8 px-4 border rounded text-xs transition-colors"
-                  style={{ borderColor: "var(--border)", color: "var(--muted-foreground)" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--card)")}
+                  style={{ borderColor: "#27272a", color: "#a1a1aa" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#18181b")}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                 >
                   Re-route Path
@@ -1324,8 +795,8 @@ export default function ApprovalQueuePage() {
                 <button
                   type="button"
                   onClick={handleDiscard}
-                  className="h-8 px-4 border rounded text-xs transition-colors flex items-center gap-1"
-                  style={{ borderColor: "var(--border)", color: "var(--muted-foreground)" }}
+                  className="h-8 px-4 border rounded text-xs transition-colors"
+                  style={{ borderColor: "#27272a", color: "#a1a1aa" }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = "rgba(239,68,68,0.08)";
                     e.currentTarget.style.borderColor = "rgba(239,68,68,0.3)";
@@ -1333,11 +804,11 @@ export default function ApprovalQueuePage() {
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor = "transparent";
-                    e.currentTarget.style.borderColor = "var(--border)";
-                    e.currentTarget.style.color = "var(--muted-foreground)";
+                    e.currentTarget.style.borderColor = "#27272a";
+                    e.currentTarget.style.color = "#a1a1aa";
                   }}
                 >
-                  <X className="w-3 h-3" />
+                  <X className="w-3 h-3 inline mr-1" />
                   Discard
                 </button>
               </div>
@@ -1368,69 +839,6 @@ export default function ApprovalQueuePage() {
           </div>
         )}
       </div>
-
-      {/* Discard Reason Modal */}
-      {discardModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setDiscardModalOpen(false)}
-            aria-hidden
-          />
-          <div
-            className="relative rounded-xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-4"
-            style={{ backgroundColor: "var(--card)", border: "1px solid var(--border)" }}
-          >
-            <div>
-              <h3 className="font-semibold text-sm mb-1" style={{ color: "var(--foreground)" }}>
-                Discard this draft?
-              </h3>
-              <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
-                Select a reason (optional) — this helps improve signal scoring.
-              </p>
-            </div>
-            <div className="flex flex-col gap-2">
-              {["Wrong timing", "Not ICP fit", "Already contacted", "Path too weak", "Other"].map(
-                (reason) => (
-                  <button
-                    key={reason}
-                    type="button"
-                    onClick={() => setDiscardReason(discardReason === reason ? "" : reason)}
-                    className="w-full text-left px-3 py-2 rounded-lg border text-sm transition-colors"
-                    style={{
-                      borderColor:
-                        discardReason === reason ? "rgba(239,68,68,0.4)" : "var(--border)",
-                      backgroundColor:
-                        discardReason === reason ? "rgba(239,68,68,0.08)" : "transparent",
-                      color: discardReason === reason ? "#ef4444" : "var(--foreground)",
-                    }}
-                  >
-                    {reason}
-                  </button>
-                ),
-              )}
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setDiscardModalOpen(false)}
-                className="flex-1 h-9 border rounded text-sm transition-colors"
-                style={{ borderColor: "var(--border)", color: "var(--muted-foreground)" }}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleDiscardConfirm}
-                className="flex-1 h-9 rounded font-semibold text-sm transition-colors"
-                style={{ backgroundColor: "#ef4444", color: "#fff" }}
-              >
-                Discard
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </main>
   );
 }
@@ -1451,13 +859,13 @@ function ToolbarButton({
   return (
     <button
       className="w-7 h-7 flex items-center justify-center rounded text-xs transition-colors"
-      style={{ color: "var(--muted-foreground)" }}
+      style={{ color: "#a1a1aa" }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.color = "var(--foreground)";
-        e.currentTarget.style.backgroundColor = "var(--border)";
+        e.currentTarget.style.color = "#e5e5e5";
+        e.currentTarget.style.backgroundColor = "#27272a";
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.color = "var(--muted-foreground)";
+        e.currentTarget.style.color = "#a1a1aa";
         e.currentTarget.style.backgroundColor = "transparent";
       }}
       title={title}
