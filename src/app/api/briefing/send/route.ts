@@ -1,13 +1,19 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import prisma from "@/lib/db/client";
 import { getWorkspaceId } from "@/lib/db/workspace";
 
 export async function POST() {
   try {
+    const session = await auth();
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const workspaceId = await getWorkspaceId();
 
     // Gather briefing data from DB
-    const [warmPaths, signals, tasks, pendingCount] = await Promise.all([
+    const [warmPaths, signals, tasks, pendingCount, workspace] = await Promise.all([
       prisma.warmPath.findMany({
         where: { workspaceId },
         orderBy: { warmthScore: "desc" },
@@ -27,6 +33,7 @@ export async function POST() {
       prisma.message.count({
         where: { workspaceId, approvalStatus: "pending" },
       }),
+      prisma.workspace.findUnique({ where: { id: workspaceId }, select: { name: true } }),
     ]);
 
     const resendKey = process.env.RESEND_API_KEY;
@@ -37,12 +44,22 @@ export async function POST() {
     const { Resend } = await import("resend");
     const resend = new Resend(resendKey);
 
-    const html = buildBriefingEmail({ warmPaths, signals, tasks, pendingCount });
+    const workspaceName = workspace?.name ?? "WarmPath";
+    const recipientName = session.user.name ?? session.user.email.split("@")[0];
+
+    const html = buildBriefingEmail({
+      warmPaths,
+      signals,
+      tasks,
+      pendingCount,
+      workspaceName,
+      recipientName,
+    });
 
     const { error } = await resend.emails.send({
-      from: "WarmPath Briefing <briefing@warmpath.app>",
-      to: "user@example.com",
-      subject: `WarmPath Briefing — ${new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}`,
+      from: `${workspaceName} Briefing <briefing@warmpath.app>`,
+      to: session.user.email,
+      subject: `${workspaceName} Briefing — ${new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}`,
       html,
     });
 
@@ -70,8 +87,10 @@ function buildBriefingEmail(data: {
   signals: BriefingSignal[];
   tasks: BriefingTask[];
   pendingCount: number;
+  workspaceName: string;
+  recipientName: string;
 }): string {
-  const { warmPaths, signals, tasks, pendingCount } = data;
+  const { warmPaths, signals, tasks, pendingCount, workspaceName, recipientName } = data;
   const appUrl = process.env.NEXTAUTH_URL ?? "https://warmpath.app";
 
   const warmPathRows =
@@ -114,9 +133,10 @@ function buildBriefingEmail(data: {
 <body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fafafa">
   <div style="max-width:560px;margin:40px auto;background:#fff;border-radius:12px;border:1px solid #e8e8ea;overflow:hidden">
     <div style="background:#2563eb;padding:24px 32px">
-      <h1 style="margin:0;color:#fff;font-size:20px;font-weight:700">WarmPath Briefing</h1>
+      <h1 style="margin:0;color:#fff;font-size:20px;font-weight:700">${workspaceName} Briefing</h1>
     </div>
     <div style="padding:24px 32px">
+      <p style="margin:0 0 20px;color:#333;font-size:15px">Hi ${recipientName},</p>
       ${
         pendingCount > 0
           ? `<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px 16px;margin-bottom:24px">
@@ -139,7 +159,7 @@ function buildBriefingEmail(data: {
       <a href="${appUrl}/dashboard" style="display:inline-block;background:#2563eb;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px">Open Dashboard →</a>
     </div>
     <div style="padding:16px 32px;border-top:1px solid #e8e8ea;text-align:center">
-      <p style="margin:0;font-size:12px;color:#999">WarmPath daily briefing. <a href="${appUrl}/settings" style="color:#2563eb">Manage preferences</a></p>
+      <p style="margin:0;font-size:12px;color:#999">${workspaceName} daily briefing. <a href="${appUrl}/settings" style="color:#2563eb">Manage preferences</a></p>
     </div>
   </div>
 </body>

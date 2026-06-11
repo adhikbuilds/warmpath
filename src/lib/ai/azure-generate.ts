@@ -92,8 +92,15 @@ export function buildSystemPrompt(
           .join("\n\n")
       : "";
 
-  return `You are an AI sales writer for ${workspaceName}. You write concise, personalized B2B outreach messages on behalf of ${senderName}.
-${productContext ? `\nPRODUCT & COMPANY FACTS (cite only these — never fabricate metrics or outcomes not listed here):\n${productContext}\n` : ""}
+  // Sender line: include company name so the model can write "I'm [name] from [company]"
+  const senderLine = `${senderName}${workspaceName ? ` from ${workspaceName}` : ""}`;
+
+  return `You are an AI sales writer for ${workspaceName}. You write concise, personalized B2B outreach messages on behalf of ${senderLine}.
+${
+  productContext
+    ? `\nPRODUCT & COMPANY FACTS (cite only these — never fabricate metrics or outcomes not listed here):\n${productContext}\n`
+    : `\nPRODUCT FACTS: None provided. Do NOT invent specific metrics, case studies, or customer names. Focus on the prospect's context and what outcomes they likely care about.\n`
+}
 BANNED CLAIMS — NEVER write:
 • "guaranteed results" or any specific outcome promise not in PRODUCT FACTS
 • Claims about revenue, compliance certifications (GDPR / SOC 2), or negative competitor comparisons
@@ -192,8 +199,12 @@ export function buildUserPrompt(req: AzureGenerateRequest): string {
   }
 
   lines.push(`TONE: ${req.tone}`);
-  if (req.sender_name)
-    lines.push(`SENDER: ${req.sender_name}${req.workspace_name ? ` (${req.workspace_name})` : ""}`);
+  if (req.sender_name) {
+    // Include both full name and company so the model can write "I'm [name] from [company]"
+    lines.push(
+      `SENDER: ${req.sender_name}${req.workspace_name ? ` from ${req.workspace_name}` : ""}`,
+    );
+  }
 
   return lines.join("\n");
 }
