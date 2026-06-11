@@ -65,8 +65,11 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      - name: Install dependencies for migrations
+        run: npm ci --ignore-scripts
+
       - name: Run database migrations
-        run: DATABASE_URL="${{ secrets.DATABASE_URL }}" npx prisma migrate deploy
+        run: DATABASE_URL="${{ secrets.DATABASE_URL }}" DIRECT_URL="${{ secrets.DIRECT_URL }}" npx prisma migrate deploy
 
       - name: Deploy to Container Apps
         uses: azure/cli@v2
