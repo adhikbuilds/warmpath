@@ -158,6 +158,10 @@ model BizAccount {
   conversations  Conversation[]
   pipelineMetrics PipelineMetric[]
   consentRecords ConsentRecord[]
+
+  @@index([workspaceId])
+  @@index([workspaceId, createdAt(sort: Desc)])
+  @@index([workspaceId, name])
 }
 
 model Contact {
@@ -192,6 +196,11 @@ model Contact {
   conversations   Conversation[]
   consentRecords  ConsentRecord[]
   warmthScoreLogs WarmthScoreLog[]
+
+  @@index([workspaceId])
+  @@index([workspaceId, createdAt(sort: Desc)])
+  @@index([email])
+  @@index([workspaceId, warmthScore(sort: Desc)])
 }
 
 model RelationshipEdge {
@@ -211,6 +220,11 @@ model RelationshipEdge {
   createdAt         DateTime @default(now())
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([fromId])
+  @@index([toId])
+  @@index([workspaceId, fromId, toId])
 }
 
 model WarmPath {
@@ -231,6 +245,9 @@ model WarmPath {
   account   BizAccount? @relation(fields: [accountId], references: [id])
   contact   Contact?    @relation(fields: [contactId], references: [id])
   messages  Message[]
+
+  @@index([workspaceId])
+  @@index([accountId])
 }
 
 model Signal {
@@ -252,6 +269,10 @@ model Signal {
   account   BizAccount? @relation(fields: [accountId], references: [id])
   contact   Contact?    @relation(fields: [contactId], references: [id])
   messages  Message[]
+
+  @@index([workspaceId])
+  @@index([workspaceId, urgencyScore(sort: Desc)])
+  @@index([workspaceId, detectedAt(sort: Desc)])
 }
 
 model Campaign {
@@ -355,6 +376,9 @@ model Message {
   warmPath  WarmPath?   @relation(fields: [warmPathId], references: [id])
   signal    Signal?     @relation(fields: [signalId], references: [id])
   approvals Approval[]
+
+  @@index([workspaceId])
+  @@index([workspaceId, approvalStatus])
 }
 
 model Approval {
@@ -391,6 +415,9 @@ model KnowledgeBaseItem {
 
   workspace Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   chunks    KnowledgeBaseChunk[]
+
+  @@index([workspaceId])
+  @@index([workspaceId, approvedForAi])
 }
 
 model KnowledgeBaseChunk {
@@ -402,6 +429,8 @@ model KnowledgeBaseChunk {
   createdAt           DateTime @default(now())
 
   item KnowledgeBaseItem @relation(fields: [knowledgeBaseItemId], references: [id], onDelete: Cascade)
+
+  @@index([knowledgeBaseItemId])
 }
 
 model IntegrationConnection {
@@ -448,6 +477,8 @@ model AIUsageLog {
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user      User?     @relation(fields: [userId], references: [id])
+
+  @@index([workspaceId, createdAt(sort: Desc)])
 }
 
 model AIGenerationCache {
@@ -478,6 +509,8 @@ model AuditLog {
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   actor     User?     @relation(fields: [actorUserId], references: [id])
+
+  @@index([workspaceId, createdAt(sort: Desc)])
 }
 
 model Subscription {
@@ -553,6 +586,9 @@ model Task {
   account   BizAccount? @relation(fields: [accountId], references: [id])
   contact   Contact?    @relation(fields: [contactId], references: [id])
   campaign  Campaign?   @relation(fields: [campaignId], references: [id])
+
+  @@index([workspaceId])
+  @@index([workspaceId, dueAt])
 }
 
 model Conversation {
