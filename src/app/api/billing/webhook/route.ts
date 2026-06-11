@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) {
-    return NextResponse.json({ received: true, demo: true });
+    return NextResponse.json({ error: "Stripe not configured" }, { status: 503 });
   }
 
   const Stripe = (await import("stripe")).default;
