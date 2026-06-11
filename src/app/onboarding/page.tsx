@@ -41,8 +41,6 @@ const STEPS = [
   { id: "done", label: "Done" },
 ] as const;
 
-type StepId = (typeof STEPS)[number]["id"];
-
 // ─── Static data ──────────────────────────────────────────────────────────────
 
 const ROLES = [
@@ -110,6 +108,10 @@ export default function OnboardingPage() {
   const [googleServices, setGoogleServices] = useState<
     { name: string; status: "processing" | "active" }[]
   >([]);
+  const [googleImportStats, setGoogleImportStats] = useState<{
+    imported: number;
+    skipped: number;
+  } | null>(null);
   const [liConnecting, setLiConnecting] = useState(false);
   const [liConnected, setLiConnected] = useState(false);
   const [liImportStats, setLiImportStats] = useState<{
@@ -163,18 +165,41 @@ export default function OnboardingPage() {
           ...prev.filter((s) => s.name !== svc),
           { name: svc, status: "processing" },
         ]);
-        setTimeout(() => {
+        setTimeout(async () => {
           setGoogleServices((prev) =>
             prev.map((s) => (s.name === svc ? { ...s, status: "active" } : s)),
           );
           if (svc === "Contacts") {
-            toast.success("Google connected — network importing.");
-            fetch("/api/integrations/google/import-contacts", { method: "POST" })
-              .then((r) => r.json())
-              .then((d) => {
-                if (d.imported > 0) toast.success(`Imported ${d.imported} contacts.`);
-              })
-              .catch(() => {});
+            toast.success("Google connected — importing contacts now.");
+            try {
+              const r = await fetch("/api/integrations/google/import-contacts", {
+                method: "POST",
+              });
+              const d = await r.json();
+              if (!r.ok) {
+                toast.error(`Google import failed: ${d.error ?? "unknown error"}`);
+              } else {
+                setGoogleImportStats({ imported: d.imported ?? 0, skipped: d.skipped ?? 0 });
+                if ((d.imported ?? 0) > 0) {
+                  const skippedNote = d.skipped > 0 ? ` (${d.skipped} skipped)` : "";
+                  toast.success(`Imported ${d.imported} contacts${skippedNote}.`);
+                  if (d.edgesFailed > 0) {
+                    toast.warning(
+                      `${d.edgesFailed} relationship edges failed — check server logs.`,
+                    );
+                  }
+                } else {
+                  toast.info("No new contacts imported.");
+                }
+                // Warn if majority failed
+                const total = (d.imported ?? 0) + (d.skipped ?? 0);
+                if (total > 0 && (d.skipped ?? 0) / total > 0.5) {
+                  toast.warning("More than half of contacts were skipped — check your connection.");
+                }
+              }
+            } catch {
+              toast.error("Could not reach import endpoint — check your connection.");
+            }
           }
         }, 1200);
       }, d);
@@ -223,11 +248,11 @@ export default function OnboardingPage() {
     }
   }
 
-  function handleCsvUpload(file: File) {
+  async function handleCsvUpload(file: File) {
     if (!file) return;
     setLiConnecting(true);
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const text = e.target?.result as string;
         const result = parseLinkedInCsv(text);
@@ -329,20 +354,52 @@ export default function OnboardingPage() {
 
         importLinkedInContacts(contactsToImport, result.accounts.slice(0, 300), autoCampaigns);
 
-        // Persist to DB fire-and-forget (store already has the data for immediate UI)
-        for (const c of contactsToImport) {
-          fetch("/api/contacts", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(c),
-          }).catch(() => {});
-        }
-        for (const a of uniqueAccounts) {
-          fetch("/api/accounts", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(a),
-          }).catch(() => {});
+        // Persist to DB via discovery import — batch all contacts in one request
+        // so RelationshipEdges are created for each contact.
+        let dbImported = 0;
+        let dbSkipped = 0;
+        let dbFailed = 0;
+        try {
+          const importRows = contactsToImport.map((c) => ({
+            name: c.name,
+            email: c.email,
+            company: c.account_id ?? undefined,
+            title: c.title,
+            linkedin_url: c.linkedin_url,
+          }));
+          const results = await Promise.allSettled([
+            fetch("/api/discovery/import", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ rows: importRows }),
+            }).then((r) => r.json()),
+            // Also persist accounts via their dedicated route (best effort)
+            ...uniqueAccounts.map((a) =>
+              fetch("/api/accounts", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(a),
+              }).catch(() => null),
+            ),
+          ]);
+
+          const importResult = results[0];
+          if (importResult.status === "fulfilled") {
+            const d = importResult.value as {
+              imported?: number;
+              skipped?: number;
+              edgesFailed?: number;
+            };
+            dbImported = d.imported ?? 0;
+            dbSkipped = d.skipped ?? 0;
+            dbFailed = d.edgesFailed ?? 0;
+          } else {
+            console.error("[onboarding] discovery/import rejected:", importResult.reason);
+            dbFailed = contactsToImport.length;
+          }
+        } catch (err) {
+          console.error("[onboarding] discovery/import error:", err);
+          dbFailed = contactsToImport.length;
         }
 
         setLiImportAccountCount(uniqueAccounts.length);
@@ -353,9 +410,18 @@ export default function OnboardingPage() {
         });
         setLiConnecting(false);
         setLiConnected(true);
+
+        // Show honest feedback
+        const skippedNote = dbSkipped > 0 ? ` (${dbSkipped} skipped)` : "";
         toast.success(
           `${result.total.toLocaleString()} connections imported — ${autoCampaigns.length} campaigns created`,
         );
+        if (dbImported > 0) {
+          toast.success(`Saved ${dbImported} contacts to your workspace${skippedNote}.`);
+        }
+        if (dbFailed > 0 && dbFailed / contactsToImport.length > 0.5) {
+          toast.warning("Some contacts failed to import — check your connection.");
+        }
       } catch (err) {
         console.error(err);
         setLiConnecting(false);
@@ -402,7 +468,7 @@ export default function OnboardingPage() {
     step.id === "invite" ||
     step.id === "done";
 
-  const liSkippable = step.id === "connect" && googleConnected && !liConnected;
+  const _liSkippable = step.id === "connect" && googleConnected && !liConnected;
 
   // ── Layout ─────────────────────────────────────────────────────────────────
 
@@ -769,7 +835,6 @@ export default function OnboardingPage() {
                       type="text"
                       value={workspaceName}
                       onChange={(e) => setWorkspaceName(e.target.value)}
-                      autoFocus
                       style={{
                         fontSize: 17,
                         fontWeight: 700,
@@ -877,7 +942,9 @@ export default function OnboardingPage() {
                 <div style={{ flex: 1 }}>
                   <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>Google Workspace</p>
                   <p style={{ fontSize: 11, color: "rgba(255,255,255,0.32)" }}>
-                    Gmail headers · Calendar · Contacts
+                    {googleImportStats
+                      ? `${googleImportStats.imported} contacts imported${googleImportStats.skipped > 0 ? `, ${googleImportStats.skipped} skipped` : ""}`
+                      : "Gmail headers · Calendar · Contacts"}
                   </p>
                 </div>
                 {googleConnected ? (
@@ -1245,7 +1312,9 @@ export default function OnboardingPage() {
                     value:
                       liImportStats && liImportStats.total > 0
                         ? `${liImportStats.total.toLocaleString()}+`
-                        : "Ready to import",
+                        : googleImportStats && googleImportStats.imported > 0
+                          ? `${googleImportStats.imported}`
+                          : "Ready to import",
                   },
                   {
                     label: "Warm paths found",
@@ -1255,9 +1324,10 @@ export default function OnboardingPage() {
                   },
                   {
                     label: "Signals active",
-                    value: liImportAccountCount > 0
-                      ? String(Math.max(1, Math.floor(liImportAccountCount / 5)))
-                      : "7",
+                    value:
+                      liImportAccountCount > 0
+                        ? String(Math.max(1, Math.floor(liImportAccountCount / 5)))
+                        : "7",
                   },
                 ].map((s) => (
                   <div
