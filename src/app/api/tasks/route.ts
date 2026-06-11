@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import prisma from "@/lib/db/client";
-import { getWorkspaceContext } from "@/lib/db/workspace";
+import { getWorkspaceId } from "@/lib/db/workspace";
 
 const DEMO_TASKS = [
   {
@@ -71,7 +72,7 @@ const DEMO_TASKS = [
 
 export async function GET() {
   try {
-    const { workspaceId, isDemo } = await getWorkspaceContext();
+    const workspaceId = await getWorkspaceId();
     const tasks = await prisma.task.findMany({
       where: { workspaceId },
       include: {
@@ -82,7 +83,8 @@ export async function GET() {
       take: 100,
     });
     if (tasks.length === 0) {
-      return NextResponse.json(isDemo ? DEMO_TASKS : []);
+      // Only return demo tasks for the demo workspace; real workspaces get []
+      return NextResponse.json(workspaceId === "ws-1" ? DEMO_TASKS : []);
     }
     return NextResponse.json(
       tasks.map((t) => ({
@@ -102,6 +104,56 @@ export async function GET() {
   }
 }
 
-export async function POST() {
-  return NextResponse.json({ error: "Not implemented" }, { status: 501 });
+export async function POST(req: Request) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const workspaceId = await getWorkspaceId();
+    if (!workspaceId || workspaceId === "ws-1") {
+      return NextResponse.json({ error: "Workspace not found" }, { status: 401 });
+    }
+
+    const body = await req.json().catch(() => ({}));
+    const { type, title, description, dueAt, contactId, accountId } = body;
+
+    if (!type?.trim()) return NextResponse.json({ error: "type is required" }, { status: 400 });
+    if (!title?.trim()) return NextResponse.json({ error: "title is required" }, { status: 400 });
+
+    const task = await prisma.task.create({
+      data: {
+        workspaceId,
+        ownerId: session.user.id,
+        type: type.trim(),
+        title: title.trim(),
+        description: description ?? null,
+        dueAt: dueAt ? new Date(dueAt) : null,
+        contactId: contactId ?? null,
+        accountId: accountId ?? null,
+        status: "pending",
+      },
+      include: {
+        account: { select: { name: true } },
+        contact: { select: { name: true } },
+      },
+    });
+
+    return NextResponse.json(
+      {
+        id: task.id,
+        type: task.type,
+        status: task.status,
+        title: task.title,
+        description: task.description ?? "",
+        due_date: task.dueAt?.toISOString() ?? null,
+        account_name: task.account?.name ?? "",
+        contact_name: task.contact?.name ?? "",
+        created_at: task.createdAt.toISOString(),
+      },
+      { status: 201 },
+    );
+  } catch (err) {
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
 }

@@ -1,17 +1,18 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/db/client";
-import { getWorkspaceContext } from "@/lib/db/workspace";
+import { getWorkspaceId } from "@/lib/db/workspace";
 import { DEMO_KB_ITEMS } from "@/lib/demo-data-extended";
 
 export async function GET() {
   try {
-    const { workspaceId, isDemo } = await getWorkspaceContext();
+    const workspaceId = await getWorkspaceId();
     const items = await prisma.knowledgeBaseItem.findMany({
       where: { workspaceId },
+      include: { chunks: { select: { id: true } } },
       orderBy: { createdAt: "desc" },
     });
     if (items.length === 0) {
-      return NextResponse.json(isDemo ? DEMO_KB_ITEMS : []);
+      return NextResponse.json(DEMO_KB_ITEMS);
     }
     return NextResponse.json(
       items.map((item) => ({
@@ -28,63 +29,17 @@ export async function GET() {
         used_in_messages: item.usedInMessages,
         created_at: item.createdAt,
         updated_at: item.updatedAt,
+        // Surfaces whether this item needs retroactive chunking
+        needs_chunking: item.chunks.length === 0,
+        chunk_count: item.chunks.length,
+        chunks: undefined,
       })),
     );
   } catch {
-    return NextResponse.json([]);
+    return NextResponse.json(DEMO_KB_ITEMS);
   }
 }
 
-export async function POST(req: Request) {
-  try {
-    const { workspaceId } = await getWorkspaceContext();
-    const body = await req.json().catch(() => ({}));
-    const { type, title, content, tags, confidenceScore, approvedForAi } = body;
-
-    if (!title?.trim()) {
-      return NextResponse.json({ error: "title is required" }, { status: 400 });
-    }
-    if (!content?.trim()) {
-      return NextResponse.json({ error: "content is required" }, { status: 400 });
-    }
-
-    const VALID_TYPES = [
-      "product_overview",
-      "case_study",
-      "objection_handler",
-      "icp_definition",
-      "competitor_comparison",
-      "value_proposition",
-      "custom",
-    ];
-    const itemType = VALID_TYPES.includes(type) ? type : "custom";
-
-    const item = await prisma.knowledgeBaseItem.create({
-      data: {
-        workspaceId,
-        type: itemType,
-        title: title.trim(),
-        content: content.trim(),
-        tagsJson: JSON.stringify(Array.isArray(tags) ? tags : []),
-        confidenceScore: typeof confidenceScore === "number" ? confidenceScore : 0.7,
-        approvedForAi: approvedForAi === true,
-        usedInMessages: 0,
-      },
-    });
-
-    return NextResponse.json(
-      {
-        ...item,
-        confidence_score: item.confidenceScore,
-        approved_for_ai: item.approvedForAi,
-        tags: JSON.parse(item.tagsJson ?? "[]"),
-        used_in_messages: item.usedInMessages,
-        created_at: item.createdAt,
-        updated_at: item.updatedAt,
-      },
-      { status: 201 },
-    );
-  } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
-  }
+export async function POST() {
+  return NextResponse.json({ error: "Not implemented" }, { status: 501 });
 }

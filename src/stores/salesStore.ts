@@ -46,11 +46,11 @@ const DEFAULT_AI_SETTINGS: WorkspaceAISettings = {
 
 const DEFAULT_WORKSPACE: Workspace = {
   id: "",
-  name: "",
-  domain: "",
-  industry: "",
-  company_size: "",
-  website: "",
+  name: "WarmPath",
+  domain: "warmpath.ai",
+  industry: "AI / Sales Tech",
+  company_size: "1–10",
+  website: "https://warmpath.ai",
   description: "",
   plan: "growth",
   onboarding_stage: "complete",
@@ -87,14 +87,6 @@ interface SalesState {
   // Workspace
   workspace: Workspace;
   workspaceMembers: WorkspaceMember[];
-  pendingInvitations: Array<{
-    id: string;
-    email: string;
-    role: string;
-    expiresAt: string;
-    createdAt: string;
-    invitedBy?: { name: string | null; email: string };
-  }>;
 
   // Knowledge Base
   kbItems: KnowledgeBaseItem[];
@@ -124,8 +116,6 @@ interface SalesState {
   setTourOpen: (open: boolean) => void;
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (v: boolean) => void;
-  setAccounts: (accounts: Account[]) => void;
-  setContacts: (contacts: Contact[]) => void;
 
   // Init
   initialize: () => Promise<void>;
@@ -152,8 +142,6 @@ interface SalesState {
   createFollowUpTask: (task: Omit<FollowUpTask, "id" | "created_at" | "status">) => void;
   completeFollowUpTask: (id: string) => void;
   dismissFollowUpTask: (id: string) => void;
-  snoozeFollowUpTask: (id: string, hours: number) => void;
-  reassignFollowUpTask: (id: string, assigneeName: string) => void;
 
   // Actions WhatsApp (local only)
   approveWhatsApp: (id: string) => void;
@@ -201,11 +189,6 @@ interface SalesState {
   updateAccount: (id: string, updates: Partial<Account>) => void;
   addContact: (c: Omit<Contact, "id">) => void;
   updateContact: (id: string, updates: Partial<Contact>) => void;
-  importLinkedInContacts: (
-    contacts: Omit<Contact, "id">[],
-    accounts: Omit<Account, "id" | "created_at">[],
-    campaigns: Campaign[],
-  ) => void;
 
   // Actions Campaigns
   addCampaign: (campaign: Campaign) => void;
@@ -213,24 +196,17 @@ interface SalesState {
   updateCampaignStep: (
     campaignId: string,
     stepId: string,
-    updates: {
-      delay_days?: number;
-      template_hint?: string;
-      subject_a?: string;
-      subject_b?: string;
-      email_body?: string;
-    },
+    updates: { delay_days?: number; template_hint?: string },
   ) => void;
-  deleteCampaignStep: (campaignId: string, stepId: string) => void;
 
   // Actions Warm paths
   addWarmPath: (wp: WarmPath) => void;
   updateWarmPathStatus: (id: string, status: WarmPath["status"]) => void;
 
-  // Actions Queue a newly composed message — persists to DB, returns real ID
+  // Actions Queue a newly composed message (client-side only)
   addMessageToQueue: (
     draft: Omit<GeneratedMessage, "id" | "contact" | "account" | "warm_path" | "signal">,
-  ) => Promise<string>;
+  ) => string;
 }
 
 // ─── Helper to map API shapes to frontend types ───────────────────────────────
@@ -607,7 +583,6 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
   gtmMissions: [],
   workspace: DEFAULT_WORKSPACE,
   workspaceMembers: [],
-  pendingInvitations: [],
   kbItems: [],
   aiSettings: DEFAULT_AI_SETTINGS,
   aiUsageLogs: [],
@@ -621,8 +596,6 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
   setTourOpen: (open) => set({ tourOpen: open }),
   sidebarCollapsed: false,
   setSidebarCollapsed: (v) => set({ sidebarCollapsed: v }),
-  setAccounts: (accounts) => set({ accounts }),
-  setContacts: (contacts) => set({ contacts }),
 
   // ─── Initialize: fetch all data from API ─────────────────────────────────
 
@@ -645,7 +618,6 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
         workspaceRes,
         edgesRes,
         tasksRes,
-        campaignAssetsRes,
       ] = await Promise.allSettled([
         fetch("/api/accounts").then((r) => (r.ok ? r.json() : [])),
         fetch("/api/contacts").then((r) => (r.ok ? r.json() : [])),
@@ -660,7 +632,6 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
         fetch("/api/workspaces/current").then((r) => (r.ok ? r.json() : null)),
         fetch("/api/relationship-edges").then((r) => (r.ok ? r.json() : [])),
         fetch("/api/tasks").then((r) => (r.ok ? r.json() : [])),
-        fetch("/api/campaign-assets").then((r) => (r.ok ? r.json() : [])),
       ]);
 
       const val = <T>(r: PromiseSettledResult<T>, fallback: T): T =>
@@ -669,7 +640,7 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
       const rawAccounts = val(accountsRes, []) as Record<string, unknown>[];
       const rawContacts = val(contactsRes, []) as Record<string, unknown>[];
       const rawSignals = val(signalsRes, []) as Record<string, unknown>[];
-      const rawWarmBlues = val(warmPathsRes, []) as Record<string, unknown>[];
+      const rawWarmPaths = val(warmPathsRes, []) as Record<string, unknown>[];
       const rawCampaigns = val(campaignsRes, []) as Record<string, unknown>[];
       const rawMessages = val(approvalsRes, []) as Record<string, unknown>[];
       const rawKB = val(kbRes, []) as Record<string, unknown>[];
@@ -679,7 +650,6 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
       const rawWorkspace = val(workspaceRes, null) as Record<string, unknown> | null;
       const rawEdges = val(edgesRes, []) as Record<string, unknown>[];
       const rawTasks = val(tasksRes, []) as Record<string, unknown>[];
-      const rawCampaignAssets = val(campaignAssetsRes, []) as Record<string, unknown>[];
 
       const workspaceMembers: WorkspaceMember[] = rawWorkspace?.members
         ? (rawWorkspace.members as Record<string, unknown>[]).map((m) => ({
@@ -713,7 +683,7 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
       const workspaceData: Workspace = rawWorkspace
         ? {
             id: rawWorkspace.id as string,
-            name: (rawWorkspace.name as string) ?? "WarmBlue",
+            name: (rawWorkspace.name as string) ?? "WarmPath",
             domain: (rawWorkspace.domain as string) ?? "",
             industry: (rawWorkspace.industry as string) ?? "",
             company_size: ((rawWorkspace.company_size ?? rawWorkspace.companySize) as string) ?? "",
@@ -732,7 +702,7 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
       const mappedContacts = rawContacts.map(mapContact);
       const mappedAccounts = rawAccounts.map(mapAccount);
       const mappedSignals = rawSignals.map(mapSignal);
-      const mappedWarmPaths = rawWarmBlues.map(mapWarmPath);
+      const mappedWarmPaths = rawWarmPaths.map(mapWarmPath);
       const mappedMessages = rawMessages.map(mapMessage).map((msg) => ({
         ...msg,
         contact: msg.contact ?? mappedContacts.find((c) => c.id === msg.contact_id),
@@ -748,7 +718,7 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
         warmPaths: mappedWarmPaths,
         campaigns: rawCampaigns.map(mapCampaign),
         messages: mappedMessages,
-        campaignAssets: rawCampaignAssets.map(mapCampaignAsset),
+        campaignAssets: [],
         kbItems: rawKB.map(mapKBItem),
         integrations: rawIntegrations.map(mapIntegration),
         auditLogs: rawAudit.map(mapAuditLog),
@@ -758,16 +728,6 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
         workspace: workspaceData,
         workspaceMembers,
         teamMembers,
-        pendingInvitations: Array.isArray(rawWorkspace?.pendingInvitations)
-          ? (rawWorkspace.pendingInvitations as Record<string, unknown>[]).map((inv) => ({
-              id: inv.id as string,
-              email: inv.email as string,
-              role: (inv.role as string) ?? "sales_rep",
-              expiresAt: (inv.expiresAt as string) ?? "",
-              createdAt: (inv.createdAt as string) ?? "",
-              invitedBy: inv.invitedBy as { name: string | null; email: string } | undefined,
-            }))
-          : [],
         initialized: true,
         loading: false,
       });
@@ -1030,26 +990,6 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
     }).catch(() => {}); // fire-and-forget
   },
 
-  snoozeFollowUpTask: (id, hours) => {
-    set((state) => ({
-      followUpTasks: state.followUpTasks.map((t) => {
-        if (t.id !== id) return t;
-        const base = new Date(t.due_date);
-        const reference = base < new Date() ? new Date() : base;
-        const newDue = new Date(reference.getTime() + hours * 60 * 60 * 1000).toISOString();
-        return { ...t, due_date: newDue };
-      }),
-    }));
-  },
-
-  reassignFollowUpTask: (id, assigneeName) => {
-    set((state) => ({
-      followUpTasks: state.followUpTasks.map((t) =>
-        t.id === id ? { ...t, assignee_name: assigneeName } : t,
-      ),
-    }));
-  },
-
   // ─── Missions ─────────────────────────────────────────────────────────────
 
   completeMission: (id) => {
@@ -1196,6 +1136,16 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
       created_at: new Date().toISOString(),
     };
     set((state) => ({ auditLogs: [log, ...state.auditLogs] }));
+    fetch("/api/audit-log", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action,
+        entityType: opts.entityType,
+        entityId: opts.entityId,
+        metadata: opts.metadata,
+      }),
+    }).catch(console.error);
   },
 
   logAIUsage: (log) => {
@@ -1223,24 +1173,10 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
   },
 
   addAccount: (acc) => {
-    const tempId = `acc-new-${Date.now()}`;
+    const id = `acc-new-${Date.now()}`;
     set((state) => ({
-      accounts: [{ ...acc, id: tempId, created_at: new Date().toISOString() }, ...state.accounts],
+      accounts: [{ ...acc, id, created_at: new Date().toISOString() }, ...state.accounts],
     }));
-    fetch("/api/accounts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(acc),
-    })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((saved) => {
-        if (saved?.id) {
-          set((state) => ({
-            accounts: state.accounts.map((a) => (a.id === tempId ? { ...a, id: saved.id } : a)),
-          }));
-        }
-      })
-      .catch(() => {});
   },
 
   updateAccount: (id, updates) => {
@@ -1250,48 +1186,13 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
   },
 
   addContact: (c) => {
-    const tempId = `con-new-${Date.now()}`;
-    set((state) => ({ contacts: [{ ...c, id: tempId }, ...state.contacts] }));
-    fetch("/api/contacts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(c),
-    })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((saved) => {
-        if (saved?.id) {
-          set((state) => ({
-            contacts: state.contacts.map((con) =>
-              con.id === tempId ? { ...con, id: saved.id } : con,
-            ),
-          }));
-        }
-      })
-      .catch(() => {});
+    const id = `con-new-${Date.now()}`;
+    set((state) => ({ contacts: [{ ...c, id }, ...state.contacts] }));
   },
 
   updateContact: (id, updates) => {
     set((state) => ({
       contacts: state.contacts.map((c) => (c.id === id ? { ...c, ...updates } : c)),
-    }));
-  },
-
-  importLinkedInContacts: (contacts, accounts, campaigns) => {
-    const now = new Date().toISOString();
-    // Account IDs must match the account_id references in contacts (li-acc-{company-slug})
-    const mappedAccounts = accounts.map((a) => ({
-      ...a,
-      id: `li-acc-${a.name.toLowerCase().replace(/\s+/g, "-")}`,
-      created_at: now,
-    }));
-    const mappedContacts = contacts.map((c, i) => ({
-      ...c,
-      id: `li-con-${i}-${Date.now()}`,
-    }));
-    set((state) => ({
-      accounts: [...mappedAccounts, ...state.accounts],
-      contacts: [...mappedContacts, ...state.contacts],
-      campaigns: [...campaigns, ...state.campaigns],
     }));
   },
 
@@ -1318,47 +1219,8 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
     }));
   },
 
-  deleteCampaignStep: (campaignId, stepId) => {
-    set((state) => ({
-      campaigns: state.campaigns.map((c) =>
-        c.id === campaignId ? { ...c, steps: c.steps.filter((s) => s.id !== stepId) } : c,
-      ),
-    }));
-  },
-
-  addMessageToQueue: async (draft) => {
-    // Persist to DB first — the approval queue reads from DB so the ID must be real.
-    const resp = await fetch("/api/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        account_id: draft.account_id,
-        contact_id: draft.contact_id,
-        warm_path_id: draft.warm_path_id,
-        signal_id: draft.signal_id,
-        channel: draft.channel,
-        subject: draft.subject,
-        body: draft.body,
-        intro_request: draft.intro_request,
-        status: "draft",
-        approval_status: "pending",
-        generated_by_ai: draft.generated_by_ai ?? true,
-        confidence_score: draft.confidence_score ?? 0,
-        personalization_reason: draft.personalization_reason,
-        factual_claims: draft.factual_claims ?? [],
-        supporting_sources: draft.supporting_sources ?? [],
-        risk_flags: draft.risk_flags ?? [],
-      }),
-    });
-
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({}));
-      throw new Error((err as { error?: string }).error ?? "Failed to save message");
-    }
-
-    const saved = (await resp.json()) as { id: string };
-    const id = saved.id;
-
+  addMessageToQueue: (draft) => {
+    const id = `msg-new-${Date.now()}`;
     const state = get();
     const contact = state.contacts.find((c) => c.id === draft.contact_id);
     const account = state.accounts.find((a) => a.id === draft.account_id);
