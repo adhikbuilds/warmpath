@@ -43,9 +43,10 @@ export async function POST(req: NextRequest) {
   let account: Awaited<ReturnType<typeof prisma.bizAccount.findFirst>>;
   let contact: Awaited<ReturnType<typeof prisma.contact.findFirst>>;
   let kbItems: Awaited<ReturnType<typeof prisma.knowledgeBaseItem.findMany>>;
+  let workspace: Awaited<ReturnType<typeof prisma.workspace.findUnique>>;
 
   try {
-    [account, contact, kbItems] = await Promise.all([
+    [account, contact, kbItems, workspace] = await Promise.all([
       prisma.bizAccount.findFirst({ where: { id: accountId, workspaceId } }),
       prisma.contact.findFirst({ where: { id: contactId, workspaceId } }),
       prisma.knowledgeBaseItem.findMany({
@@ -53,6 +54,7 @@ export async function POST(req: NextRequest) {
         orderBy: { updatedAt: "desc" },
         take: 8,
       }),
+      prisma.workspace.findUnique({ where: { id: workspaceId }, select: { name: true } }),
     ]);
   } catch (err) {
     logger.error("Prisma lookup failed", {
@@ -140,10 +142,10 @@ export async function POST(req: NextRequest) {
     intelBody.intro_person = pathNames[1] ?? undefined;
   }
 
-  // Pass sender identity so the AI signs with the actual user's name, not a hardcoded default.
-  intelBody.sender_name =
-    session.user?.name?.split(" ")[0] ?? session.user?.email?.split("@")[0] ?? "Your Rep";
-  intelBody.workspace_name = "WarmPath";
+  // Pass full sender identity — first + last name so the AI can sign properly.
+  const senderFullName = session.user?.name ?? session.user?.email?.split("@")[0] ?? "Your Rep";
+  intelBody.sender_name = senderFullName;
+  intelBody.workspace_name = workspace?.name ?? session.user.name ?? "Your Company";
 
   // Azure-first: call Azure OpenAI directly when credentials are available.
   // Falls back to the Python intelligence service if Azure is not configured.
@@ -161,9 +163,34 @@ export async function POST(req: NextRequest) {
         intelBody as unknown as Parameters<typeof callAzureOpenAI>[0],
       );
 
+      // Persist AI usage (fire-and-forget — never block the response on logging).
+      const durationMs = Date.now() - start;
+      prisma.aIUsageLog
+        .create({
+          data: {
+            workspaceId,
+            userId: session.user.id,
+            actionType: "generate-message",
+            provider: "azure_openai",
+            mode: "remote",
+            model: result.model,
+            inputTokens: result.usage?.prompt_tokens ?? 0,
+            outputTokens: result.usage?.completion_tokens ?? 0,
+            estimatedCost:
+              (result.usage?.prompt_tokens ?? 0) *
+                (parseFloat(process.env.AZURE_OPENAI_INPUT_COST_PER_M ?? "0.10") / 1_000_000) +
+              (result.usage?.completion_tokens ?? 0) *
+                (parseFloat(process.env.AZURE_OPENAI_OUTPUT_COST_PER_M ?? "0.40") / 1_000_000),
+            latencyMs: durationMs,
+          },
+        })
+        .catch((err: unknown) =>
+          logger.warn("Failed to persist AI usage log (non-fatal)", { route: ROUTE, error: err }),
+        );
+
       logger.info("Generate message complete (Azure)", {
         route: ROUTE,
-        durationMs: Date.now() - start,
+        durationMs,
         model: result.model,
         confidenceScore: result.confidence_score,
       });
@@ -229,10 +256,34 @@ export async function POST(req: NextRequest) {
   const result = await res.json();
   const model = result.model ?? "unknown";
   const isMock = model === "mock";
+  const durationMs = Date.now() - start;
+
+  // Persist AI usage for intelligence-service path (fire-and-forget).
+  if (!isMock && (result.usage || result.cost_usd !== undefined)) {
+    const usage = result.usage ?? {};
+    prisma.aIUsageLog
+      .create({
+        data: {
+          workspaceId,
+          userId: session.user.id,
+          actionType: "generate-message",
+          provider: "intelligence_service",
+          mode: "remote",
+          model,
+          inputTokens: usage.input_tokens ?? 0,
+          outputTokens: usage.output_tokens ?? 0,
+          estimatedCost: result.cost_usd ?? 0,
+          latencyMs: durationMs,
+        },
+      })
+      .catch((err: unknown) =>
+        logger.warn("Failed to persist AI usage log (non-fatal)", { route: ROUTE, error: err }),
+      );
+  }
 
   logger.info("Generate message complete (intelligence service)", {
     route: ROUTE,
-    durationMs: Date.now() - start,
+    durationMs,
     model,
     isMock,
     costUsd: result.cost_usd,
