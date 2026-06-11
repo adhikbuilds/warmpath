@@ -19,7 +19,13 @@ FROM oven/bun:1 AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# Generate the Prisma client, then build. NEXT_PUBLIC_* are inlined at build time.
+# NEXT_PUBLIC_* are inlined into the client bundle at build time — they must be
+# passed as build ARGs here, not set as runtime env vars. Defaults match prod.
+ARG NEXT_PUBLIC_AI_MODE=azure
+ARG NEXT_PUBLIC_DEMO_MODE=false
+ENV NEXT_PUBLIC_AI_MODE=$NEXT_PUBLIC_AI_MODE
+ENV NEXT_PUBLIC_DEMO_MODE=$NEXT_PUBLIC_DEMO_MODE
+# Generate the Prisma client, then build.
 RUN bunx prisma generate && bun run build
 
 # ── runtime ─────────────────────────────────────────────────────────────────

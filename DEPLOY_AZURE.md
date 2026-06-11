@@ -108,4 +108,20 @@ az group delete -n warmpath-rg --yes --no-wait
 - **Python DB-backed endpoints** (dashboard proxy, scoring, sequences) read the
   Python `biz_accounts`-style tables, which are separate from the Prisma data the
   UI renders — they will be sparse until the data layer is unified.
-- **Rotate the Neon credential** — it was exposed in a tool transcript.
+- **Rotate the Neon credential** — it was exposed in a tool transcript. This is an
+  ops task (rotate in Neon dashboard, update `DATABASE_URL` and `DIRECT_URL` secrets
+  in GitHub), not a code fix.
+
+## What CI now handles automatically
+
+- **`NEXT_PUBLIC_*` build-time inlining** — `NEXT_PUBLIC_AI_MODE` and
+  `NEXT_PUBLIC_DEMO_MODE` are passed as Docker build ARGs in the frontend workflow so
+  they are correctly baked into the client bundle. The `--set-env-vars` entries are
+  kept for server-side access but are no longer the source of truth for client code.
+- **Database migrations** — `npx prisma migrate deploy` runs automatically in the
+  frontend CI job (after checkout, before deploy) using the `DATABASE_URL` secret.
+  No manual `prisma migrate deploy` step needed on schema changes.
+- **Replica scaling** — frontend container runs `--min-replicas 1` (no cold starts)
+  and `--max-replicas 3` (caps Neon connection usage; free tier has 10 connections).
+- **Intelligence service DB access** — `DATABASE_URL` and `DIRECT_URL` are both set
+  on the intelligence service container via CI so the Python service can reach Neon.
