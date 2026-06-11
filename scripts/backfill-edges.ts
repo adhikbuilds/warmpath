@@ -11,7 +11,7 @@ const prisma = new PrismaClient({
   log: ["error", "warn"],
 });
 
-const BATCH_SIZE = 100;
+const BATCH_SIZE = 20;
 
 async function main() {
   console.log("Starting RelationshipEdge backfill...");
