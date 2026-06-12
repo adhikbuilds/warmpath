@@ -137,6 +137,7 @@ interface SignalCardProps {
   opportunityScore: number;
   detectedAt: string;
   warmthScore: number;
+  icpRelevanceReason?: string;
   connectorName: string;
   connectorInitials: string;
   connectorSubtitle: string;
@@ -157,6 +158,7 @@ function SignalCard({
   opportunityScore,
   detectedAt,
   warmthScore,
+  icpRelevanceReason,
   connectorName,
   connectorInitials,
   connectorSubtitle,
@@ -286,6 +288,27 @@ function SignalCard({
           {formatRelativeTime(detectedAt)}
         </span>
       </div>
+
+      {/* ICP relevance callout */}
+      {icpRelevanceReason && (
+        <div
+          style={{
+            margin: "0 16px",
+            padding: "8px 12px",
+            borderRadius: 8,
+            backgroundColor: "rgba(78,222,163,0.08)",
+            border: "1px solid rgba(78,222,163,0.2)",
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 8,
+          }}
+        >
+          <span style={{ fontSize: 13, lineHeight: 1.1, marginTop: 1 }}>💡</span>
+          <span style={{ fontSize: 12, color: T.emerald, lineHeight: 1.5 }}>
+            {icpRelevanceReason}
+          </span>
+        </div>
+      )}
 
       {/* Path visualization */}
       <div
@@ -1014,6 +1037,10 @@ export default function SignalsPage() {
                 const targetName = targetContact?.name ?? account?.name ?? "Target";
                 const targetTitle = targetContact?.title ?? "Decision Maker";
 
+                // Extract ICP relevance reason embedded as "💡 ..." in description
+                const icpMatch = signal.description?.match(/💡\s*(.+)$/s);
+                const icpRelevanceReason = icpMatch ? icpMatch[1].trim() : undefined;
+
                 return (
                   <SignalCard
                     key={signal.id}
@@ -1026,6 +1053,7 @@ export default function SignalsPage() {
                     opportunityScore={opportunityScore}
                     detectedAt={signal.detected_at}
                     warmthScore={warmthScore}
+                    icpRelevanceReason={icpRelevanceReason}
                     connectorName={displayConnectorName}
                     connectorInitials={displayConnectorInitials}
                     connectorSubtitle={displayConnectorSubtitle}
