@@ -93,6 +93,8 @@ jobs:
               --resource-group "$RESOURCE_GROUP" \
               --min-replicas 1 \
               --max-replicas 3 \
+              --liveness-probe-timeout 10 \
+              --readiness-probe-timeout 10 \
               --set-env-vars \
                 "DATABASE_URL=${{ secrets.DATABASE_URL }}" \
                 "DIRECT_URL=${{ secrets.DIRECT_URL }}" \

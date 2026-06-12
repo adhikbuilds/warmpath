@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/db/client";
 import { getWorkspaceId } from "@/lib/db/workspace";
-import { DEMO_MESSAGES } from "@/lib/demo-data";
-
 export async function GET() {
   try {
     const workspaceId = await getWorkspaceId();
@@ -18,9 +16,6 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
       take: 100,
     });
-    if (messages.length === 0) {
-      return NextResponse.json(DEMO_MESSAGES);
-    }
     return NextResponse.json(
       messages.map((m) => ({
         id: m.id,
@@ -72,7 +67,7 @@ export async function GET() {
       })),
     );
   } catch {
-    return NextResponse.json(DEMO_MESSAGES);
+    return NextResponse.json([]);
   }
 }
 

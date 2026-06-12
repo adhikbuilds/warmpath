@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/db/client";
 import { getWorkspaceId } from "@/lib/db/workspace";
-import { DEMO_AUDIT_LOGS } from "@/lib/demo-data-extended";
-
 export async function GET() {
   try {
     const workspaceId = await getWorkspaceId();
@@ -12,12 +10,9 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
       take: 100,
     });
-    if (logs.length === 0) {
-      return NextResponse.json(DEMO_AUDIT_LOGS);
-    }
     return NextResponse.json(logs);
   } catch {
-    return NextResponse.json(DEMO_AUDIT_LOGS);
+    return NextResponse.json([]);
   }
 }
 
