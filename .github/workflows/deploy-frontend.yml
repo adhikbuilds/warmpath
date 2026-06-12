@@ -66,7 +66,7 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Install dependencies for migrations
-        run: npm ci --ignore-scripts
+        run: npm ci --ignore-scripts --legacy-peer-deps
 
       - name: Run database migrations
         run: DATABASE_URL="${{ secrets.DATABASE_URL }}" DIRECT_URL="${{ secrets.DIRECT_URL }}" npx prisma migrate deploy
