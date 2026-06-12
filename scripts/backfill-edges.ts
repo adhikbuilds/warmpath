@@ -11,7 +11,7 @@ const prisma = new PrismaClient({
   log: ["error", "warn"],
 });
 
-const BATCH_SIZE = 20;
+const BATCH_SIZE = 50;
 
 async function main() {
   console.log("Starting RelationshipEdge backfill...");
@@ -83,25 +83,22 @@ async function main() {
         const totalBatches = Math.ceil(orphanedContacts.length / BATCH_SIZE);
 
         try {
-          await prisma.$transaction(
-            batch.map((contact) =>
-              prisma.relationshipEdge.create({
-                data: {
-                  workspaceId: workspace.id,
-                  fromType: "user",
-                  fromId: user.id,
-                  fromName,
-                  toType: "contact",
-                  toId: contact.id,
-                  toName: contact.name,
-                  relationshipType: "linkedin_connection",
-                  strengthScore: 35,
-                  source: "backfill",
-                },
-              }),
-            ),
-          );
-          workspaceEdgesCreated += batch.length;
+          const result = await prisma.relationshipEdge.createMany({
+            data: batch.map((contact) => ({
+              workspaceId: workspace.id,
+              fromType: "user",
+              fromId: user.id,
+              fromName,
+              toType: "contact",
+              toId: contact.id,
+              toName: contact.name,
+              relationshipType: "linkedin_connection",
+              strengthScore: 35,
+              source: "backfill",
+            })),
+            skipDuplicates: true,
+          });
+          workspaceEdgesCreated += result.count;
           console.log(
             `    Batch ${batchNum}/${totalBatches}: created ${batch.length} edges (running total: ${workspaceEdgesCreated})`,
           );

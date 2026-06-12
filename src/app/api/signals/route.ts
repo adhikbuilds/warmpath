@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/db/client";
 import { getWorkspaceId } from "@/lib/db/workspace";
-import { DEMO_SIGNALS } from "@/lib/demo-data";
-
 export async function GET() {
   try {
     const workspaceId = await getWorkspaceId();
@@ -15,9 +13,6 @@ export async function GET() {
       },
       orderBy: { detectedAt: "desc" },
     });
-    if (signals.length === 0) {
-      return NextResponse.json(DEMO_SIGNALS);
-    }
     return NextResponse.json(
       signals.map((s) => ({
         ...s,
@@ -30,7 +25,7 @@ export async function GET() {
       })),
     );
   } catch {
-    return NextResponse.json(DEMO_SIGNALS);
+    return NextResponse.json([]);
   }
 }
 
