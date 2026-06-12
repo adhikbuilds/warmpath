@@ -65,11 +65,14 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
       - name: Install dependencies for migrations
-        run: npm ci --ignore-scripts --legacy-peer-deps
+        run: bun install --frozen-lockfile
 
       - name: Run database migrations
-        run: DATABASE_URL="${{ secrets.DATABASE_URL }}" DIRECT_URL="${{ secrets.DIRECT_URL }}" npx prisma migrate deploy
+        run: DATABASE_URL="${{ secrets.DATABASE_URL }}" DIRECT_URL="${{ secrets.DIRECT_URL }}" bunx prisma migrate deploy
 
       - name: Deploy to Container Apps
         uses: azure/cli@v2
