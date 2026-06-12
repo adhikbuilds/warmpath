@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Filter, UserCircle, X } from "lucide-react";
+import { ChevronDown, Filter, RefreshCw, UserCircle, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -547,6 +547,25 @@ export default function SignalsPage() {
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const [dismissReasons, setDismissReasons] = useState<Record<string, string>>({});
   const [pendingDismissId, setPendingDismissId] = useState<string | null>(null);
+  const [fetching, setFetching] = useState(false);
+
+  async function fetchLiveSignals() {
+    setFetching(true);
+    try {
+      const res = await fetch("/api/cron/signals", { method: "POST" });
+      const data = await res.json();
+      if (data.ingested > 0) {
+        toast.success(`${data.ingested} new signal${data.ingested > 1 ? "s" : ""} ingested`);
+        router.refresh();
+      } else {
+        toast.info(`No new signals found (${data.fetched ?? 0} articles checked)`);
+      }
+    } catch {
+      toast.error("Failed to fetch signals");
+    } finally {
+      setFetching(false);
+    }
+  }
   const [fundingChipActive, setFundingChipActive] = useState(false);
   const [signalTypeFilter, setSignalTypeFilter] = useState<string>("all");
   const [icpTierFilter, setIcpTierFilter] = useState<string>("all");
@@ -745,6 +764,29 @@ export default function SignalsPage() {
               />
               {liveCount} live · Sorted by Relevance
             </span>
+            <button
+              type="button"
+              disabled={fetching}
+              onClick={fetchLiveSignals}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "0 12px",
+                height: 34,
+                borderRadius: 8,
+                border: `1px solid ${T.border}`,
+                backgroundColor: "transparent",
+                color: fetching ? T.muted : T.white,
+                cursor: fetching ? "not-allowed" : "pointer",
+                fontSize: 12,
+                fontWeight: 500,
+              }}
+              title="Fetch live funding & news signals"
+            >
+              <RefreshCw style={{ width: 13, height: 13, animation: fetching ? "spin 1s linear infinite" : undefined }} />
+              {fetching ? "Fetching…" : "Fetch Signals"}
+            </button>
             <button
               type="button"
               style={{

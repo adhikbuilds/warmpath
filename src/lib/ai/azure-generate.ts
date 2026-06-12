@@ -9,6 +9,9 @@
 export const AZURE_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT ?? "";
 export const AZURE_API_KEY = process.env.AZURE_OPENAI_API_KEY ?? "";
 export const AZURE_DEPLOYMENT = process.env.AZURE_OPENAI_DEPLOYMENT ?? "gpt-4.1-nano";
+// Stronger model specifically for customer-facing message generation
+export const AZURE_DEPLOYMENT_GENERATE =
+  process.env.AZURE_OPENAI_DEPLOYMENT_GENERATE ?? "gpt-4.1";
 const API_VERSION = "2024-08-01-preview";
 
 export function isAzureConfigured(): boolean {
@@ -211,7 +214,7 @@ export function buildUserPrompt(req: AzureGenerateRequest): string {
 
 // ── Azure call ────────────────────────────────────────────────────────────────
 export async function callAzureOpenAI(req: AzureGenerateRequest): Promise<AzureGenerateResult> {
-  const url = `${AZURE_ENDPOINT.replace(/\/$/, "")}/openai/deployments/${AZURE_DEPLOYMENT}/chat/completions?api-version=${API_VERSION}`;
+  const url = `${AZURE_ENDPOINT.replace(/\/$/, "")}/openai/deployments/${AZURE_DEPLOYMENT_GENERATE}/chat/completions?api-version=${API_VERSION}`;
 
   const systemPrompt = buildSystemPrompt(req.kb_items ?? [], req.sender_name, req.workspace_name);
   const userPrompt = buildUserPrompt(req);
@@ -262,7 +265,7 @@ export async function callAzureOpenAI(req: AzureGenerateRequest): Promise<AzureG
     factual_claims: parsed.factual_claims ?? [],
     risk_flags: parsed.risk_flags ?? [],
     channel: req.channel,
-    model: `azure/${AZURE_DEPLOYMENT}`,
+    model: `azure/${AZURE_DEPLOYMENT_GENERATE}`,
     usage: {
       prompt_tokens: usage.prompt_tokens,
       completion_tokens: usage.completion_tokens,
