@@ -214,7 +214,9 @@ export default function OnboardingPage() {
   async function handleGoogleConnect() {
     setConnecting(true);
     try {
-      await signIn("google", { callbackUrl: `${window.location.href}?connected=google` });
+      const cbUrl = new URL(window.location.href);
+      cbUrl.searchParams.set("connected", "google");
+      await signIn("google", { callbackUrl: cbUrl.toString() });
     } catch {
       toast.error("Could not connect Google. Please try again.");
       setConnecting(false);

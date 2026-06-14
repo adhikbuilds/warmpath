@@ -64,22 +64,68 @@ export async function POST() {
       );
     }
 
-    // Call Google People API
-    const res = await fetch(
-      "https://people.googleapis.com/v1/people/me/connections?personFields=names,emailAddresses,organizations,phoneNumbers&pageSize=200",
-      { headers: { Authorization: `Bearer ${oauthAccount.access_token}` } },
-    );
+    // Refresh the access token if it has expired (Google tokens last 1 hour)
+    let accessToken = oauthAccount.access_token;
+    const expiresAt = oauthAccount.expires_at; // Unix seconds
+    const isExpired = expiresAt && Date.now() / 1000 > expiresAt - 60; // 60s buffer
 
-    if (!res.ok) {
-      const text = await res.text();
-      return NextResponse.json(
-        { error: `Google API error: ${res.status} ${text}` },
-        { status: 400 },
-      );
+    if (isExpired && oauthAccount.refresh_token) {
+      try {
+        const refreshRes = await fetch("https://oauth2.googleapis.com/token", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            client_id: process.env.GOOGLE_CLIENT_ID ?? "",
+            client_secret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+            grant_type: "refresh_token",
+            refresh_token: oauthAccount.refresh_token,
+          }),
+        });
+        if (refreshRes.ok) {
+          const tokens = await refreshRes.json();
+          accessToken = tokens.access_token;
+          // Persist the new token so future calls don't re-refresh
+          await prisma.account.update({
+            where: { id: oauthAccount.id },
+            data: {
+              access_token: tokens.access_token,
+              expires_at: tokens.expires_in
+                ? Math.floor(Date.now() / 1000) + tokens.expires_in
+                : undefined,
+            },
+          });
+        }
+      } catch (refreshErr) {
+        console.error("[google-import] Token refresh failed:", refreshErr);
+        // Fall through and try with the old token; the 401 below will surface the real error
+      }
     }
 
-    const data = await res.json();
-    const connections: GooglePerson[] = data.connections ?? [];
+    // Call Google People API — paginate through all contacts (max 1000/page)
+    const connections: GooglePerson[] = [];
+    let pageToken: string | undefined;
+    do {
+      const url = new URL("https://people.googleapis.com/v1/people/me/connections");
+      url.searchParams.set("personFields", "names,emailAddresses,organizations,phoneNumbers");
+      url.searchParams.set("pageSize", "1000");
+      if (pageToken) url.searchParams.set("pageToken", pageToken);
+
+      const res = await fetch(url.toString(), {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        return NextResponse.json(
+          { error: `Google API error: ${res.status} ${text}` },
+          { status: 400 },
+        );
+      }
+
+      const data = await res.json();
+      connections.push(...(data.connections ?? []));
+      pageToken = data.nextPageToken;
+    } while (pageToken);
 
     let imported = 0;
     let skipped = 0;
