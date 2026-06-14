@@ -4,7 +4,6 @@ import {
   ArrowRight,
   BarChart3,
   Check,
-  GitMerge,
   MessageSquare,
   Minus,
   Network,
@@ -16,6 +15,8 @@ import {
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Logo } from "@/components/logo";
+import { WarmpathWorkflow } from "@/components/WarmpathWorkflow";
+import "@/components/warmpath-workflow.css";
 
 function useCountUp(target: number, duration = 1600, active = false) {
   const [val, setVal] = useState(0);
@@ -932,30 +933,6 @@ export default function LandingPage() {
   const accent = "#10b981";
   const indigo = "#8083ff";
 
-  const STEPS = [
-    {
-      n: "01",
-      Icon: Network,
-      color: primary,
-      title: "Map your network",
-      desc: "Connect email, LinkedIn, and CRM. WarmBlue builds a live relationship graph across your entire team — every node scored by warmth, recency, and mutual connection strength.",
-    },
-    {
-      n: "02",
-      Icon: GitMerge,
-      color: indigo,
-      title: "Find warm paths",
-      desc: "BFS pathfinding surfaces the shortest intro route to every prospect. Scored across 4 factors: relationship strength, recency, ICP fit, and active buying signals.",
-    },
-    {
-      n: "03",
-      Icon: ShieldCheck,
-      color: accent,
-      title: "Approve & send",
-      desc: "AI drafts the intro. Your connector gets a one-click approval. Full audit trail, no rogue sends, and measurable reply rate improvement from day one.",
-    },
-  ];
-
   const FEATURES = [
     {
       Icon: Network,
@@ -1428,70 +1405,7 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 40px 1fr 40px 1fr",
-            alignItems: "center",
-            gap: 0,
-          }}
-        >
-          {STEPS.map((step, i) => (
-            <>
-              <div
-                key={step.n}
-                style={{
-                  borderRadius: 16,
-                  padding: "32px 28px",
-                  background: "#fff",
-                  border: `1px solid ${border}`,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                  borderTop: `3px solid ${step.color}`,
-                }}
-              >
-                <div
-                  style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 12,
-                    backgroundColor: `${step.color}12`,
-                    border: `1px solid ${step.color}22`,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginBottom: 16,
-                  }}
-                >
-                  <step.Icon size={20} color={step.color} />
-                </div>
-                <p
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.1em",
-                    color: step.color,
-                    marginBottom: 8,
-                  }}
-                >
-                  Step {step.n}
-                </p>
-                <h3 style={{ fontSize: 17, fontWeight: 800, marginBottom: 10, color: text }}>
-                  {step.title}
-                </h3>
-                <p style={{ fontSize: 13.5, lineHeight: 1.75, color: muted }}>{step.desc}</p>
-              </div>
-              {i < 2 && (
-                <div
-                  key={`arrow-${i}`}
-                  style={{ textAlign: "center", color: "#cbd5e1", fontSize: 22, fontWeight: 300 }}
-                >
-                  →
-                </div>
-              )}
-            </>
-          ))}
-        </div>
+        <WarmpathWorkflow theme="light" secondsPerStep={3} />
       </section>
 
       {/* ── FEATURES ─────────────────────────────────────────────────────── */}
