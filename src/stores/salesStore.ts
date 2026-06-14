@@ -1279,20 +1279,17 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
       ? state.signals.find((s) => s.id === draft.signal_id)
       : undefined;
 
-    let id = `msg-new-${Date.now()}`;
-    try {
-      const res = await fetch("/api/messages", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(draft),
-      });
-      if (res.ok) {
-        const data = (await res.json()) as { id?: string };
-        if (data.id) id = data.id;
-      }
-    } catch {
-      // Network error — message still added to local queue for session continuity
+    const res = await fetch("/api/messages", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(draft),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: "Failed to save message" }));
+      throw new Error((err as { error?: string }).error ?? "Failed to save message");
     }
+    const data = (await res.json()) as { id?: string };
+    const id = data.id ?? `msg-new-${Date.now()}`;
 
     const message: GeneratedMessage = {
       ...draft,
