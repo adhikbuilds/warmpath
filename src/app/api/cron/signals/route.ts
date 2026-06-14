@@ -22,6 +22,7 @@ interface RssItem {
 }
 
 interface ExtractedSignal {
+  idx: number;
   company: string;
   signal_type: "funding" | "leadership_change" | "product_launch" | "job_posting" | "news_mention";
   title: string;
