@@ -530,6 +530,7 @@ export default function DiscoverPage() {
   const [importingId, setImportingId] = useState<string | null>(null);
   const [importingAll, setImportingAll] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [isSimulatedData, setIsSimulatedData] = useState(false);
 
   // ── Visitors — demo sample data shown to demo@warmpath.ai only ──
   const { user } = useAuthStore();
@@ -608,6 +609,7 @@ export default function DiscoverPage() {
       });
       const data = await res.json();
       setLeads(data.leads ?? []);
+      setIsSimulatedData(data.is_stub === true);
     } catch {
       toast.error("Discovery search failed");
     } finally {
@@ -1282,6 +1284,16 @@ export default function DiscoverPage() {
           )}
 
           {/* Results */}
+          {!searching && isSimulatedData && leads.length > 0 && (
+            <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-400">
+              <span className="mt-0.5 shrink-0">⚠</span>
+              <span>
+                These are AI-generated placeholder companies, not real prospects. Connect an
+                external data provider (Apollo, Clay, Clearbit) in Integrations to get live
+                prospect data.
+              </span>
+            </div>
+          )}
           {!searching && leads.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between flex-wrap gap-3">

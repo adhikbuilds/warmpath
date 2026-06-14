@@ -120,5 +120,11 @@ export async function POST(req: NextRequest) {
     };
   });
 
-  return NextResponse.json({ leads, mode: "ai_generated" });
+  return NextResponse.json({
+    leads,
+    mode: "simulated",
+    is_stub: true,
+    notice:
+      "These results are AI-generated placeholders. Connect an external data provider (Apollo, Clay, Clearbit) to get real prospect data.",
+  });
 }
