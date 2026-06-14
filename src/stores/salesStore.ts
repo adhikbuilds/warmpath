@@ -211,10 +211,10 @@ interface SalesState {
   addWarmPath: (wp: WarmPath) => void;
   updateWarmPathStatus: (id: string, status: WarmPath["status"]) => void;
 
-  // Actions Queue a newly composed message (client-side only)
+  // Actions — persist message to DB and add to local state
   addMessageToQueue: (
     draft: Omit<GeneratedMessage, "id" | "contact" | "account" | "warm_path" | "signal">,
-  ) => string;
+  ) => Promise<string>;
 }
 
 // ─── Helper to map API shapes to frontend types ───────────────────────────────
@@ -1268,8 +1268,7 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
     }));
   },
 
-  addMessageToQueue: (draft) => {
-    const id = `msg-new-${Date.now()}`;
+  addMessageToQueue: async (draft) => {
     const state = get();
     const contact = state.contacts.find((c) => c.id === draft.contact_id);
     const account = state.accounts.find((a) => a.id === draft.account_id);
@@ -1279,6 +1278,22 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
     const signal = draft.signal_id
       ? state.signals.find((s) => s.id === draft.signal_id)
       : undefined;
+
+    let id = `msg-new-${Date.now()}`;
+    try {
+      const res = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(draft),
+      });
+      if (res.ok) {
+        const data = (await res.json()) as { id?: string };
+        if (data.id) id = data.id;
+      }
+    } catch {
+      // Network error — message still added to local queue for session continuity
+    }
+
     const message: GeneratedMessage = {
       ...draft,
       id,
