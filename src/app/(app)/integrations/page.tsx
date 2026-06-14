@@ -299,18 +299,10 @@ function TwentyCrmCard() {
       const r = await fetch("/api/twenty/sync");
       const d = await r.json();
       if (!r.ok || !d.ok) throw new Error(d.error ?? "Sync failed");
-      // Merge Twenty data into the store (prepend, deduplicate by id)
-      const existingAccountIds = new Set(accounts.map((a) => a.id));
-      const existingContactIds = new Set(contacts.map((c) => c.id));
-      const newAccounts = (d.data?.accounts ?? []).filter(
-        (a: { id: string }) => !existingAccountIds.has(a.id),
-      );
-      const newContacts = (d.data?.contacts ?? []).filter(
-        (c: { id: string }) => !existingContactIds.has(c.id),
-      );
-      if (newAccounts.length > 0) setAccounts([...newAccounts, ...accounts]);
-      if (newContacts.length > 0) setContacts([...newContacts, ...contacts]);
       setLastSync({ accounts: d.accounts, contacts: d.contacts });
+      // Re-initialize the store so synced accounts/contacts are immediately visible
+      useSalesStore.getState().reset();
+      setTimeout(() => useSalesStore.getState().initialize(), 100);
       toast.success(`Synced ${d.accounts} accounts · ${d.contacts} contacts from Twenty CRM`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Sync failed");

@@ -794,15 +794,6 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
         if (canAdvance) get().updateWarmPathStatus(wp.id, nextStatus);
       }
     }
-    try {
-      await fetch(`/api/approvals/${id}/approve`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "message", editedBody }),
-      });
-    } catch {
-      // network failure is non-fatal for demo; state is already updated
-    }
     get().logAuditEvent("message.approved", {
       entityType: "message",
       entityId: id,
