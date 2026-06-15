@@ -13,6 +13,8 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import { Logo } from "@/components/logo";
 import { WarmpathWorkflow } from "@/components/WarmpathWorkflow";
@@ -918,8 +920,17 @@ function ROICalc() {
 
 // ─── Main ────────────────────────────────────────────────────────────────────
 export default function LandingPage() {
+  const router = useRouter();
+  const { status: sessionStatus } = useSession();
   const [activeCase, setActiveCase] = useState(0);
   const { ref: statsRef, seen: statsSeen } = useInView(0.2);
+
+  // Returning users skip the landing page entirely
+  useEffect(() => {
+    if (sessionStatus === "authenticated") {
+      router.replace("/workspace-select");
+    }
+  }, [sessionStatus, router]);
   const v1 = useCountUp(47, 1400, statsSeen);
   const v2 = useCountUp(18, 1200, statsSeen);
   const v3 = useCountUp(60, 1400, statsSeen);
