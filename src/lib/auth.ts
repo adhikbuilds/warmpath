@@ -24,13 +24,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           prompt: "consent",
           access_type: "offline",
           response_type: "code",
-          scope: [
-            "openid",
-            "email",
-            "profile",
-            "https://www.googleapis.com/auth/contacts.readonly",
-            "https://www.googleapis.com/auth/gmail.readonly",
-          ].join(" "),
+          // Only request basic scopes at sign-in — contacts/gmail are
+          // requested incrementally when the user triggers an import.
+          scope: "openid email profile",
         },
       },
     }),
