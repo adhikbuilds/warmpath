@@ -125,6 +125,17 @@ export default function SettingsPage() {
         if (ws.name) setWorkspaceName(ws.name);
         if (ws.website) setWorkspaceWebsite(ws.website);
         if (ws.description) setWorkspaceDescription(ws.description);
+        if (Array.isArray(ws.members)) {
+          setTeamMembers(
+            ws.members.map(
+              (m: { id: string; role: string; user: { name: string | null; email: string } }) => ({
+                id: m.id,
+                role: m.role,
+                user: m.user,
+              }),
+            ),
+          );
+        }
       })
       .catch(() => {
         // Fall back to localStorage for workspace fields
@@ -231,12 +242,10 @@ export default function SettingsPage() {
     }
   };
 
-  // Team state
-  const [teamMembers] = useState([
-    { id: "1", name: "Adhik Agarwal", email: "adhik@warmpath.ai", role: "Admin", connections: 847 },
-    { id: "2", name: "Sarah Chen", email: "sarah@warmpath.ai", role: "Member", connections: 1240 },
-    { id: "3", name: "Rohan Mehta", email: "rohan@warmpath.ai", role: "Member", connections: 634 },
-  ]);
+  // Team state — loaded from API
+  const [teamMembers, setTeamMembers] = useState<
+    { id: string; role: string; user: { name: string | null; email: string } }[]
+  >([]);
 
   const toggleItem = (item: string, selected: string[], setSelected: (s: string[]) => void) => {
     setSelected(selected.includes(item) ? selected.filter((i) => i !== item) : [...selected, item]);
@@ -600,35 +609,26 @@ export default function SettingsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
+              {teamMembers.length === 0 && (
+                <p className="text-sm text-muted-foreground py-2">No team members yet.</p>
+              )}
               {teamMembers.map((member) => (
                 <div
                   key={member.id}
                   className="flex items-center gap-3 p-3 rounded-lg border border-border/50"
                 >
                   <div className="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center text-xs font-bold text-brand">
-                    {member.name[0]}
+                    {(member.user.name ?? member.user.email)[0]?.toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium">{member.name}</p>
+                      <p className="text-sm font-medium">{member.user.name ?? member.user.email}</p>
                       <Badge variant="outline" className="text-[10px]">
                         {member.role}
                       </Badge>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {member.email} · {member.connections} LinkedIn connections
-                    </p>
+                    <p className="text-xs text-muted-foreground">{member.user.email}</p>
                   </div>
-                  {member.id !== "1" && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 text-xs text-muted-foreground"
-                      onClick={() => toast.info("Remove team member?")}
-                    >
-                      Remove
-                    </Button>
-                  )}
                 </div>
               ))}
               <Button

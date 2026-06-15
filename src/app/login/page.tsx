@@ -286,12 +286,12 @@ function LoginPageContent() {
           </button>
 
           {/* OAuth buttons */}
-          <div className="grid grid-cols-2 gap-2 mb-4">
+          <div className="mb-4">
             <button
               type="button"
               onClick={() => handleOAuth("google")}
               disabled={isLoading || !!oauthLoading}
-              className="h-10 rounded-lg flex items-center justify-center gap-2 font-medium disabled:opacity-60 transition-colors"
+              className="w-full h-10 rounded-lg flex items-center justify-center gap-2 font-medium disabled:opacity-60 transition-colors"
               style={{
                 backgroundColor: "#ffffff",
                 border: "1px solid #e0e0e4",
@@ -322,33 +322,7 @@ function LoginPageContent() {
                   />
                 </svg>
               )}
-              Google
-            </button>
-            <button
-              type="button"
-              onClick={() => handleOAuth("linkedin")}
-              disabled={isLoading || !!oauthLoading}
-              className="h-10 rounded-lg flex items-center justify-center gap-2 font-medium disabled:opacity-60 transition-colors"
-              style={{
-                backgroundColor: "#ffffff",
-                border: "1px solid #e0e0e4",
-                color: "#111113",
-                fontSize: 13,
-                cursor: "pointer",
-              }}
-            >
-              {oauthLoading === "linkedin" ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true">
-                  <rect width="24" height="24" rx="3" fill="#0A66C2" />
-                  <path
-                    fill="#fff"
-                    d="M6.5 9h2.6v8H6.5zm1.3-3.7a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM10.6 9h2.5v1.1h.03c.35-.66 1.2-1.36 2.47-1.36 2.65 0 3.14 1.74 3.14 4V17h-2.6v-3.6c0-.86-.02-1.97-1.2-1.97-1.2 0-1.39.94-1.39 1.9V17h-2.6V9z"
-                  />
-                </svg>
-              )}
-              LinkedIn
+              Continue with Google
             </button>
           </div>
 
