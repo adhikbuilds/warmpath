@@ -205,8 +205,8 @@ function BrevoCard() {
         </div>
 
         <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-          Send outreach emails via your Brevo (Sendinblue) SMTP relay. Uses your own Brevo account
-          — bring your own sender reputation and deliverability settings.
+          Send outreach emails via your Brevo (Sendinblue) SMTP relay. Uses your own Brevo account —
+          bring your own sender reputation and deliverability settings.
         </p>
 
         {connected && !showForm && (
@@ -281,7 +281,11 @@ function BrevoCard() {
                   onClick={() => setShowPassword((v) => !v)}
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  {showPassword ? (
+                    <EyeOff className="w-3.5 h-3.5" />
+                  ) : (
+                    <Eye className="w-3.5 h-3.5" />
+                  )}
                 </button>
               </div>
             </div>
@@ -440,6 +444,145 @@ function ApolloCard() {
   );
 }
 
+// ─── Twenty CRM sync card ─────────────────────────────────────────────────────
+
+type TwentyStatus = {
+  configured: boolean;
+  status: string;
+  connectedAt: string | null;
+  lastSyncAt: string | null;
+};
+
+function TwentyCrmCard() {
+  const [status, setStatus] = useState<TwentyStatus | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [lastResult, setLastResult] = useState<{
+    accounts: number;
+    contacts: number;
+  } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/twenty/status")
+      .then((r) => r.json())
+      .then((d: TwentyStatus) => setStatus(d))
+      .catch(() => null);
+  }, []);
+
+  async function handleSync() {
+    setSyncing(true);
+    try {
+      const res = await fetch("/api/twenty/sync");
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error ?? "Twenty sync failed");
+      }
+      setLastResult({ accounts: data.accounts, contacts: data.contacts });
+      setStatus((prev) =>
+        prev ? { ...prev, status: "connected", lastSyncAt: new Date().toISOString() } : prev,
+      );
+      toast.success(
+        `Twenty synced — ${data.accounts} accounts, ${data.contacts} new contacts imported`,
+      );
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Twenty sync failed");
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  const connected = status?.status === "connected";
+  const configured = status?.configured ?? false;
+
+  return (
+    <Card className="border-border/60">
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-sm"
+              style={{ backgroundColor: "#6366f1", color: "#fff" }}
+            >
+              20
+            </div>
+            <div>
+              <p className="font-semibold text-sm">Twenty CRM</p>
+              <Badge
+                variant="outline"
+                className={`text-[10px] mt-0.5 ${
+                  connected
+                    ? "text-emerald-500 bg-emerald-500/10 border-emerald-500/20"
+                    : configured
+                      ? "text-amber-500 bg-amber-500/10 border-amber-500/20"
+                      : "text-muted-foreground bg-muted border-border"
+                }`}
+              >
+                {connected ? (
+                  <>
+                    <CheckCircle className="w-2.5 h-2.5 mr-0.5" />
+                    Connected
+                  </>
+                ) : configured ? (
+                  <>
+                    <AlertCircle className="w-2.5 h-2.5 mr-0.5" />
+                    Ready to sync
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="w-2.5 h-2.5 mr-0.5" />
+                    Not configured
+                  </>
+                )}
+              </Badge>
+            </div>
+          </div>
+        </div>
+
+        <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+          Sync companies and people from your self-hosted Twenty CRM into WarmPath contacts and
+          accounts — keeping your pipeline data in one place.
+        </p>
+
+        <div className="flex flex-wrap gap-1 mb-4">
+          {["companies → accounts", "people → contacts", "auto-link", "idempotent"].map((cap) => (
+            <span
+              key={cap}
+              className="text-[10px] px-1.5 py-0.5 rounded-md bg-muted/60 text-muted-foreground"
+            >
+              {cap}
+            </span>
+          ))}
+        </div>
+
+        {status?.lastSyncAt && !lastResult && (
+          <div className="text-[11px] text-muted-foreground mb-3">
+            Last synced {formatRelativeTime(status.lastSyncAt)}
+          </div>
+        )}
+        {lastResult && (
+          <div className="text-[11px] text-emerald-500 mb-3">
+            Synced — +{lastResult.accounts} accounts · +{lastResult.contacts} new contacts
+          </div>
+        )}
+
+        <Button
+          size="sm"
+          className="w-full h-8 text-xs"
+          onClick={handleSync}
+          disabled={syncing || !configured}
+        >
+          <RefreshCw className={`w-3 h-3 mr-1.5 ${syncing ? "animate-spin" : ""}`} />
+          {syncing ? "Syncing…" : "Sync Now"}
+        </Button>
+        {!configured && (
+          <p className="text-[10px] text-muted-foreground mt-2 text-center">
+            Set TWENTY_API_URL + TWENTY_API_KEY to enable
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function IntegrationsPage() {
   const { integrations, toggleIntegrationDemo, logAuditEvent } = useSalesStore();
 
@@ -504,14 +647,16 @@ export default function IntegrationsPage() {
         </div>
       </div>
 
-      {/* Contact intelligence — Apollo.io */}
+      {/* Contact intelligence — Apollo + Twenty CRM */}
       <div className="animate-fade-up delay-2">
         <div className="flex items-center gap-2 mb-4">
-          <h2 className="font-semibold text-sm">Contact Intelligence</h2>
+          <h2 className="font-semibold text-sm">Contact Intelligence &amp; CRM</h2>
           <div className="flex-1 h-px bg-border/60" />
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <BrevoCard />
           <ApolloCard />
+          <TwentyCrmCard />
         </div>
       </div>
 
@@ -541,7 +686,6 @@ export default function IntegrationsPage() {
               </div>
 
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {groupKey === "email" && <BrevoCard />}
                 {groupIntegrations.map((integration) => {
                   const iconCfg = PROVIDER_ICON[integration.provider] ?? {
                     text: integration.provider[0].toUpperCase(),

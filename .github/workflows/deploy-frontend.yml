@@ -105,6 +105,7 @@ jobs:
                 "AZURE_OPENAI_ENDPOINT=${{ secrets.AZURE_OPENAI_ENDPOINT }}" \
                 "AZURE_OPENAI_API_KEY=${{ secrets.AZURE_OPENAI_API_KEY }}" \
                 "AZURE_OPENAI_DEPLOYMENT=gpt-4.1-nano" \
+                "AZURE_OPENAI_DEPLOYMENT_GENERATE=${{ secrets.AZURE_OPENAI_DEPLOYMENT_GENERATE }}" \
                 "INTELLIGENCE_SERVICE_URL=${{ secrets.INTELLIGENCE_SERVICE_URL }}" \
                 "INTELLIGENCE_SERVICE_SECRET=${{ secrets.INTELLIGENCE_SERVICE_SECRET }}" \
                 "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" \

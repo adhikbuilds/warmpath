@@ -58,17 +58,27 @@ export async function POST(req: NextRequest) {
 
   const path = paths[0] ?? null;
 
-  // Always create a WarmPath record (even if no path found)
+  if (!path || path.nodes.length < 2) {
+    return NextResponse.json({
+      id: null,
+      warmth_score: 0,
+      path_nodes: [],
+      path_explanation: "No warm path found — import more contacts or map your network first",
+      account_id: contact.accountId,
+      contact_id,
+    });
+  }
+
   const warmPath = await prisma.warmPath.create({
     data: {
       workspaceId,
       contactId: contact_id,
       accountId: contact.accountId,
-      pathJson: path ? JSON.stringify(path.nodes) : "[]",
-      warmthScore: path ? path.warmth : 0,
-      confidenceScore: path ? Math.round(path.warmth) : 0,
-      explanation: path ? path.explanation : "No warm path found",
-      recommendedIntroPerson: path?.nodes[1]?.name ?? "",
+      pathJson: JSON.stringify(path.nodes),
+      warmthScore: path.warmth,
+      confidenceScore: Math.round(path.warmth),
+      explanation: path.explanation,
+      recommendedIntroPerson: path.nodes[1]?.name ?? "",
       recommendedChannel: "linkedin",
       status: "active",
     },
