@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useSalesStore } from "@/stores/salesStore";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -150,15 +151,17 @@ function ResultCard({
 
 export default function NetworkSearchPage() {
   const router = useRouter();
-  const [query, setQuery] = useState("");
+  const { networkSearchQuery, networkSearchResults, networkSearchHasSearched, setNetworkSearch } =
+    useSalesStore();
+  const [query, setQuery] = useState(networkSearchQuery);
   const [searching, setSearching] = useState(false);
-  const [results, setResults] = useState<NetworkSearchResult[]>([]);
-  const [hasSearched, setHasSearched] = useState(false);
   const [generatingId, setGeneratingId] = useState<string | null>(null);
+
+  const results = networkSearchResults as NetworkSearchResult[];
+  const hasSearched = networkSearchHasSearched;
 
   const handleSearch = async () => {
     setSearching(true);
-    setHasSearched(true);
     try {
       const res = await fetch("/api/network-search", {
         method: "POST",
@@ -167,7 +170,7 @@ export default function NetworkSearchPage() {
       });
       if (!res.ok) throw new Error("Search failed");
       const data = await res.json();
-      setResults(data.results ?? []);
+      setNetworkSearch(query, data.results ?? []);
     } catch {
       toast.error("Network search failed");
     } finally {

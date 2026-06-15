@@ -107,6 +107,27 @@ interface SalesState {
   // Test Scenarios
   testScenarios: UserTestScenario[];
 
+  // Network Search persisted state
+  networkSearchQuery: string;
+  networkSearchResults: Array<{
+    id: string;
+    name: string;
+    title?: string;
+    email?: string;
+    company?: string;
+    account_id?: string;
+    seniority?: string;
+    department?: string;
+    warmth_score?: number;
+    fit_score?: number;
+    linkedin_url?: string;
+  }>;
+  networkSearchHasSearched: boolean;
+  setNetworkSearch: (
+    query: string,
+    results: SalesState["networkSearchResults"],
+  ) => void;
+
   // UI State
   approvalFilter: "pending" | "approved" | "rejected" | "sent" | "all";
   approvalChannelFilter:
@@ -610,6 +631,12 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
   auditLogs: [],
   testScenarios: [],
   followUpTasks: [],
+  networkSearchQuery: "",
+  networkSearchResults: [],
+  networkSearchHasSearched: false,
+  setNetworkSearch: (query, results) =>
+    set({ networkSearchQuery: query, networkSearchResults: results, networkSearchHasSearched: true }),
+
   approvalFilter: "pending",
   approvalChannelFilter: "all",
   generatingIds: new Set<string>(),
