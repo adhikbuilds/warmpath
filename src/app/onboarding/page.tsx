@@ -217,7 +217,23 @@ export default function OnboardingPage() {
     try {
       const cbUrl = new URL(window.location.href);
       cbUrl.searchParams.set("connected", "google");
-      await signIn("google", { callbackUrl: cbUrl.toString() });
+      // Request contacts + gmail scopes explicitly here — the user is
+      // connecting Google to enable import, not just for sign-in.
+      await signIn(
+        "google",
+        { callbackUrl: cbUrl.toString() },
+        {
+          scope: [
+            "openid",
+            "email",
+            "profile",
+            "https://www.googleapis.com/auth/contacts.readonly",
+            "https://www.googleapis.com/auth/gmail.readonly",
+          ].join(" "),
+          access_type: "offline",
+          prompt: "consent",
+        },
+      );
     } catch {
       toast.error("Could not connect Google. Please try again.");
       setConnecting(false);
