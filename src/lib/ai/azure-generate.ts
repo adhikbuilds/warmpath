@@ -57,6 +57,10 @@ export interface AzureGenerateRequest {
   kb_items?: KBItem[];
   sender_name?: string;
   workspace_name?: string;
+  /** Optional custom instruction e.g. "make it shorter", "more casual tone" */
+  instruction?: string;
+  /** When set, rephrase this existing body instead of generating from scratch */
+  current_body?: string;
 }
 
 export interface AzureGenerateResult {
@@ -217,6 +221,16 @@ export function buildUserPrompt(req: AzureGenerateRequest): string {
     // Include both full name and company so the model can write "I'm [name] from [company]"
     lines.push(
       `SENDER: ${req.sender_name}${req.workspace_name ? ` from ${req.workspace_name}` : ""}`,
+    );
+  }
+
+  if (req.current_body) {
+    lines.push(`\nEXISTING DRAFT TO REPHRASE:\n${req.current_body}`);
+  }
+
+  if (req.instruction) {
+    lines.push(
+      `\nUSER INSTRUCTION: ${req.instruction}${req.current_body ? "\nApply this instruction to the existing draft above." : ""}`,
     );
   }
 

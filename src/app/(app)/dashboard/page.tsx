@@ -533,19 +533,23 @@ export default function DashboardPage() {
                     const contact = contacts.find(
                       (c) => c.account_id === topPlay.signal.account_id,
                     );
+                    if (!contact || !topPlay.account) {
+                      toast.error("No contact found for this account — add one first.");
+                      return;
+                    }
                     const warmPath = warmPaths.find(
                       (wp) => wp.account_id === topPlay.signal.account_id,
                     );
                     try {
                       await addMessageToQueue({
                         account_id: topPlay.signal.account_id,
-                        contact_id: contact?.id ?? "",
+                        contact_id: contact.id,
                         warm_path_id: warmPath?.id,
                         signal_id: topPlay.signal.id,
                         channel: "warm_intro",
-                        subject: `Intro request — ${topPlay.account?.name}`,
-                        body: `Hi,\n\nI noticed ${topPlay.signal.title} and wanted to reach out about ${topPlay.account?.name}.\n\n${topPlay.signal.description}\n\nWould you be open to a quick intro?`,
-                        intro_request: `Would you mind connecting me with someone at ${topPlay.account?.name}? The timing looks great based on their recent activity.`,
+                        subject: `Intro request — ${topPlay.account.name}`,
+                        body: `Hi,\n\nI noticed ${topPlay.signal.title} and wanted to reach out about ${topPlay.account.name}.\n\n${topPlay.signal.description}\n\nWould you be open to a quick intro?`,
+                        intro_request: `Would you mind connecting me with someone at ${topPlay.account.name}? The timing looks great based on their recent activity.`,
                         status: "draft",
                         approval_status: "pending",
                         generated_by_ai: true,
@@ -558,7 +562,7 @@ export default function DashboardPage() {
                       toast.success("1:1 intro request drafted — review it before sending");
                       router.push("/approval-queue");
                     } catch {
-                      toast.error("Failed to save message");
+                      toast.error("Failed to save message — contact not found in workspace.");
                     }
                   }}
                 >
@@ -697,7 +701,11 @@ export default function DashboardPage() {
                     <Button
                       size="sm"
                       className="h-6 text-[10px] w-full"
-                      onClick={() => toast.success(`Drafting for ${account?.name}…`)}
+                      disabled={!account}
+                      onClick={() => {
+                        if (!account) return;
+                        toast.info(`Draft via Approval Queue for ${account.name}`);
+                      }}
                     >
                       Draft 1:1 intro
                     </Button>

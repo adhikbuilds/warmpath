@@ -160,7 +160,7 @@ interface SalesState {
   // Actions Messages (optimistic + API)
   approveMessage: (id: string, editedBody?: string) => Promise<void>;
   rejectMessage: (id: string, reason?: string) => Promise<void>;
-  regenerateMessage: (id: string) => Promise<void>;
+  regenerateMessage: (id: string, opts?: { instruction?: string; currentBody?: string }) => Promise<void>;
 
   // Actions Campaign Assets (optimistic + API)
   approveCampaignAsset: (id: string) => Promise<void>;
@@ -866,7 +866,7 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
     get().logAuditEvent("message.rejected", { entityType: "message", entityId: id });
   },
 
-  regenerateMessage: async (id) => {
+  regenerateMessage: async (id, opts) => {
     const state = get();
     const msg = state.messages.find((m) => m.id === id);
     if (!msg) return;
@@ -883,6 +883,8 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
           signalId: msg.signal_id,
           warmPathId: msg.warm_path_id,
           channel: msg.channel,
+          ...(opts?.instruction ? { instruction: opts.instruction } : {}),
+          ...(opts?.currentBody ? { currentBody: opts.currentBody } : {}),
         }),
       });
 

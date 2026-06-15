@@ -36,18 +36,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body
         className={`${hankenGrotesk.variable} ${geist.variable} ${geistMono.variable} antialiased font-sans`}
       >
-        <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="dark" disableTransitionOnChange>
           <AuthSessionProvider>
             <QueryProvider>{children}</QueryProvider>
             <Toaster
               richColors
               closeButton
               position="bottom-right"
+              theme="dark"
               toastOptions={{
                 style: {
-                  background: "#ffffff",
-                  border: "1px solid #e0e0e4",
-                  color: "#111113",
+                  background: "#18181b",
+                  border: "1px solid #27272a",
+                  color: "#e5e5e5",
                 },
               }}
             />
