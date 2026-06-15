@@ -258,6 +258,7 @@ model Signal {
   type            String
   title           String
   description     String?
+  companyName     String?
   source          String?
   sourceUrl       String?
   urgencyScore    Int      @default(50)

@@ -298,6 +298,7 @@ function mapSignal(s: Record<string, unknown>): Signal {
     type: s.type as Signal["type"],
     title: s.title as string,
     description: (s.description as string) ?? "",
+    company_name: ((s.company_name ?? s.companyName) as string) ?? undefined,
     source: (s.source as string) ?? undefined,
     source_url: ((s.source_url ?? s.sourceUrl) as string) ?? undefined,
     detected_at: ((s.detected_at ?? s.detectedAt) as string) ?? new Date().toISOString(),

@@ -116,6 +116,7 @@ export interface Signal {
   type: SignalType;
   title: string;
   description: string;
+  company_name?: string;
   source?: string;
   source_url?: string;
   detected_at: string;
