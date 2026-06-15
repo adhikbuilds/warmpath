@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/db/client";
 import { getWorkspaceId } from "@/lib/db/workspace";
-import { DEMO_KB_ITEMS } from "@/lib/demo-data-extended";
-
 export async function GET() {
   try {
     const workspaceId = await getWorkspaceId();
@@ -11,9 +9,6 @@ export async function GET() {
       include: { chunks: { select: { id: true } } },
       orderBy: { createdAt: "desc" },
     });
-    if (items.length === 0) {
-      return NextResponse.json(DEMO_KB_ITEMS);
-    }
     return NextResponse.json(
       items.map((item) => ({
         ...item,
@@ -29,14 +24,13 @@ export async function GET() {
         used_in_messages: item.usedInMessages,
         created_at: item.createdAt,
         updated_at: item.updatedAt,
-        // Surfaces whether this item needs retroactive chunking
         needs_chunking: item.chunks.length === 0,
         chunk_count: item.chunks.length,
         chunks: undefined,
       })),
     );
   } catch {
-    return NextResponse.json(DEMO_KB_ITEMS);
+    return NextResponse.json([]);
   }
 }
 
