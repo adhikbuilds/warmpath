@@ -22,6 +22,24 @@ export async function POST() {
     prisma.task.deleteMany({ where: { workspaceId } }),
   ]);
 
+  // Fix li-acc- prefixed account names (LinkedIn/Clay IDs stored as names)
+  const liAccAccounts = await prisma.bizAccount.findMany({
+    where: { workspaceId, name: { startsWith: "li-acc-" } },
+    select: { id: true, name: true },
+  });
+  const slugToTitle = (s: string) =>
+    s
+      .replace(/^li-acc-/, "")
+      .replace(/-/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+
+  let fixedAccountNames = 0;
+  for (const acc of liAccAccounts) {
+    const newName = slugToTitle(acc.name);
+    await prisma.bizAccount.update({ where: { id: acc.id }, data: { name: newName } }).catch(() => null);
+    fixedAccountNames++;
+  }
+
   // Delete accounts that have NO contacts in them (likely demo/test accounts)
   const accountsWithContacts = await prisma.contact.findMany({
     where: { workspaceId, accountId: { not: null } },
@@ -46,6 +64,7 @@ export async function POST() {
       tasks: deletedTasks.count,
       orphaned_accounts: deletedAccounts.count,
     },
+    fixed: { account_names: fixedAccountNames },
     message: "Demo data cleared. Run Map My Network + Fetch Signals to populate with real data.",
   });
 }

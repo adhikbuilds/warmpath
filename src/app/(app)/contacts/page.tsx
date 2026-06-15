@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -311,6 +311,8 @@ export default function ContactsPage() {
     addMessageToQueue,
     addContact,
     updateContact,
+    reset,
+    initialize,
   } = useSalesStore();
   const [search, setSearch] = useState("");
   const [seniorityFilter, setSeniorityFilter] = useState("all");
@@ -374,8 +376,10 @@ export default function ContactsPage() {
   // Import modal state
   const [importOpen, setImportOpen] = useState(false);
   const [importStep, setImportStep] = useState<"idle" | "matching" | "done">("idle");
-  const [importCsv, setImportCsv] = useState("");
+  const [importFile, setImportFile] = useState<File | null>(null);
   const [matchingPhase, setMatchingPhase] = useState("");
+  const [importResult, setImportResult] = useState<{ imported: number; skipped: number } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Add-modal form state
   const [newContactName, setNewContactName] = useState("");
@@ -393,30 +397,45 @@ export default function ContactsPage() {
   const [editEmail, setEditEmail] = useState("");
   const [editAccountId, setEditAccountId] = useState("");
 
-  function startImport() {
+  async function startImport() {
+    if (!importFile) return;
     setImportStep("matching");
-    const phases = [
-      "Parsing contacts…",
-      "Matching against your team's LinkedIn network…",
-      "Scoring warm paths via relationship graph…",
-    ];
-    let i = 0;
-    setMatchingPhase(phases[0]);
-    const interval = setInterval(() => {
-      i++;
-      if (i < phases.length) {
-        setMatchingPhase(phases[i]);
-      } else {
-        clearInterval(interval);
-        setImportStep("done");
-      }
-    }, 900);
+    setMatchingPhase("Parsing contacts…");
+    try {
+      const text = await importFile.text();
+      setMatchingPhase("Importing into your workspace…");
+      const res = await fetch("/api/discovery/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rows: text
+            .split(/\r?\n/)
+            .slice(1)
+            .filter((l) => l.trim())
+            .map((line) => {
+              const cols = line.match(/(?:"[^"]*"|[^,])+/g) ?? line.split(",");
+              const clean = (s?: string) => (s ?? "").replace(/^"|"$/g, "").trim();
+              return { name: clean(cols[0]), email: clean(cols[1]), company: clean(cols[2]), title: clean(cols[3]) };
+            })
+            .filter((r) => r.name || r.email),
+        }),
+      });
+      const data = await res.json();
+      setImportResult({ imported: data.imported ?? 0, skipped: data.skipped ?? 0 });
+      setImportStep("done");
+      reset();
+      setTimeout(() => initialize(), 200);
+    } catch {
+      toast.error("Import failed — check your file and try again");
+      setImportStep("idle");
+    }
   }
 
   function closeImport() {
     setImportOpen(false);
     setImportStep("idle");
-    setImportCsv("");
+    setImportFile(null);
+    setImportResult(null);
     setMatchingPhase("");
   }
 
@@ -889,20 +908,34 @@ export default function ContactsPage() {
           {importStep === "idle" && (
             <div className="space-y-4 py-2">
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Paste a CSV or LinkedIn export. WarmBlue will match each contact against your team's
-                relationship graph to find warm intro paths.
+                Upload a CSV with your contacts. WarmBlue will import them and match warm intro paths
+                through your team's network.
               </p>
-              <Textarea
-                placeholder={
-                  "Name,Email,Company\nJane Smith,jane@acme.com,Acme Corp\nTom Lee,tom@techco.com,TechCo"
-                }
-                value={importCsv}
-                onChange={(e) => setImportCsv(e.target.value)}
-                className="text-xs min-h-[110px] resize-none font-mono"
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv,text/csv"
+                className="hidden"
+                onChange={(e) => setImportFile(e.target.files?.[0] ?? null)}
               />
-              <p className="text-[11px] text-muted-foreground">
-                Accepts: CSV, LinkedIn connections export, or Clay-enriched list
-              </p>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full rounded-lg border-2 border-dashed py-8 flex flex-col items-center gap-2 transition-colors hover:bg-white/5"
+                style={{ borderColor: "var(--border)" }}
+              >
+                <Upload className="w-6 h-6 text-muted-foreground" />
+                {importFile ? (
+                  <span className="text-sm font-medium text-brand">{importFile.name}</span>
+                ) : (
+                  <>
+                    <span className="text-sm text-muted-foreground">Click to upload CSV</span>
+                    <span className="text-xs text-muted-foreground/60">
+                      LinkedIn export · Clay export · Name,Email,Company
+                    </span>
+                  </>
+                )}
+              </button>
             </div>
           )}
 
@@ -918,57 +951,21 @@ export default function ContactsPage() {
             </div>
           )}
 
-          {importStep === "done" && (
-            <div className="py-4 space-y-4">
+          {importStep === "done" && importResult && (
+            <div className="py-6 space-y-4">
               <div className="flex flex-col items-center gap-2 text-center">
                 <div className="w-12 h-12 rounded-full bg-brand/10 flex items-center justify-center">
                   <CheckCircle2 className="w-6 h-6 text-brand" />
                 </div>
-                <p className="font-semibold">47 contacts analyzed</p>
-                <p className="text-sm text-muted-foreground">
-                  12 have warm paths via your team's network
-                </p>
+                <p className="font-semibold">{importResult.imported} contacts imported</p>
+                {importResult.skipped > 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    {importResult.skipped} skipped — missing name or email
+                  </p>
+                )}
               </div>
-              <div className="rounded-xl border border-border/50 divide-y divide-border/40 overflow-hidden">
-                {[
-                  {
-                    name: "Sarah Park",
-                    company: "Stripe",
-                    via: "James Liu",
-                    evidence: "Worked together at Salesforce 2022–24",
-                  },
-                  {
-                    name: "Alex Morgan",
-                    company: "Plaid",
-                    via: "Mark Johnson",
-                    evidence: "Alumni from Stanford MBA cohort",
-                  },
-                  {
-                    name: "Chris Wu",
-                    company: "Brex",
-                    via: "Sarah Chen",
-                    evidence: "Met at SaaStr Annual 2025",
-                  },
-                ].map((m) => (
-                  <div key={m.name} className="flex items-start gap-3 px-3 py-2.5">
-                    <div className="w-7 h-7 rounded-full bg-brand/10 flex items-center justify-center text-xs font-semibold text-brand flex-shrink-0">
-                      {m.name[0]}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium">
-                        {m.name} · {m.company}
-                      </p>
-                      <p className="text-[11px] text-muted-foreground">
-                        via {m.via} ·{" "}
-                        <span className="italic text-muted-foreground/80">{m.evidence}</span>
-                      </p>
-                    </div>
-                    <GitFork className="w-3.5 h-3.5 text-brand flex-shrink-0 mt-0.5" />
-                  </div>
-                ))}
-              </div>
-              <p className="text-[11px] text-muted-foreground text-center">
-                35 more contacts added without warm paths — reachable via cold email
+              <p className="text-xs text-muted-foreground text-center">
+                Go to Your Network → Re-map Network to compute warm paths for your new contacts.
               </p>
             </div>
           )}
@@ -979,8 +976,8 @@ export default function ContactsPage() {
                 <Button variant="outline" size="sm" onClick={closeImport}>
                   Cancel
                 </Button>
-                <Button size="sm" onClick={startImport} disabled={!importCsv.trim()}>
-                  Find warm paths
+                <Button size="sm" onClick={startImport} disabled={!importFile}>
+                  Import contacts
                 </Button>
               </>
             )}
