@@ -191,10 +191,11 @@ export default function OnboardingPage() {
                 } else {
                   toast.info("No new contacts imported.");
                 }
-                // Warn if majority failed
-                const total = (d.imported ?? 0) + (d.skipped ?? 0);
-                if (total > 0 && (d.skipped ?? 0) / total > 0.5) {
-                  toast.warning("More than half of contacts were skipped — check your connection.");
+                // Inform about skipped contacts (normal — phone-only or unnamed contacts have no email)
+                if ((d.skipped ?? 0) > 0 && (d.imported ?? 0) === 0) {
+                  toast.info(
+                    `No email-enabled contacts found. ${d.skipped} contacts were skipped — they had no email address.`,
+                  );
                 }
               }
             } catch {

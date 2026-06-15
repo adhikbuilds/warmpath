@@ -71,7 +71,11 @@ export async function POST() {
   const MS_PER_DAY = 86_400_000;
 
   // Build edges — each contact gets one edge from a team member
-  const edgeData: Parameters<typeof prisma.relationshipEdge.createMany>[0]["data"] = [];
+  const edgeData: {
+    workspaceId: string; fromType: string; fromId: string; fromName: string;
+    toType: string; toId: string; toName: string; relationshipType: string;
+    strengthScore: number; source: string; lastInteractionAt: Date;
+  }[] = [];
   // Track per-account: best (teamMemberId, contactId, warmth, relType)
   const accountBest = new Map<
     string,
@@ -126,7 +130,11 @@ export async function POST() {
   });
 
   // Compute warm paths for every account that has at least one edge
-  const warmPathData: Parameters<typeof prisma.warmPath.createMany>[0]["data"] = [];
+  const warmPathData: {
+    workspaceId: string; accountId: string; contactId: string; pathJson: string;
+    explanation: string; warmthScore: number; confidenceScore: number;
+    recommendedIntroPerson: string; recommendedChannel: string; status: string;
+  }[] = [];
   for (const [accountId, best] of accountBest) {
     const channelMap: Record<string, string> = {
       calendar_meeting: "email",

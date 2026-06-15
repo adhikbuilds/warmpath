@@ -32,10 +32,38 @@ export async function GET() {
   }
 }
 
-export async function POST() {
+export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  return NextResponse.json({ error: "Not implemented" }, { status: 501 });
+  try {
+    const workspaceId = await getWorkspaceId();
+    const body = await req.json().catch(() => ({}));
+    const { name, domain, industry, employeeCount, location, description, stage, logoUrl } = body;
+    if (!name?.trim()) return NextResponse.json({ error: "name is required" }, { status: 400 });
+
+    const existing = await prisma.bizAccount.findFirst({
+      where: { workspaceId, name: name.trim() },
+    });
+    if (existing) {
+      return NextResponse.json(existing);
+    }
+    const account = await prisma.bizAccount.create({
+      data: {
+        workspaceId,
+        name: name.trim(),
+        domain: domain ?? undefined,
+        industry: industry ?? undefined,
+        employeeCount: employeeCount ?? undefined,
+        location: location ?? undefined,
+        description: description ?? undefined,
+        stage: stage ?? "prospect",
+        logoUrl: logoUrl ?? undefined,
+      },
+    });
+    return NextResponse.json(account, { status: 201 });
+  } catch {
+    return NextResponse.json({ error: "Failed to create account" }, { status: 500 });
+  }
 }
