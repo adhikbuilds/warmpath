@@ -87,7 +87,12 @@ interface SalesState {
   // Workspace
   workspace: Workspace;
   workspaceMembers: WorkspaceMember[];
-  pendingInvitations: { id: string; email: string; role: WorkspaceMember["role"]; expiresAt: string }[];
+  pendingInvitations: {
+    id: string;
+    email: string;
+    role: WorkspaceMember["role"];
+    expiresAt: string;
+  }[];
 
   // Knowledge Base
   kbItems: KnowledgeBaseItem[];
@@ -120,6 +125,7 @@ interface SalesState {
 
   // Init
   initialize: () => Promise<void>;
+  refreshSignals: () => Promise<void>;
   reset: () => void;
 
   // Actions UI filters
@@ -203,7 +209,13 @@ interface SalesState {
   updateCampaignStep: (
     campaignId: string,
     stepId: string,
-    updates: { delay_days?: number; template_hint?: string; subject_a?: string; subject_b?: string; email_body?: string },
+    updates: {
+      delay_days?: number;
+      template_hint?: string;
+      subject_a?: string;
+      subject_b?: string;
+      email_body?: string;
+    },
   ) => void;
   deleteCampaignStep: (campaignId: string, stepId: string) => void;
 
@@ -745,6 +757,13 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
     }
   },
 
+  refreshSignals: async () => {
+    try {
+      const raw = await fetch("/api/signals").then((r) => (r.ok ? r.json() : []));
+      set({ signals: (raw as Record<string, unknown>[]).map(mapSignal) });
+    } catch {}
+  },
+
   reset: () =>
     set({
       initialized: false,
@@ -1252,9 +1271,7 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
   deleteCampaignStep: (campaignId, stepId) => {
     set((state) => ({
       campaigns: state.campaigns.map((c) =>
-        c.id === campaignId
-          ? { ...c, steps: c.steps.filter((s) => s.id !== stepId) }
-          : c,
+        c.id === campaignId ? { ...c, steps: c.steps.filter((s) => s.id !== stepId) } : c,
       ),
     }));
   },

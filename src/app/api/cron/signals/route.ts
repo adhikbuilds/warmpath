@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 import { AZURE_API_KEY, AZURE_DEPLOYMENT, AZURE_ENDPOINT } from "@/lib/ai/azure-generate";
+import { auth } from "@/lib/auth";
 import prisma from "@/lib/db/client";
 import { getWorkspaceId } from "@/lib/db/workspace";
 
@@ -60,7 +60,10 @@ function parseRssItems(xml: string, source: string): RssItem[] {
 
     items.push({
       title: title.replace(/<[^>]+>/g, "").trim(),
-      description: desc.replace(/<[^>]+>/g, "").slice(0, 600).trim(),
+      description: desc
+        .replace(/<[^>]+>/g, "")
+        .slice(0, 600)
+        .trim(),
       link: link.trim(),
       pubDate,
       source,
@@ -185,7 +188,12 @@ Rules:
 
       for (const item of batch) {
         const entry = arr.find((a) => a.idx === batch.indexOf(item)) ?? arr[batch.indexOf(item)];
-        if (!entry || (entry as unknown as { skip?: boolean }).skip || !entry.company || entry.icp_relevance_score < 60) {
+        if (
+          !entry ||
+          (entry as unknown as { skip?: boolean }).skip ||
+          !entry.company ||
+          entry.icp_relevance_score < 60
+        ) {
           results.push({ item, signal: null });
         } else {
           results.push({ item, signal: entry });
@@ -204,7 +212,10 @@ function fuzzyMatch(accountName: string, company: string): boolean {
     s
       .toLowerCase()
       .replace(/[^a-z0-9\s]/g, "")
-      .replace(/\b(inc|llc|ltd|corp|co|technologies|technology|systems|solutions|platform|platforms)\b/g, "")
+      .replace(
+        /\b(inc|llc|ltd|corp|co|technologies|technology|systems|solutions|platform|platforms)\b/g,
+        "",
+      )
       .trim();
   const a = normalize(accountName);
   const b = normalize(company);
@@ -229,7 +240,13 @@ export async function POST(req: NextRequest) {
   const [workspace, accounts, kbItems] = await Promise.all([
     prisma.workspace.findUnique({
       where: { id: workspaceId },
-      select: { name: true, industry: true, description: true, sellingMotion: true, primaryGoal: true },
+      select: {
+        name: true,
+        industry: true,
+        description: true,
+        sellingMotion: true,
+        primaryGoal: true,
+      },
     }),
     prisma.bizAccount.findMany({
       where: { workspaceId },
@@ -248,7 +265,8 @@ export async function POST(req: NextRequest) {
 
   // Build ICP context from real workspace data
   const industryFreq: Record<string, number> = {};
-  for (const a of accounts) if (a.industry) industryFreq[a.industry] = (industryFreq[a.industry] ?? 0) + 1;
+  for (const a of accounts)
+    if (a.industry) industryFreq[a.industry] = (industryFreq[a.industry] ?? 0) + 1;
   const topIndustries = Object.entries(industryFreq)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
@@ -292,7 +310,13 @@ export async function POST(req: NextRequest) {
   const newItems = uniqueItems.filter((i) => !existingUrls.has(i.link));
 
   if (newItems.length === 0) {
-    return NextResponse.json({ ok: true, fetched: uniqueItems.length, new: 0, ingested: 0, skipped: 0 });
+    return NextResponse.json({
+      ok: true,
+      fetched: uniqueItems.length,
+      new: 0,
+      ingested: 0,
+      skipped: 0,
+    });
   }
 
   // Extract + ICP-score all articles in one batched LLM call
@@ -303,10 +327,13 @@ export async function POST(req: NextRequest) {
   let unmatched = 0;
 
   for (const { item, signal } of extracted) {
-    if (!signal) { skipped++; continue; }
+    if (!signal) {
+      skipped++;
+      continue;
+    }
 
     const matchedAccount = accounts.find((a) => fuzzyMatch(a.name, signal.company));
-    if (!matchedAccount) { unmatched++; continue; }
+    if (!matchedAccount) unmatched++;
 
     // Embed ICP relevance reason into description so signal cards surface it
     const description = [
@@ -320,7 +347,7 @@ export async function POST(req: NextRequest) {
     await prisma.signal.create({
       data: {
         workspaceId,
-        accountId: matchedAccount.id,
+        accountId: matchedAccount?.id ?? null,
         type: signal.signal_type,
         title: signal.title,
         description,

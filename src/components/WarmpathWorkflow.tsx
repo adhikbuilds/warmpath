@@ -14,6 +14,8 @@
  *   <WarmpathWorkflow theme="dark" secondsPerStep={3} />
  */
 
+"use client";
+
 import React, {
   useCallback,
   useEffect,
@@ -21,6 +23,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import "./warmpath-workflow.css";
 
 /* ------------------------------------------------------------------ */
 /* Types & data                                                        */
@@ -186,7 +189,7 @@ export function WarmpathWorkflow({
         <div className="wpw-brand">
           <span className="wpw-brand-mark"></span>
           <span className="wpw-brand-word">
-            <strong>BlueWarm</strong>&nbsp;·&nbsp;Warm Path
+            <strong>WarmPath</strong>&nbsp;·&nbsp;How it works
           </span>
         </div>
 
