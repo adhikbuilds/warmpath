@@ -1547,7 +1547,7 @@ export default function RelationshipGraphPage() {
                           border: "1px solid rgba(79,70,229,0.3)",
                         }}
                       >
-                        <Network className="w-7 h-7" style={{ color: "#8083ff" }} />
+                        <Network className="w-7 h-7" style={{ color: "#2563eb" }} />
                       </div>
                       <h3 className="text-base font-semibold text-white mb-2">
                         Your network isn&apos;t mapped yet
@@ -1572,7 +1572,7 @@ export default function RelationshipGraphPage() {
                     <div className="text-center">
                       <Loader2
                         className="w-8 h-8 animate-spin mx-auto mb-3"
-                        style={{ color: "#8083ff" }}
+                        style={{ color: "#2563eb" }}
                       />
                       <p className="text-sm text-white/60">Computing relationship graph…</p>
                     </div>

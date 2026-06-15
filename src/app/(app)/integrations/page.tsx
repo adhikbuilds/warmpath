@@ -230,7 +230,7 @@ function ConnectorRow({
             type="button"
             onClick={onConnect}
             className="text-[12px] font-semibold px-4 py-1.5 rounded-lg text-white transition-opacity hover:opacity-90"
-            style={{ backgroundColor: "#5456d4" }}
+            style={{ backgroundColor: "#2563eb" }}
           >
             Connect
           </button>
@@ -374,7 +374,7 @@ function TwentyCrmCard() {
               onClick={handleSync}
               disabled={syncing}
               className="flex items-center gap-1.5 text-[12px] font-semibold px-4 py-1.5 rounded-lg text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-              style={{ backgroundColor: "#5456d4" }}
+              style={{ backgroundColor: "#2563eb" }}
             >
               <RefreshCw className={`w-3 h-3 ${syncing ? "animate-spin" : ""}`} />
               {syncing ? "Syncing…" : "Sync now"}
@@ -508,7 +508,7 @@ function BrevoEmailCard() {
             type="button"
             onClick={() => setOpen((o) => !o)}
             className="flex items-center gap-1.5 text-[12px] font-semibold px-4 py-1.5 rounded-lg text-white transition-opacity hover:opacity-90"
-            style={{ backgroundColor: "#5456d4" }}
+            style={{ backgroundColor: "#2563eb" }}
           >
             {ready ? "Reconnect" : "Connect"}
             {open ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}

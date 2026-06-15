@@ -50,7 +50,7 @@ import type { Contact } from "@/types";
 
 const SENIORITY_COLORS: Record<string, string> = {
   c_suite: "bg-brand/10 text-brand border-brand/20",
-  vp: "bg-[#7b6ea8]/10 text-[#c0c1ff] border-[#7b6ea8]/20",
+  vp: "bg-[#3b82f6]/10 text-[#93c5fd] border-[#3b82f6]/20",
   director: "bg-[#5db8a6]/10 text-[#4edea3] border-[#5db8a6]/20",
   manager: "bg-[#5db872]/10 text-[#5db872] border-[#5db872]/20",
   ic: "bg-muted text-muted-foreground",

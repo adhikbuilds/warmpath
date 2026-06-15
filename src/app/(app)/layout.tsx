@@ -112,7 +112,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       >
         <div
           className="w-5 h-5 border-2 rounded-full animate-spin"
-          style={{ borderColor: "#e0e0e4", borderTopColor: "#5456d4" }}
+          style={{ borderColor: "#e0e0e4", borderTopColor: "#2563eb" }}
         />
       </div>
     );

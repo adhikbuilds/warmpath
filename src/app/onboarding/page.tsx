@@ -50,7 +50,7 @@ const ROLES = [
     title: "Account Executive",
     subtitle: "I carry a quota",
     desc: "Find warm intros to target accounts. Close deals through relationships, not cold email.",
-    color: "#8083ff",
+    color: "#2563eb",
     outcomes: ["3.2× reply rate", "1-hop avg path", "30s approvals"],
   },
   {
@@ -530,7 +530,7 @@ export default function OnboardingPage() {
                     gap: 5,
                     padding: "4px 10px 4px 6px",
                     borderRadius: 99,
-                    border: `1.5px solid ${active ? "#8083ff" : done ? "rgba(128,131,255,0.28)" : "rgba(255,255,255,0.07)"}`,
+                    border: `1.5px solid ${active ? "#2563eb" : done ? "rgba(128,131,255,0.28)" : "rgba(255,255,255,0.07)"}`,
                     backgroundColor: active ? "rgba(128,131,255,0.11)" : "transparent",
                     transition: "all 0.2s",
                   }}
@@ -541,7 +541,7 @@ export default function OnboardingPage() {
                       height: 17,
                       borderRadius: "50%",
                       backgroundColor: done
-                        ? "#8083ff"
+                        ? "#2563eb"
                         : active
                           ? "rgba(128,131,255,0.22)"
                           : "rgba(255,255,255,0.05)",
@@ -559,7 +559,7 @@ export default function OnboardingPage() {
                         style={{
                           fontSize: 7,
                           fontWeight: 800,
-                          color: active ? "#8083ff" : "rgba(255,255,255,0.2)",
+                          color: active ? "#2563eb" : "rgba(255,255,255,0.2)",
                         }}
                       >
                         {i + 1}
@@ -570,7 +570,7 @@ export default function OnboardingPage() {
                     style={{
                       fontSize: 11,
                       fontWeight: active ? 600 : 500,
-                      color: active ? "#c4c5ff" : done ? "#8083ff" : "rgba(255,255,255,0.28)",
+                      color: active ? "#c4c5ff" : done ? "#2563eb" : "rgba(255,255,255,0.28)",
                     }}
                   >
                     {s.label}
@@ -612,7 +612,7 @@ export default function OnboardingPage() {
             style={{
               fontSize: 11,
               fontWeight: 700,
-              color: "#8083ff",
+              color: "#2563eb",
               letterSpacing: "0.07em",
               textTransform: "uppercase",
               marginBottom: 10,
@@ -768,14 +768,14 @@ export default function OnboardingPage() {
                             padding: "12px",
                             borderRadius: 9,
                             cursor: "pointer",
-                            border: `1.5px solid ${active ? "#8083ff" : "rgba(255,255,255,0.07)"}`,
+                            border: `1.5px solid ${active ? "#2563eb" : "rgba(255,255,255,0.07)"}`,
                             backgroundColor: active
                               ? "rgba(128,131,255,0.08)"
                               : "rgba(255,255,255,0.02)",
                             transition: "all 0.15s",
                           }}
                         >
-                          <g.Icon size={14} color={active ? "#8083ff" : "rgba(255,255,255,0.28)"} />
+                          <g.Icon size={14} color={active ? "#2563eb" : "rgba(255,255,255,0.28)"} />
                           <span
                             style={{
                               fontSize: 11,
@@ -822,7 +822,7 @@ export default function OnboardingPage() {
                       height: 48,
                       borderRadius: 12,
                       backgroundColor: "rgba(128,131,255,0.13)",
-                      color: "#8083ff",
+                      color: "#2563eb",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -866,7 +866,7 @@ export default function OnboardingPage() {
                   >
                     <p style={{ fontSize: 11, color: "rgba(255,255,255,0.38)" }}>
                       Team members with a{" "}
-                      <strong style={{ color: "#8083ff" }}>
+                      <strong style={{ color: "#2563eb" }}>
                         @{session.user.email.split("@")[1]}
                       </strong>{" "}
                       email can join this workspace.
@@ -894,7 +894,7 @@ export default function OnboardingPage() {
                   fontSize: 13,
                   fontWeight: 500,
                   marginBottom: 24,
-                  color: !googleConnected ? "#8083ff" : liConnected ? "#4edea3" : "#f59e0b",
+                  color: !googleConnected ? "#2563eb" : liConnected ? "#4edea3" : "#f59e0b",
                 }}
               >
                 {!googleConnected
@@ -963,7 +963,7 @@ export default function OnboardingPage() {
                         {svc.status === "active" ? (
                           <CheckCircle2 size={12} color="#4edea3" />
                         ) : (
-                          <Loader2 size={12} color="#8083ff" className="animate-spin" />
+                          <Loader2 size={12} color="#2563eb" className="animate-spin" />
                         )}
                         <span
                           style={{
@@ -985,7 +985,7 @@ export default function OnboardingPage() {
                       fontWeight: 600,
                       padding: "7px 16px",
                       borderRadius: 7,
-                      backgroundColor: connecting ? "rgba(128,131,255,0.18)" : "#8083ff",
+                      backgroundColor: connecting ? "rgba(128,131,255,0.18)" : "#2563eb",
                       color: "#fff",
                       border: "none",
                       cursor: connecting ? "default" : "pointer",
@@ -1046,7 +1046,7 @@ export default function OnboardingPage() {
                           padding: "1px 6px",
                           borderRadius: 99,
                           backgroundColor: "rgba(128,131,255,0.18)",
-                          color: "#8083ff",
+                          color: "#2563eb",
                           letterSpacing: "0.06em",
                         }}
                       >
@@ -1080,7 +1080,7 @@ export default function OnboardingPage() {
                         fontWeight: 600,
                         padding: "7px 16px",
                         borderRadius: 7,
-                        backgroundColor: liConnecting ? "rgba(128,131,255,0.18)" : "#8083ff",
+                        backgroundColor: liConnecting ? "rgba(128,131,255,0.18)" : "#2563eb",
                         color: "#fff",
                         border: "none",
                         cursor: liConnecting ? "default" : "pointer",
@@ -1232,7 +1232,7 @@ export default function OnboardingPage() {
                     borderRadius: 9,
                     fontSize: 12,
                     fontWeight: 600,
-                    backgroundColor: "#8083ff",
+                    backgroundColor: "#2563eb",
                     color: "#fff",
                     border: "none",
                     cursor: "pointer",
@@ -1346,7 +1346,7 @@ export default function OnboardingPage() {
                       border: "1px solid rgba(255,255,255,0.07)",
                     }}
                   >
-                    <p style={{ fontSize: 22, fontWeight: 800, color: "#8083ff", marginBottom: 4 }}>
+                    <p style={{ fontSize: 22, fontWeight: 800, color: "#2563eb", marginBottom: 4 }}>
                       {s.value}
                     </p>
                     <p style={{ fontSize: 10, color: "rgba(255,255,255,0.32)" }}>{s.label}</p>
@@ -1412,7 +1412,7 @@ export default function OnboardingPage() {
                 fontWeight: 700,
                 padding: "10px 22px",
                 borderRadius: 9,
-                backgroundColor: "#8083ff",
+                backgroundColor: "#2563eb",
                 color: "#fff",
                 border: "none",
                 cursor: "pointer",
@@ -1436,7 +1436,7 @@ export default function OnboardingPage() {
                 fontWeight: 700,
                 padding: "10px 22px",
                 borderRadius: 9,
-                backgroundColor: "#8083ff",
+                backgroundColor: "#2563eb",
                 color: "#fff",
                 border: "none",
                 cursor: connecting ? "default" : "pointer",
@@ -1463,7 +1463,7 @@ export default function OnboardingPage() {
                   fontWeight: 700,
                   padding: "10px 22px",
                   borderRadius: 9,
-                  backgroundColor: "#8083ff",
+                  backgroundColor: "#2563eb",
                   color: "#fff",
                   border: "none",
                   cursor: liConnecting ? "default" : "pointer",
@@ -1503,7 +1503,7 @@ export default function OnboardingPage() {
                 fontWeight: 700,
                 padding: "10px 22px",
                 borderRadius: 9,
-                backgroundColor: "#8083ff",
+                backgroundColor: "#2563eb",
                 color: "#fff",
                 border: "none",
                 cursor: "pointer",
@@ -1527,7 +1527,7 @@ export default function OnboardingPage() {
                 fontWeight: 700,
                 padding: "10px 22px",
                 borderRadius: 9,
-                backgroundColor: canAdvance ? "#8083ff" : "rgba(128,131,255,0.12)",
+                backgroundColor: canAdvance ? "#2563eb" : "rgba(128,131,255,0.12)",
                 color: canAdvance ? "#fff" : "rgba(128,131,255,0.35)",
                 border: "none",
                 cursor: canAdvance ? "pointer" : "default",

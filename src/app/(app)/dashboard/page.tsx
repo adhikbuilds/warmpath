@@ -251,7 +251,7 @@ ${userFirstName}`;
           <div className="flex gap-2 flex-col">
             <button
               type="button"
-              className="w-full h-9 rounded-md bg-[#8083ff] text-[#4edea3]-foreground text-sm font-medium flex items-center justify-center gap-2 hover:bg-[#8083ff]/90 transition-colors"
+              className="w-full h-9 rounded-md bg-[#2563eb] text-[#4edea3]-foreground text-sm font-medium flex items-center justify-center gap-2 hover:bg-[#2563eb]/90 transition-colors"
               onClick={copyMessage}
             >
               Copy message
@@ -436,7 +436,7 @@ export default function DashboardPage() {
           {totalPending > 0 && (
             <Button
               size="sm"
-              className="bg-[#8083ff] hover:bg-[#8083ff]/90 text-white gap-1.5"
+              className="bg-[#2563eb] hover:bg-[#2563eb]/90 text-white gap-1.5"
               asChild
             >
               <Link href="/approval-queue">
@@ -465,7 +465,7 @@ export default function DashboardPage() {
 
       {/* ── Decay Warning Banner ──────────────────────────────────────────── */}
       {decayingConnections.length > 0 && !bannerDismissed && (
-        <div className="flex items-center gap-3 rounded-xl border border-[#8083ff]/20 bg-[#8083ff]/8 px-4 py-3 text-sm">
+        <div className="flex items-center gap-3 rounded-xl border border-[#2563eb]/20 bg-[#2563eb]/8 px-4 py-3 text-sm">
           <AlertTriangle className="w-4 h-4 text-[#4edea3] flex-shrink-0" />
           <span className="flex-1 text-[#4edea3]">
             <span className="font-semibold">
@@ -482,7 +482,7 @@ export default function DashboardPage() {
           </Link>
           <button
             type="button"
-            className="p-1 rounded text-[#4edea3] hover:text-[#e5e1e4] hover:bg-[#8083ff]/10 transition-colors flex-shrink-0"
+            className="p-1 rounded text-[#4edea3] hover:text-[#e5e1e4] hover:bg-[#2563eb]/10 transition-colors flex-shrink-0"
             onClick={() => setBannerDismissed(true)}
           >
             <X className="w-3.5 h-3.5" />
@@ -528,7 +528,7 @@ export default function DashboardPage() {
               <div className="flex items-center gap-2 flex-wrap">
                 <Button
                   size="sm"
-                  className="gap-1.5 bg-[#8083ff] hover:bg-[#8083ff]/90 text-white"
+                  className="gap-1.5 bg-[#2563eb] hover:bg-[#2563eb]/90 text-white"
                   onClick={async () => {
                     const contact = contacts.find(
                       (c) => c.account_id === topPlay.signal.account_id,
@@ -633,7 +633,7 @@ export default function DashboardPage() {
               <div key={day.toDateString()} className="flex flex-col items-center gap-1 flex-1">
                 <div className="w-full flex items-end justify-center" style={{ height: 40 }}>
                   <div
-                    className={`w-full rounded-sm transition-all ${isToday ? "bg-[#8083ff]" : "bg-[#8083ff]/30"}`}
+                    className={`w-full rounded-sm transition-all ${isToday ? "bg-[#2563eb]" : "bg-[#2563eb]/30"}`}
                     style={{ height: `${heightPct}%` }}
                   />
                 </div>
@@ -811,7 +811,7 @@ export default function DashboardPage() {
                 {totalPending > 0 && (
                   <Badge
                     variant="outline"
-                    className="text-[10px] bg-[#8083ff]/10 text-[#4edea3] border-[#8083ff]/20"
+                    className="text-[10px] bg-[#2563eb]/10 text-[#4edea3] border-[#2563eb]/20"
                   >
                     {totalPending}
                   </Badge>
@@ -834,7 +834,7 @@ export default function DashboardPage() {
                           key={msg.id}
                           className="flex items-center gap-2.5 p-2 rounded-lg bg-muted/30 border border-border/40"
                         >
-                          <div className="w-7 h-7 rounded-md bg-[#8083ff]/10 flex items-center justify-center flex-shrink-0">
+                          <div className="w-7 h-7 rounded-md bg-[#2563eb]/10 flex items-center justify-center flex-shrink-0">
                             <Icon className="w-3.5 h-3.5 text-[#4edea3]" />
                           </div>
                           <div className="flex-1 min-w-0">
@@ -891,7 +891,7 @@ export default function DashboardPage() {
                   const labelColor = warmthLabelColor(wp.warmth_score);
                   return (
                     <div key={wp.id} className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-md bg-[#8083ff]/10 flex items-center justify-center text-[10px] font-bold text-[#4edea3] flex-shrink-0">
+                      <div className="w-6 h-6 rounded-md bg-[#2563eb]/10 flex items-center justify-center text-[10px] font-bold text-[#4edea3] flex-shrink-0">
                         {acc?.name?.[0] ?? "?"}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -924,7 +924,7 @@ export default function DashboardPage() {
                   style={{ width: `${(warmEdges / totalEdges) * 100}%` }}
                 />
                 <div
-                  className="bg-[#8083ff] h-full"
+                  className="bg-[#2563eb] h-full"
                   style={{ width: `${(coolingEdges / totalEdges) * 100}%` }}
                 />
                 <div className="bg-muted h-full flex-1" />
@@ -935,7 +935,7 @@ export default function DashboardPage() {
                   {warmEdges} warm
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-[#8083ff]" />
+                  <span className="w-2 h-2 rounded-full bg-[#2563eb]" />
                   {coolingEdges} cooling
                 </span>
                 <span className="flex items-center gap-1">
@@ -959,7 +959,7 @@ export default function DashboardPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-6 text-[10px] border-[#8083ff]/30 text-[#4edea3] hover:bg-[#8083ff]/10 flex-shrink-0"
+                          className="h-6 text-[10px] border-[#2563eb]/30 text-[#4edea3] hover:bg-[#2563eb]/10 flex-shrink-0"
                           onClick={() => openReEngage(edge)}
                         >
                           Re-engage
@@ -995,7 +995,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="w-12 h-1.5 rounded-full bg-muted overflow-hidden flex-shrink-0">
                         <div
-                          className="h-full bg-[#8083ff] rounded-full"
+                          className="h-full bg-[#2563eb] rounded-full"
                           style={{ width: `${tm.relationship_score}%` }}
                         />
                       </div>

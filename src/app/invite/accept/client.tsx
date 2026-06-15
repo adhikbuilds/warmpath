@@ -105,8 +105,8 @@ export default function InviteAcceptClient() {
         <div className="bg-[#1a1a1f] border border-white/10 rounded-2xl overflow-hidden">
           <div className="px-8 pt-8 pb-6 border-b border-white/10">
             <div className="flex items-center gap-3 mb-1">
-              <div className="w-10 h-10 rounded-full bg-[#8083ff]/10 flex items-center justify-center">
-                <Users className="w-5 h-5 text-[#8083ff]" />
+              <div className="w-10 h-10 rounded-full bg-[#2563eb]/10 flex items-center justify-center">
+                <Users className="w-5 h-5 text-[#2563eb]" />
               </div>
               <p className="text-xs text-white/40 uppercase tracking-wider">Workspace invite</p>
             </div>
@@ -115,7 +115,7 @@ export default function InviteAcceptClient() {
           <div className="px-8 py-8">
             {state.phase === "loading" && (
               <div className="flex flex-col items-center gap-3 py-4">
-                <Loader2 className="w-6 h-6 text-[#8083ff] animate-spin" />
+                <Loader2 className="w-6 h-6 text-[#2563eb] animate-spin" />
                 <p className="text-sm text-white/50">Loading invite details…</p>
               </div>
             )}
@@ -126,7 +126,7 @@ export default function InviteAcceptClient() {
                   <h1 className="text-xl font-bold text-white mb-2">Join {state.workspaceName}</h1>
                   <p className="text-sm text-white/60 leading-relaxed">
                     <span className="text-white/80 font-medium">{state.inviterName}</span> has
-                    invited <span className="text-[#8083ff] font-medium">{state.email}</span> to
+                    invited <span className="text-[#2563eb] font-medium">{state.email}</span> to
                     join <span className="text-white/80 font-medium">{state.workspaceName}</span> as
                     a {state.role === "sales_rep" ? "Sales Rep" : state.role}.
                   </p>
@@ -145,7 +145,7 @@ export default function InviteAcceptClient() {
                 {isLoggedIn ? (
                   <Button
                     onClick={handleAccept}
-                    className="w-full bg-[#8083ff] hover:bg-[#6f72e8] text-white font-semibold h-11"
+                    className="w-full bg-[#2563eb] hover:bg-[#6f72e8] text-white font-semibold h-11"
                     disabled={currentEmail?.toLowerCase() !== state.email.toLowerCase()}
                   >
                     Accept & join workspace
@@ -156,7 +156,7 @@ export default function InviteAcceptClient() {
                       const callbackUrl = encodeURIComponent(`/invite/accept?token=${token}`);
                       router.push(`/login?callbackUrl=${callbackUrl}`);
                     }}
-                    className="w-full bg-[#8083ff] hover:bg-[#6f72e8] text-white font-semibold h-11"
+                    className="w-full bg-[#2563eb] hover:bg-[#6f72e8] text-white font-semibold h-11"
                   >
                     Sign in to accept
                   </Button>
@@ -172,7 +172,7 @@ export default function InviteAcceptClient() {
 
             {state.phase === "accepting" && (
               <div className="flex flex-col items-center gap-3 py-4">
-                <Loader2 className="w-6 h-6 text-[#8083ff] animate-spin" />
+                <Loader2 className="w-6 h-6 text-[#2563eb] animate-spin" />
                 <p className="text-sm text-white/50">Joining workspace…</p>
               </div>
             )}

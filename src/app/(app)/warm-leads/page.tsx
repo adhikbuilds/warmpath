@@ -149,12 +149,12 @@ const STAGE_THEME: Record<
     emptyBorder: "border-[#00a572]/20",
   },
   meeting_booked: {
-    band: "bg-[#c0c1ff]",
-    soft: "bg-[#c0c1ff]/8",
-    border: "border-[#c0c1ff]/25",
-    text: "text-[#c0c1ff]",
-    cardBorder: "border-l-[#c0c1ff]",
-    emptyBorder: "border-[#c0c1ff]/20",
+    band: "bg-[#93c5fd]",
+    soft: "bg-[#93c5fd]/8",
+    border: "border-[#93c5fd]/25",
+    text: "text-[#93c5fd]",
+    cardBorder: "border-l-[#93c5fd]",
+    emptyBorder: "border-[#93c5fd]/20",
   },
 };
 
@@ -356,7 +356,7 @@ function ComposeSheet({ open, onClose, account, contact, signal, warmPath }: Com
                       idx === 0
                         ? "bg-brand/10 text-brand"
                         : idx === (warmPath?.path_nodes?.length ?? 0) - 1
-                          ? "bg-[#7b6ea8]/10 text-[#c0c1ff]"
+                          ? "bg-[#3b82f6]/10 text-[#93c5fd]"
                           : "bg-[#5db8a6]/10 text-[#4edea3]"
                     }`}
                   >
@@ -373,7 +373,7 @@ function ComposeSheet({ open, onClose, account, contact, signal, warmPath }: Com
                     {via}
                   </span>
                   <span className="text-muted-foreground/40">→</span>
-                  <span className="px-1.5 py-0.5 rounded text-[11px] font-medium bg-[#7b6ea8]/10 text-[#c0c1ff]">
+                  <span className="px-1.5 py-0.5 rounded text-[11px] font-medium bg-[#3b82f6]/10 text-[#93c5fd]">
                     {contact.name.split(" ")[0]}
                   </span>
                 </>
@@ -1016,7 +1016,7 @@ Thanks,
                                             ni === 0
                                               ? "text-brand"
                                               : ni === computedPath.nodes.length - 1
-                                                ? "text-[#7b6ea8]"
+                                                ? "text-[#3b82f6]"
                                                 : "text-[#5db8a6]"
                                           }`}
                                         >
@@ -1564,7 +1564,7 @@ Thanks,
                               idx === 0
                                 ? "bg-brand/10 text-brand border-brand/20"
                                 : idx === selectedCard.pathNodes!.length - 1
-                                  ? "bg-[#7b6ea8]/10 text-[#c0c1ff] border-[#7b6ea8]/20"
+                                  ? "bg-[#3b82f6]/10 text-[#93c5fd] border-[#3b82f6]/20"
                                   : "bg-[#5db8a6]/10 text-[#4edea3] border-[#5db8a6]/20"
                             }`}
                           >
