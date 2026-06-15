@@ -908,8 +908,7 @@ export default function OnboardingPage() {
                 Connect your network
               </h1>
               <p style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>
-                WarmPath maps your real relationship graph using email headers, calendar, and
-                LinkedIn connections. We never read email bodies.
+                Every email you've sent is a hidden warm path. We surface them — without reading a single word.
               </p>
               <p
                 style={{
@@ -1115,20 +1114,58 @@ export default function OnboardingPage() {
                       {liConnecting && <Loader2 size={12} className="animate-spin" />}
                       {liConnecting ? "Connecting…" : "Connect"}
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => csvRef.current?.click()}
-                      style={{
-                        fontSize: 10,
-                        color: "rgba(255,255,255,0.28)",
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        padding: 0,
-                      }}
-                    >
-                      or upload connections CSV
-                    </button>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <button
+                        type="button"
+                        onClick={() => csvRef.current?.click()}
+                        style={{
+                          fontSize: 10,
+                          color: "rgba(255,255,255,0.28)",
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          padding: 0,
+                        }}
+                      >
+                        or upload connections CSV
+                      </button>
+                      {/* Why CSV? tooltip */}
+                      <div style={{ position: "relative", display: "inline-flex" }}
+                        onMouseEnter={(e) => {
+                          const tip = e.currentTarget.querySelector<HTMLElement>(".li-csv-tip");
+                          if (tip) tip.style.display = "block";
+                        }}
+                        onMouseLeave={(e) => {
+                          const tip = e.currentTarget.querySelector<HTMLElement>(".li-csv-tip");
+                          if (tip) tip.style.display = "none";
+                        }}
+                      >
+                        <span style={{
+                          fontSize: 9, width: 14, height: 14, borderRadius: "50%",
+                          border: "1px solid rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.3)",
+                          display: "inline-flex", alignItems: "center", justifyContent: "center",
+                          cursor: "default", lineHeight: 1,
+                        }}>?</span>
+                        <div className="li-csv-tip" style={{
+                          display: "none", position: "absolute", bottom: "calc(100% + 6px)",
+                          right: 0, width: 220, padding: "8px 10px", borderRadius: 8,
+                          backgroundColor: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)",
+                          fontSize: 10, color: "rgba(255,255,255,0.6)", lineHeight: 1.5, zIndex: 50,
+                        }}>
+                          <strong style={{ color: "#fff", display: "block", marginBottom: 4 }}>Why not OAuth?</strong>
+                          LinkedIn's API policy blocks apps from accessing your connections list.
+                          Exporting a CSV from LinkedIn is the only way to map your full network.
+                          <a
+                            href="https://www.linkedin.com/mypreferences/d/download-my-data"
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{ color: "#8083ff", display: "block", marginTop: 4 }}
+                          >
+                            Export from LinkedIn →
+                          </a>
+                        </div>
+                      </div>
+                    </div>
                     <input
                       type="file"
                       accept=".csv"
@@ -1206,8 +1243,7 @@ export default function OnboardingPage() {
               )}
 
               <p style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", lineHeight: 1.6 }}>
-                WarmPath only reads email headers (From, To, Date) — never message content. All data
-                stays within your workspace.
+                We only see who you emailed and when — never what you said. All data stays within your workspace.
               </p>
             </div>
           )}
