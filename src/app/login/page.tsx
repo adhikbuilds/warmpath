@@ -23,19 +23,19 @@ function LoginPageContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<string | null>(null);
 
-  // Clear stale localStorage when NextAuth says we're not authenticated
+  // Clear stale Zustand state when NextAuth says we're logged out
   useEffect(() => {
     if (sessionStatus === "unauthenticated" && isAuthenticated) {
       setAuthenticated(false);
     }
   }, [sessionStatus, isAuthenticated, setAuthenticated]);
 
-  // Redirect only when BOTH Zustand and NextAuth agree the session is live
+  // Redirect as soon as NextAuth confirms a live session — don't wait for Zustand
   useEffect(() => {
-    if (sessionStatus === "authenticated" && isAuthenticated) {
+    if (sessionStatus === "authenticated") {
       router.replace("/workspace-select");
     }
-  }, [sessionStatus, isAuthenticated, router]);
+  }, [sessionStatus, router]);
 
   if (sessionStatus === "loading") {
     return (
