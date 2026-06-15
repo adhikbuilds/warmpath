@@ -17,14 +17,12 @@ import { useSalesStore } from "@/stores/salesStore";
 
 const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Dashboard",
-  "/warm-leads": "Warm Leads",
   "/network-search": "Network Search",
   "/approval-queue": "Approval Queue",
   "/tasks": "Tasks",
   "/campaigns": "Campaigns",
   "/signals": "Signals",
   "/relationship-graph": "Your Network",
-  "/accounts": "Accounts",
   "/contacts": "Contacts",
   "/discover": "Discover",
   "/knowledge-base": "Knowledge Base",

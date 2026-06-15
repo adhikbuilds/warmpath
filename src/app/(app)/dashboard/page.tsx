@@ -663,10 +663,10 @@ export default function DashboardPage() {
                   More warm plays
                 </p>
                 <Link
-                  href="/warm-leads"
+                  href="/network-search"
                   className="text-[11px] text-[#c7c4d7] hover:text-[#e5e1e4] flex items-center gap-0.5"
                 >
-                  All accounts <ChevronRight className="w-3 h-3" />
+                  Search network <ChevronRight className="w-3 h-3" />
                 </Link>
               </div>
               <div className="flex gap-3 overflow-x-auto pb-2 snap-x">
@@ -906,7 +906,7 @@ export default function DashboardPage() {
                 })}
               </div>
               <Button size="sm" variant="outline" className="w-full h-8 text-xs mt-3" asChild>
-                <Link href="/warm-leads">Find more warm paths</Link>
+                <Link href="/network-search">Find more warm paths</Link>
               </Button>
             </CardContent>
           </Card>

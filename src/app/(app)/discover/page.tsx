@@ -727,11 +727,11 @@ export default function DiscoverPage() {
     setVisitors((prev) => prev.map((v) => (v.id === visitor.id ? { ...v, converted: true } : v)));
     setConvertingId(null);
     // Auto-navigate to Warm Leads after 2s and the new lead is highlighted there
-    toast.success(`${visitor.company} added as warm lead`, {
-      description: visitor.warm_path ? "Navigating to Warm Leads in 2 s…" : "Added to pipeline",
+    toast.success(`${visitor.company} added to approval queue`, {
+      description: visitor.warm_path ? "Navigating to Approval Queue in 2 s…" : "Added to pipeline",
     });
     setTimeout(() => {
-      router.push(`/warm-leads?highlight=${accountId}`);
+      router.push("/approval-queue");
     }, 2000);
   };
 
@@ -1289,8 +1289,8 @@ export default function DiscoverPage() {
               <span className="mt-0.5 shrink-0">⚠</span>
               <span>
                 These are AI-generated placeholder companies, not real prospects. Connect an
-                external data provider (Apollo, Clay, Clearbit) in Integrations to get live
-                prospect data.
+                external data provider (Apollo, Clay, Clearbit) in Integrations to get live prospect
+                data.
               </span>
             </div>
           )}

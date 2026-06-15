@@ -4,7 +4,6 @@ import {
   BarChart3,
   Bell,
   BookOpen,
-  Building2,
   ChevronLeft,
   ChevronRight,
   Compass,
@@ -17,7 +16,6 @@ import {
   Settings,
   Sparkles,
   Users,
-  Zap,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -206,13 +204,6 @@ export function AppSidebar({ onSearchOpen }: { onSearchOpen?: () => void }) {
             collapsed={collapsed}
           />
           <NavItem
-            href="/warm-leads"
-            icon={Zap}
-            label="Warm Leads"
-            badge={urgentSignalCount}
-            collapsed={collapsed}
-          />
-          <NavItem
             href="/network-search"
             icon={Sparkles}
             label="Network Search"
@@ -250,7 +241,6 @@ export function AppSidebar({ onSearchOpen }: { onSearchOpen?: () => void }) {
             label="Your Network"
             collapsed={collapsed}
           />
-          <NavItem href="/accounts" icon={Building2} label="Accounts" collapsed={collapsed} />
           <NavItem href="/contacts" icon={Users} label="Contacts" collapsed={collapsed} />
         </NavSection>
 
