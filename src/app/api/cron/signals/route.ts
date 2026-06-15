@@ -348,6 +348,7 @@ export async function POST(req: NextRequest) {
       data: {
         workspaceId,
         accountId: matchedAccount?.id ?? null,
+        companyName: signal.company,
         type: signal.signal_type,
         title: signal.title,
         description,

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Filter, RefreshCw, UserCircle, X } from "lucide-react";
+import { ChevronDown, ExternalLink, Filter, RefreshCw, Search, UserCircle, X, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -17,9 +17,21 @@ const T = {
   muted: "var(--muted-foreground)",
   veryMuted: "var(--muted-foreground)",
   white: "var(--foreground)",
-  cardHoverBorder: "rgba(79,70,229,0.5)",
-  dot: "radial-gradient(circle at 2px 2px, #3f3f46 1px, transparent 0)",
+  cardHoverBorder: "rgba(37,99,235,0.4)",
+  mutedBg: "var(--muted)",
+  dot: "radial-gradient(circle at 2px 2px, var(--border) 1px, transparent 0)",
 } as const;
+
+// Extract company name from LLM-formatted title: "Acme raised $20M — ..."
+function extractCompanyFromTitle(title: string): string {
+  const match = title.match(
+    /^(.+?)\s+(?:raised|launches?|announces?|hires?|names?|appoints?|acqui|merge|expands?|opens?|closes?|secures?|lands?)/i,
+  );
+  if (match) return match[1].trim();
+  const parts = title.split(/\s*[—–]\s*/);
+  if (parts.length > 1) return parts[0].trim();
+  return title;
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -132,12 +144,15 @@ interface SignalCardProps {
   companyName: string;
   companyInitial: string;
   signalTitle: string;
+  signalDescription: string;
   signalType: string;
   industry: string;
   opportunityScore: number;
   detectedAt: string;
   warmthScore: number;
   icpRelevanceReason?: string;
+  sourceUrl?: string;
+  hasWarmPath: boolean;
   connectorName: string;
   connectorInitials: string;
   connectorSubtitle: string;
@@ -153,12 +168,15 @@ function SignalCard({
   companyName,
   companyInitial,
   signalTitle,
+  signalDescription,
   signalType,
   industry,
   opportunityScore,
   detectedAt,
   warmthScore,
   icpRelevanceReason,
+  sourceUrl,
+  hasWarmPath,
   connectorName,
   connectorInitials,
   connectorSubtitle,
@@ -310,7 +328,8 @@ function SignalCard({
         </div>
       )}
 
-      {/* Path visualization */}
+      {/* Path visualization — only when a real warm path exists */}
+      {hasWarmPath ? (
       <div
         style={{
           padding: "16px",
@@ -321,7 +340,7 @@ function SignalCard({
           position: "relative",
           overflow: "hidden",
           minHeight: 160,
-          backgroundColor: "rgba(9,9,11,0.4)",
+          backgroundColor: T.mutedBg,
         }}
       >
         {/* Dot grid background */}
@@ -494,13 +513,70 @@ function SignalCard({
           </div>
         </div>
       </div>
+      ) : (
+        /* No warm path — show signal description + find path CTA */
+        <div
+          style={{
+            padding: "14px 16px",
+            flex: 1,
+            backgroundColor: T.mutedBg,
+            borderTop: `1px solid ${T.border}`,
+          }}
+        >
+          {signalDescription && (
+            <p style={{ fontSize: 13, color: T.muted, lineHeight: 1.6, margin: "0 0 12px 0" }}>
+              {signalDescription.replace(/💡\s*.+$/s, "").trim()}
+            </p>
+          )}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <button
+              type="button"
+              onClick={() => onDraftIntro(companyName)}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "5px 12px",
+                borderRadius: 7,
+                border: `1px solid ${T.primary}`,
+                backgroundColor: "transparent",
+                color: T.primary,
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              <Search style={{ width: 12, height: 12 }} />
+              Find contacts at {companyName}
+            </button>
+            {sourceUrl && (
+              <a
+                href={sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                  fontSize: 12,
+                  color: T.muted,
+                  textDecoration: "none",
+                }}
+              >
+                <ExternalLink style={{ width: 11, height: 11 }} />
+                Source
+              </a>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Card footer */}
       <div
         style={{
           padding: "12px 16px",
           borderTop: `1px solid ${T.border}`,
-          backgroundColor: "rgba(9,9,11,0.6)",
+          backgroundColor: T.mutedBg,
           display: "flex",
           justifyContent: "flex-end",
           gap: 10,
@@ -523,7 +599,7 @@ function SignalCard({
             transition: "border-color 0.15s, color 0.15s",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = "#3f3f46";
+            e.currentTarget.style.borderColor = "var(--border)";
             e.currentTarget.style.color = T.white;
           }}
           onMouseLeave={(e) => {
@@ -533,10 +609,14 @@ function SignalCard({
         >
           Dismiss
         </button>
+        {hasWarmPath && (
         <button
           type="button"
           onClick={() => onDraftIntro(companyName)}
           style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
             padding: "6px 14px",
             borderRadius: 7,
             border: `1px solid ${T.primary}`,
@@ -548,14 +628,16 @@ function SignalCard({
             transition: "background-color 0.15s",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = "#4338ca";
+            e.currentTarget.style.backgroundColor = "#1d4ed8";
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor = T.primary;
           }}
         >
+          <Zap style={{ width: 12, height: 12 }} />
           Draft Intro Request
         </button>
+        )}
       </div>
     </article>
   );
@@ -691,8 +773,9 @@ export default function SignalsPage() {
   }
 
   function handleDraftIntro(companyName: string) {
-    toast.success(`Drafting intro for ${companyName}`);
-    router.push("/approval-queue");
+    // Pre-fill Network Search with the company name so the user can find contacts
+    useSalesStore.getState().setNetworkSearch(companyName, []);
+    router.push("/network-search");
   }
 
   const liveCount = visibleSignals.length;
@@ -713,7 +796,7 @@ export default function SignalsPage() {
           position: "sticky",
           top: 0,
           zIndex: 30,
-          backgroundColor: "rgba(9,9,11,0.95)",
+          backgroundColor: "color-mix(in srgb, var(--background) 95%, transparent)",
           backdropFilter: "blur(8px)",
           borderBottom: `1px solid ${T.border}`,
           padding: "16px 24px",
@@ -976,7 +1059,7 @@ export default function SignalsPage() {
                 width: 48,
                 height: 48,
                 borderRadius: 12,
-                backgroundColor: "rgba(255,255,255,0.04)",
+                backgroundColor: "var(--muted)",
                 border: `1px solid ${T.border}`,
                 display: "flex",
                 alignItems: "center",
@@ -1015,16 +1098,20 @@ export default function SignalsPage() {
                 connectorSubtitle,
                 warmthScore,
               }) => {
-                const companyName = account?.name ?? "Unknown";
+                // Company name: prefer matched account, then stored company_name, then extract from title
+                const companyName =
+                  account?.name ??
+                  signal.company_name ??
+                  extractCompanyFromTitle(signal.title);
                 const companyInitial = companyName[0]?.toUpperCase() ?? "?";
-                const industry = account?.industry ?? "Enterprise";
-                const opportunityScore = account?.opportunity_score ?? 50;
+                const industry = account?.industry ?? "";
+                const opportunityScore = account?.opportunity_score ?? signal.confidence_score;
+                const hasWarmPath = !!warmPath && !!connectorName;
 
-                // Connector display
+                // Connector display — only used when hasWarmPath
                 const displayConnectorName =
-                  connectorName || (warmPath?.path_nodes?.[1]?.name ?? "Network");
+                  connectorName || warmPath?.path_nodes?.[1]?.name || "";
                 const displayConnectorInitials = getInitials(displayConnectorName);
-                // Subtitle: try to infer from path or recommended channel
                 const displayConnectorSubtitle =
                   connectorSubtitle ||
                   (warmPath?.recommended_channel === "linkedin"
@@ -1034,7 +1121,7 @@ export default function SignalsPage() {
                       : "");
 
                 // Target contact details
-                const targetName = targetContact?.name ?? account?.name ?? "Target";
+                const targetName = targetContact?.name ?? "";
                 const targetTitle = targetContact?.title ?? "Decision Maker";
 
                 // Extract ICP relevance reason embedded as "💡 ..." in description
@@ -1048,12 +1135,15 @@ export default function SignalsPage() {
                     companyName={companyName}
                     companyInitial={companyInitial}
                     signalTitle={signal.title}
+                    signalDescription={signal.description ?? ""}
                     signalType={signal.type}
                     industry={industry}
                     opportunityScore={opportunityScore}
                     detectedAt={signal.detected_at}
                     warmthScore={warmthScore}
                     icpRelevanceReason={icpRelevanceReason}
+                    sourceUrl={signal.source_url}
+                    hasWarmPath={hasWarmPath}
                     connectorName={displayConnectorName}
                     connectorInitials={displayConnectorInitials}
                     connectorSubtitle={displayConnectorSubtitle}
@@ -1130,7 +1220,7 @@ export default function SignalsPage() {
                     cursor: "pointer",
                   }}
                   onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.04)")
+                    (e.currentTarget.style.backgroundColor = "var(--muted)")
                   }
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                 >
