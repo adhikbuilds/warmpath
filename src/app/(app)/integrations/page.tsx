@@ -6,13 +6,15 @@ import {
   CheckCircle,
   Clock,
   Download,
+  Eye,
+  EyeOff,
   Lock,
   RefreshCw,
   Settings,
   Shield,
   Zap,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -69,6 +71,261 @@ const STATUS_CONFIG = {
 
 // Channels to render first, then coming-soon last
 const GROUP_ORDER = ["email", "phone", "linkedin", "crm", "whatsapp", "telegram", "meta_ads"];
+
+// ─── Brevo (Sendinblue) email integration card ────────────────────────────────
+
+type BrevoStatus = {
+  workspace_connected: boolean;
+  sender_email?: string;
+  sender_name?: string;
+  smtp_host?: string;
+  smtp_user?: string;
+  status?: string;
+  last_sync_at?: string;
+  ready: boolean;
+};
+
+function BrevoCard() {
+  const [status, setStatus] = useState<BrevoStatus | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [form, setForm] = useState({
+    smtp_user: "",
+    smtp_password: "",
+    sender_email: "",
+    sender_name: "",
+  });
+
+  useEffect(() => {
+    fetch("/api/integrations/brevo/status")
+      .then((r) => r.json())
+      .then((d: BrevoStatus) => {
+        setStatus(d);
+        if (!d.workspace_connected) setShowForm(true);
+      })
+      .catch(() => setShowForm(true))
+      .finally(() => setLoading(false));
+  }, []);
+
+  async function handleConnect(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.smtp_user || !form.smtp_password || !form.sender_email) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/integrations/brevo/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          smtp_host: "smtp-relay.brevo.com",
+          smtp_port: 587,
+          smtp_user: form.smtp_user,
+          smtp_password: form.smtp_password,
+          sender_name: form.sender_name || form.smtp_user,
+          sender_email: form.sender_email,
+          reply_to: form.sender_email,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Connection failed");
+      setStatus({
+        workspace_connected: true,
+        sender_email: data.sender_email,
+        sender_name: form.sender_name || form.smtp_user,
+        smtp_user: form.smtp_user,
+        smtp_host: "smtp-relay.brevo.com",
+        status: "connected",
+        ready: true,
+      });
+      setShowForm(false);
+      toast.success("Brevo connected — SMTP verified successfully");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to connect Brevo");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const connected = status?.workspace_connected && status?.ready;
+
+  return (
+    <Card className="border-border/60">
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-sm"
+              style={{ backgroundColor: "#0092FF", color: "#fff" }}
+            >
+              B
+            </div>
+            <div>
+              <p className="font-semibold text-sm">Brevo</p>
+              {loading ? (
+                <Badge variant="outline" className="text-[10px] mt-0.5 text-muted-foreground">
+                  <RefreshCw className="w-2.5 h-2.5 mr-0.5 animate-spin" />
+                  Checking…
+                </Badge>
+              ) : (
+                <Badge
+                  variant="outline"
+                  className={`text-[10px] mt-0.5 ${
+                    connected
+                      ? "text-emerald-500 bg-emerald-500/10 border-emerald-500/20"
+                      : "text-muted-foreground bg-muted border-border"
+                  }`}
+                >
+                  {connected ? (
+                    <>
+                      <CheckCircle className="w-2.5 h-2.5 mr-0.5" />
+                      Connected
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle className="w-2.5 h-2.5 mr-0.5" />
+                      Not connected
+                    </>
+                  )}
+                </Badge>
+              )}
+            </div>
+          </div>
+          {connected && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 text-[11px] px-2"
+              onClick={() => setShowForm((v) => !v)}
+            >
+              <Settings className="w-3 h-3 mr-1" />
+              {showForm ? "Cancel" : "Reconfigure"}
+            </Button>
+          )}
+        </div>
+
+        <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+          Send outreach emails via your Brevo (Sendinblue) SMTP relay. Uses your own Brevo account
+          — bring your own sender reputation and deliverability settings.
+        </p>
+
+        {connected && !showForm && (
+          <>
+            <div className="flex flex-wrap gap-1 mb-3">
+              {["SMTP relay", "sender control", "transactional email"].map((cap) => (
+                <span
+                  key={cap}
+                  className="text-[10px] px-1.5 py-0.5 rounded-md bg-muted/60 text-muted-foreground"
+                >
+                  {cap}
+                </span>
+              ))}
+            </div>
+            <div className="text-[11px] text-emerald-500 mb-3">
+              Sending as <span className="font-medium">{status?.sender_email}</span>
+              {status?.sender_name && status.sender_name !== status.sender_email && (
+                <> · {status.sender_name}</>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0"
+                onClick={() => toast.success("Brevo SMTP verified")}
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0"
+                onClick={() => setShowForm(true)}
+              >
+                <Settings className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          </>
+        )}
+
+        {showForm && (
+          <form onSubmit={handleConnect} className="space-y-2.5">
+            <div>
+              <label className="text-[11px] font-medium text-muted-foreground block mb-1">
+                SMTP login (your Brevo account email)
+              </label>
+              <input
+                type="email"
+                required
+                placeholder="you@yourcompany.com"
+                value={form.smtp_user}
+                onChange={(e) => setForm((f) => ({ ...f, smtp_user: e.target.value }))}
+                className="w-full h-8 rounded-md px-2.5 text-[12px] outline-none bg-muted/60 border border-border focus:border-brand transition-colors"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-medium text-muted-foreground block mb-1">
+                SMTP API key (password)
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  placeholder="xsmtpsib-…"
+                  value={form.smtp_password}
+                  onChange={(e) => setForm((f) => ({ ...f, smtp_password: e.target.value }))}
+                  className="w-full h-8 rounded-md px-2.5 pr-8 text-[12px] outline-none bg-muted/60 border border-border focus:border-brand transition-colors"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="text-[11px] font-medium text-muted-foreground block mb-1">
+                Sender email
+              </label>
+              <input
+                type="email"
+                required
+                placeholder="outreach@yourcompany.com"
+                value={form.sender_email}
+                onChange={(e) => setForm((f) => ({ ...f, sender_email: e.target.value }))}
+                className="w-full h-8 rounded-md px-2.5 text-[12px] outline-none bg-muted/60 border border-border focus:border-brand transition-colors"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-medium text-muted-foreground block mb-1">
+                Sender name
+              </label>
+              <input
+                type="text"
+                placeholder="Your Name"
+                value={form.sender_name}
+                onChange={(e) => setForm((f) => ({ ...f, sender_name: e.target.value }))}
+                className="w-full h-8 rounded-md px-2.5 text-[12px] outline-none bg-muted/60 border border-border focus:border-brand transition-colors"
+              />
+            </div>
+            <Button size="sm" className="w-full h-8 text-xs mt-1" type="submit" disabled={saving}>
+              {saving ? (
+                <>
+                  <RefreshCw className="w-3 h-3 mr-1.5 animate-spin" />
+                  Verifying SMTP…
+                </>
+              ) : (
+                "Connect Brevo"
+              )}
+            </Button>
+          </form>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 // ─── Apollo.io contact import card ───────────────────────────────────────────
 
@@ -284,6 +541,7 @@ export default function IntegrationsPage() {
               </div>
 
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {groupKey === "email" && <BrevoCard />}
                 {groupIntegrations.map((integration) => {
                   const iconCfg = PROVIDER_ICON[integration.provider] ?? {
                     text: integration.provider[0].toUpperCase(),
