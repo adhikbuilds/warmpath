@@ -6,14 +6,12 @@ import {
   BarChart3,
   Bell,
   BookOpen,
-  Building2,
   LayoutDashboard,
   Link2,
   ListChecks,
   Megaphone,
   Network,
   X,
-  Zap,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -32,20 +30,6 @@ const STEPS = [
       "Today's top warm plays ranked by urgency",
       "Approval queue count — review before anything leaves",
       "Follow-up tasks due today, nothing slips",
-    ],
-  },
-  {
-    href: "/warm-leads",
-    icon: Zap,
-    color: "#cc785c",
-    title: "Warm Leads",
-    tagline: "Know exactly who to call today",
-    description:
-      "WarmBlue ranks every prospect by how warm your team's connection is and shows the exact intro path to take.",
-    bullets: [
-      "Pipeline board — drag leads across stages",
-      "Each card shows who on your team knows them",
-      "Generate outreach with one click",
     ],
   },
   {
@@ -116,20 +100,6 @@ const STEPS = [
       "Force-directed graph of all relationships",
       "Edge strength shows how warm each connection is",
       "Filter by team member to see their network",
-    ],
-  },
-  {
-    href: "/accounts",
-    icon: Building2,
-    color: "#e8a55a",
-    title: "Accounts",
-    tagline: "Your target companies",
-    description:
-      "Every company you're pursuing with their warmth score, active buying signals, and relationship strength at a glance.",
-    bullets: [
-      "Opportunity score combines fit, intent, and warmth",
-      "See how many contacts and signals per account",
-      "Generate outreach for an account in one click",
     ],
   },
   {

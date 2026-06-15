@@ -242,7 +242,7 @@ function TaskCard({ task }: { task: FollowUpTask }) {
               <div className="mt-2 flex items-center gap-3 flex-wrap">
                 {task.warm_path_id && (
                   <Link
-                    href="/warm-leads?view=pipeline"
+                    href="/approval-queue"
                     className="inline-flex items-center gap-1 text-[11px] text-brand hover:underline"
                   >
                     <GitFork className="w-3 h-3" />

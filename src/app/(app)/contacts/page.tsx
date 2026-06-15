@@ -76,23 +76,6 @@ type ResearchResult = {
   summary: string;
 };
 
-function parseResearchQuery(q: string): { name: string; title: string; company: string } {
-  // Patterns: "Name at Company", "Title at Company", "Name (Company)", "Name"
-  const atMatch = q.match(/^(.+?)\s+at\s+(.+)$/i);
-  if (atMatch) {
-    const left = atMatch[1].trim();
-    const company = atMatch[2].trim();
-    // If left looks like a title (VP, CRO, Head, etc.), treat as title
-    if (/^(vp|cro|cmo|cto|ceo|head|director|founder|partner|manager)/i.test(left)) {
-      return { name: "", title: left, company };
-    }
-    return { name: left, title: "", company };
-  }
-  const parenMatch = q.match(/^(.+?)\s*\((.+)\)$/);
-  if (parenMatch) return { name: parenMatch[1].trim(), title: "", company: parenMatch[2].trim() };
-  return { name: q.trim(), title: "", company: "" };
-}
-
 function ResearchAPersonSection({
   onAdd,
 }: {
@@ -115,16 +98,15 @@ function ResearchAPersonSection({
       const d = await r.json();
       const first = d.results?.[0];
       if (!first) {
-        const { name, title, company } = parseResearchQuery(q);
+        // Show honest empty state — don't fabricate a person card
         setResult({
-          name: name || q.trim(),
-          title: title || "",
-          company: company || "",
+          name: "",
+          title: "",
+          company: "",
           linkedin: "",
           warmth: 0,
           mutual: [],
-          summary:
-            "No matching contacts found in your network. Import contacts via Google or add them manually.",
+          summary: d.reason === "no_contacts" ? "no_contacts" : "no_match",
         });
       } else {
         setResult({
@@ -134,8 +116,7 @@ function ResearchAPersonSection({
           linkedin: first.linkedin_url ?? "",
           warmth: 60,
           mutual: [],
-          summary:
-            first.summary ?? [first.title, first.company].filter(Boolean).join(" · ") ?? "",
+          summary: first.summary ?? [first.title, first.company].filter(Boolean).join(" · ") ?? "",
         });
       }
       setState("result");
@@ -214,7 +195,58 @@ function ResearchAPersonSection({
         </div>
       </div>
 
-      {state === "result" && result && (
+      {state === "result" && result && result.summary === "no_contacts" && (
+        <div className="border-t border-border/50 px-5 py-4">
+          <div className="flex items-start gap-3">
+            <UserCheck className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+            <div>
+              <p className="text-[13px] font-medium text-foreground">No contacts imported yet</p>
+              <p className="text-[12px] text-muted-foreground mt-0.5">
+                Connect Google Workspace or sync via Twenty CRM to build your searchable network.
+              </p>
+              <div className="flex items-center gap-2 mt-2">
+                <Link
+                  href="/integrations"
+                  className="text-[11px] font-medium text-brand hover:underline"
+                >
+                  Go to Integrations →
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setState("idle")}
+                  className="text-[11px] text-muted-foreground hover:text-foreground"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {state === "result" && result && result.summary === "no_match" && (
+        <div className="border-t border-border/50 px-5 py-4">
+          <div className="flex items-start gap-3">
+            <Search className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+            <div>
+              <p className="text-[13px] font-medium text-foreground">Not found in your network</p>
+              <p className="text-[12px] text-muted-foreground mt-0.5">
+                No one matching that description is in your contacts. Try a broader query or add
+                them manually.
+              </p>
+              <div className="flex items-center gap-2 mt-2">
+                <button
+                  type="button"
+                  onClick={() => setState("idle")}
+                  className="text-[11px] text-muted-foreground hover:text-foreground"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {state === "result" && result && result.name && (
         <div className="border-t border-border/50 px-5 py-4 bg-brand/3">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-xl bg-brand/15 text-brand flex items-center justify-center text-lg font-bold shrink-0">
