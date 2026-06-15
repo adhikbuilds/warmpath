@@ -22,6 +22,20 @@ function LoginPageContent() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<string | null>(null);
+  const [lastUser, setLastUser] = useState<{ name: string; email: string; image?: string } | null>(
+    null,
+  );
+
+  // Load last signed-in user from localStorage for the "Continue as" chip
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("warmpath-last-user");
+      if (saved) {
+        const parsed = JSON.parse(saved) as { name: string; email: string; image?: string };
+        if (parsed.email) setLastUser(parsed);
+      }
+    } catch {}
+  }, []);
 
   // Clear stale Zustand state when NextAuth says we're logged out
   useEffect(() => {
@@ -218,6 +232,46 @@ function LoginPageContent() {
             <Logo size={24} />
             <span style={{ fontSize: 20, fontWeight: 700 }}>WarmBlue</span>
           </div>
+
+          {/* Continue as last user */}
+          {lastUser && (
+            <button
+              type="button"
+              onClick={() => handleOAuth("google")}
+              disabled={isLoading || !!oauthLoading}
+              className="w-full h-11 rounded-lg flex items-center gap-3 px-4 mb-3 disabled:opacity-60 transition-colors"
+              style={{
+                border: "1px solid #2563eb",
+                backgroundColor: "rgba(37,99,235,0.06)",
+                color: "#111113",
+                fontSize: 13,
+                cursor: "pointer",
+              }}
+            >
+              {lastUser.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={lastUser.image}
+                  alt={lastUser.name}
+                  className="w-7 h-7 rounded-full object-cover shrink-0"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div className="w-7 h-7 rounded-full bg-[#2563eb]/20 flex items-center justify-center shrink-0">
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "#2563eb" }}>
+                    {lastUser.name[0]?.toUpperCase() ?? "U"}
+                  </span>
+                </div>
+              )}
+              <div className="flex-1 text-left min-w-0">
+                <p style={{ fontSize: 13, fontWeight: 600, color: "#111113", lineHeight: 1.2 }}>
+                  Continue as {lastUser.name.split(" ")[0]}
+                </p>
+                <p style={{ fontSize: 11, color: "#666670", lineHeight: 1.2 }}>{lastUser.email}</p>
+              </div>
+              <ArrowRight size={14} style={{ color: "#2563eb", flexShrink: 0 }} />
+            </button>
+          )}
 
           {/* Demo CTA */}
           <button

@@ -25,7 +25,12 @@ interface AuthState {
   workspaceName: string | null;
   setUser: (user: User | null) => void;
   setAuthenticated: (v: boolean) => void;
-  syncUser: (sessionUser: { id?: string; name?: string | null; email?: string | null }) => void;
+  syncUser: (sessionUser: {
+    id?: string;
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+  }) => void;
   setWorkspace: (id: string, name: string) => void;
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
@@ -56,8 +61,8 @@ export const useAuthStore = create<AuthState>()(
           set({ user: DEMO_DISPLAY_USER });
           return;
         }
-        set((state) => ({
-          user: {
+        set((state) => {
+          const nextUser: User = {
             id: sessionUser.id ?? state.user?.id ?? "",
             name: sessionUser.name ?? state.user?.name ?? sessionUser.email ?? "User",
             email: sessionUser.email ?? state.user?.email ?? "",
@@ -65,9 +70,22 @@ export const useAuthStore = create<AuthState>()(
             role: state.user?.role ?? "sales_rep",
             plan: state.user?.plan ?? "free",
             onboarding_completed: state.user?.onboarding_completed ?? false,
+            avatar_url: sessionUser.image ?? state.user?.avatar_url ?? undefined,
             created_at: state.user?.created_at ?? new Date().toISOString(),
-          } as User,
-        }));
+          };
+          // Persist last-signed-in user for the login page "Continue as" chip
+          try {
+            localStorage.setItem(
+              "warmpath-last-user",
+              JSON.stringify({
+                name: nextUser.name,
+                email: nextUser.email,
+                image: nextUser.avatar_url,
+              }),
+            );
+          } catch {}
+          return { user: nextUser };
+        });
       },
 
       setWorkspace: (id, name) => set({ workspaceId: id, workspaceName: name }),

@@ -153,6 +153,10 @@ export async function sendViaSmtp(
   msg: Pick<SendEmailOptions, "toName" | "toEmail" | "subject" | "htmlContent" | "textContent">,
 ): Promise<BrevoSendResult> {
   try {
+    // List-Unsubscribe is required by Gmail and Outlook bulk-sender policies.
+    // mailto: unsubscribe — replies to the sender's address.
+    const unsubMailto = `<mailto:${cfg.replyTo ?? cfg.senderEmail}?subject=Unsubscribe>`;
+
     const info = await makeTransport(cfg).sendMail({
       from: { name: cfg.senderName, address: cfg.senderEmail },
       to: { name: msg.toName, address: msg.toEmail },
@@ -160,6 +164,11 @@ export async function sendViaSmtp(
       subject: msg.subject,
       html: msg.htmlContent,
       ...(msg.textContent ? { text: msg.textContent } : {}),
+      headers: {
+        "List-Unsubscribe": unsubMailto,
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        "X-Mailer": "WarmPath",
+      },
     });
     return { ok: true, messageId: info.messageId ?? "unknown" };
   } catch (err) {

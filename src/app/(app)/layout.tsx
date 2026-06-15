@@ -69,6 +69,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         id: (session.user as { id?: string }).id,
         name: session.user.name,
         email: session.user.email,
+        image: session.user.image,
       });
     }
   }, [sessionStatus, session, setAuthenticated, syncUser, router]);
