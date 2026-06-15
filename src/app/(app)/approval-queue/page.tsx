@@ -345,9 +345,9 @@ export default function ApprovalQueuePage() {
       if (res.ok) {
         const data = await res.json().catch(() => ({}));
         if (data.sent === false && data.reason === "no_email_channel") {
-          toast.warning("Approved — waiting for email channel", {
-            description: data.message ?? "Connect Brevo in Integrations to send.",
-            duration: 6000,
+          toast.success("Approved ✓", {
+            description: "Connect email in Integrations to start sending.",
+            duration: 4000,
           });
         } else {
           toast.success(`Approved & sent via ${getConnectorName(selectedMessage)}`);
