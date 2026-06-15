@@ -276,17 +276,27 @@ export function AppSidebar({ onSearchOpen }: { onSearchOpen?: () => void }) {
         ) : (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 min-w-0">
-              <div className="w-7 h-7 rounded-md flex items-center justify-center shrink-0 bg-primary/20">
-                <span className="text-[11px] font-semibold text-primary">
-                  {user?.name ? getInitials(user.name) : "U"}
-                </span>
-              </div>
+              {user?.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={user.avatar_url}
+                  alt={user.name}
+                  className="w-7 h-7 rounded-md shrink-0 object-cover"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div className="w-7 h-7 rounded-md flex items-center justify-center shrink-0 bg-primary/20">
+                  <span className="text-[11px] font-semibold text-primary">
+                    {user?.name ? getInitials(user.name) : "U"}
+                  </span>
+                </div>
+              )}
               <div className="min-w-0">
                 <p className="text-[13px] font-medium text-sidebar-foreground truncate leading-tight">
                   {user?.name ?? "Demo User"}
                 </p>
-                <p className="text-[11px] truncate capitalize text-muted-foreground">
-                  {user?.plan ?? "growth"} plan
+                <p className="text-[11px] truncate text-muted-foreground">
+                  {user?.email ?? `${user?.plan ?? "growth"} plan`}
                 </p>
               </div>
             </div>
