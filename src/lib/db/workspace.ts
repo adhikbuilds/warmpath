@@ -14,8 +14,9 @@ export async function getWorkspaceId(): Promise<string> {
     const session = await auth();
     if (session?.user?.id) {
       const member = await prisma.workspaceMember.findFirst({
-        where: { userId: session.user.id },
+        where: { userId: session.user.id, seatStatus: "active" },
         select: { workspaceId: true },
+        orderBy: { id: "desc" },
       });
       if (member?.workspaceId) return member.workspaceId;
 
