@@ -565,7 +565,7 @@ function SignalCard({
 
 export default function SignalsPage() {
   const router = useRouter();
-  const { signals, accounts, contacts, warmPaths } = useSalesStore();
+  const { signals, accounts, contacts, warmPaths, refreshSignals } = useSalesStore();
 
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const [dismissReasons, setDismissReasons] = useState<Record<string, string>>({});
@@ -579,7 +579,7 @@ export default function SignalsPage() {
       const data = await res.json();
       if (data.ingested > 0) {
         toast.success(`${data.ingested} new signal${data.ingested > 1 ? "s" : ""} ingested`);
-        router.refresh();
+        await refreshSignals();
       } else {
         toast.info(`No new signals found (${data.fetched ?? 0} articles checked)`);
       }
