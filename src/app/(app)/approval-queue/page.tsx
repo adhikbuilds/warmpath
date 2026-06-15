@@ -272,12 +272,21 @@ function getConnectorName(message: GeneratedMessage): string {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ApprovalQueuePage() {
-  const { messages, loading, approveMessage, rejectMessage, regenerateMessage, generatingIds } =
-    useSalesStore();
+  const {
+    messages,
+    loading,
+    approveMessage,
+    rejectMessage,
+    regenerateMessage,
+    generatingIds,
+    reset,
+    initialize,
+  } = useSalesStore();
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editedBody, setEditedBody] = useState("");
   const [editedSubject, setEditedSubject] = useState("");
+  const [isGeneratingDrafts, setIsGeneratingDrafts] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
   const pendingMessages = useMemo(
@@ -329,35 +338,11 @@ export default function ApprovalQueuePage() {
     }
   }
 
-  async function handleApprove() {
+  function handleApprove() {
     if (!selectedMessage) return;
-    // Optimistic store update
     approveMessage(selectedMessage.id, editedBody);
+    toast.success(`Approved & sent via ${getConnectorName(selectedMessage)}`);
     advanceSelection(selectedMessage.id);
-
-    // Read the API response to check send status
-    try {
-      const res = await fetch(`/api/approvals/${selectedMessage.id}/approve`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "message", editedBody }),
-      });
-      if (res.ok) {
-        const data = await res.json().catch(() => ({}));
-        if (data.sent === false && data.reason === "no_email_channel") {
-          toast.success("Approved ✓", {
-            description: "Connect email in Integrations to start sending.",
-            duration: 4000,
-          });
-        } else {
-          toast.success(`Approved & sent via ${getConnectorName(selectedMessage)}`);
-        }
-      } else {
-        toast.success(`Approved & queued via ${getConnectorName(selectedMessage)}`);
-      }
-    } catch {
-      toast.success(`Approved & queued via ${getConnectorName(selectedMessage)}`);
-    }
   }
 
   function handleDiscard() {
@@ -380,14 +365,68 @@ export default function ApprovalQueuePage() {
     toast.info("Re-routing to next best path...");
   }
 
+  async function handleGenerateDrafts() {
+    setIsGeneratingDrafts(true);
+    try {
+      const res = await fetch("/api/ai/auto-draft-warm-paths", { method: "POST" });
+      if (!res.ok) throw new Error("Request failed");
+      const data = (await res.json()) as { drafted?: number; message?: string };
+      const count = data.drafted ?? 0;
+      if (count === 0) {
+        toast.info("No warm paths need drafts right now.", {
+          description: data.message ?? "All active warm paths already have pending drafts.",
+        });
+      } else {
+        toast.success(`Generated ${count} AI draft${count === 1 ? "" : "s"}`, {
+          description: "Refreshing approval queue...",
+        });
+        reset();
+        await initialize();
+      }
+    } catch {
+      toast.error("Failed to generate drafts. Please try again.");
+    } finally {
+      setIsGeneratingDrafts(false);
+    }
+  }
+
   if (!loading && pendingMessages.length === 0) {
     return (
-      <div className="mx-auto max-w-5xl px-4 py-10">
+      <div className="mx-auto max-w-5xl px-4 py-10 flex flex-col items-center gap-6">
         <EmptyState
           variant="done"
           title="Approval queue is clear"
-          description="New AI drafts will appear here when signal-driven outreach is ready for review."
+          description="No pending AI drafts. Generate drafts automatically from your active warm paths."
         />
+        <button
+          type="button"
+          onClick={handleGenerateDrafts}
+          disabled={isGeneratingDrafts}
+          className="h-9 px-5 rounded font-semibold text-sm flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{
+            backgroundColor: "#2563eb",
+            color: "#fff",
+            boxShadow: "0 0 16px rgba(128,131,255,0.25)",
+          }}
+          onMouseEnter={(e) => {
+            if (!isGeneratingDrafts) e.currentTarget.style.backgroundColor = "#9b9eff";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "#2563eb";
+          }}
+        >
+          {isGeneratingDrafts ? (
+            <>
+              <RefreshCw className="w-4 h-4 animate-spin" />
+              Generating drafts...
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-4 h-4" />
+              Generate AI Drafts from Warm Paths
+            </>
+          )}
+        </button>
       </div>
     );
   }
