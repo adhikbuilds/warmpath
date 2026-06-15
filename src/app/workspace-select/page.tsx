@@ -93,7 +93,10 @@ export default function WorkspaceSelectPage() {
   function enterWorkspace(ws: Workspace) {
     setEntering(ws.id);
     setWorkspace(ws.id, ws.name);
-    if (ws.onboardingStage && ws.onboardingStage !== "completed") {
+    // Only send the owner to onboarding if they haven't completed it.
+    // Invited members (role !== "owner") skip onboarding entirely.
+    const isOwner = ws.role === "owner";
+    if (isOwner && ws.onboardingStage && ws.onboardingStage !== "completed") {
       router.push("/onboarding");
     } else {
       router.push("/dashboard");

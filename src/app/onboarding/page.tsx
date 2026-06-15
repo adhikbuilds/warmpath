@@ -369,7 +369,13 @@ export default function OnboardingPage() {
           const importRows = contactsToImport.map((c) => ({
             name: c.name,
             email: c.email,
-            company: c.account_id ?? undefined,
+            // account_id is a li-acc-<slug> placeholder — reverse to a human name
+            company: c.account_id
+              ? c.account_id
+                  .replace(/^li-acc-/, "")
+                  .replace(/-/g, " ")
+                  .replace(/\b\w/g, (l) => l.toUpperCase()) || undefined
+              : undefined,
             title: c.title,
             linkedin_url: c.linkedin_url,
           }));
