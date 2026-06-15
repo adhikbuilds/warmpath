@@ -104,6 +104,28 @@ const STEP_ORDER: WizardStep[] = [
   "confirm",
 ];
 
+// Keyword synonyms so DB industry strings like "B2B SaaS" or "Financial Services" still match
+const INDUSTRY_KEYWORDS: Record<string, string[]> = {
+  "AI / SaaS": ["ai", "saas", "b2b saas", "artificial intelligence", "machine learning", "ml"],
+  FinTech: ["fintech", "financial", "finance", "banking", "payments", "insurtech"],
+  HealthTech: ["health", "medical", "healthcare", "pharma", "biotech", "medtech"],
+  eCommerce: ["ecommerce", "e-commerce", "retail", "commerce", "d2c", "dtc"],
+  DevTools: ["devtools", "developer", "dev tool", "engineering", "infrastructure", "platform"],
+  MarTech: ["martech", "marketing", "advertising", "adtech"],
+  HRTech: ["hrtech", "hr tech", "human resource", "recruiting", "talent", "people"],
+  LegalTech: ["legaltech", "legal", "law", "compliance"],
+  PropTech: ["proptech", "real estate", "property", "realestate"],
+  EdTech: ["edtech", "education", "learning", "e-learning"],
+};
+
+function industryMatches(accountIndustry: string, selectedIndustries: string[]): boolean {
+  const lower = accountIndustry.toLowerCase();
+  return selectedIndustries.some((ind) => {
+    const keys = INDUSTRY_KEYWORDS[ind] ?? [ind.toLowerCase().split(" ")[0]];
+    return keys.some((k) => lower.includes(k));
+  });
+}
+
 const CHANNEL_OPTIONS = [
   { id: "warm_intro", label: "Warm intro", icon: "🤝", desc: "Route through your network" },
   { id: "email", label: "Email", icon: "✉️", desc: "Personalized warm-path email" },
@@ -167,16 +189,14 @@ export default function CampaignBuilderPage() {
     let filtered = [...accounts];
 
     if (config.industries.length > 0) {
-      filtered = filtered.filter((a) =>
-        config.industries.some((ind) =>
-          a.industry.toLowerCase().includes(ind.toLowerCase().split(" ")[0]),
-        ),
-      );
+      const byIndustry = filtered.filter((a) => industryMatches(a.industry, config.industries));
+      // Fall back to all accounts if no industry match (DB industry strings may differ)
+      filtered = byIndustry.length > 0 ? byIndustry : filtered;
     }
 
     if (config.companySizes.length > 0) {
-      filtered = filtered.filter((a) => {
-        const ec = a.employee_count;
+      const bySizeFiltered = filtered.filter((a) => {
+        const ec = a.employee_count ?? 0;
         return config.companySizes.some((s) => {
           if (s === "1-50") return ec <= 50;
           if (s === "51-200") return ec > 50 && ec <= 200;
@@ -186,6 +206,8 @@ export default function CampaignBuilderPage() {
           return true;
         });
       });
+      // Fall back to pre-size-filter set if size filter zeroes everything out
+      filtered = bySizeFiltered.length > 0 ? bySizeFiltered : filtered;
     }
 
     return filtered.sort((a, b) => b.opportunity_score - a.opportunity_score);
