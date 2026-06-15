@@ -124,6 +124,7 @@ type GapType = "no_path" | "cold_path" | "stale_path" | "warm";
 
 interface CoverageRow {
   accountId: string;
+  contactId: string;
   accountName: string;
   industry: string;
   bestWarmth: number;
@@ -165,6 +166,7 @@ const GAP_ACTIONS: Record<GapType, (row: CoverageRow) => string> = {
 
 function CoverageMap() {
   const { accounts, warmPaths, relationshipEdges } = useSalesStore();
+  const router = useRouter();
 
   const rows = useMemo<CoverageRow[]>(() => {
     const now = Date.now();
@@ -207,6 +209,7 @@ function CoverageMap() {
 
       const row: CoverageRow = {
         accountId: account.id,
+        contactId: bestPath?.contact_id ?? "",
         accountName: account.name,
         industry: account.industry,
         bestWarmth,
@@ -514,11 +517,13 @@ function CoverageMap() {
                           size="sm"
                           variant="outline"
                           className="h-6 text-[10px] px-2 whitespace-nowrap"
-                          onClick={() =>
-                            toast.success(`Drafting intro for ${row.accountName}`, {
-                              description: `Via ${row.introPerson}`,
-                            })
-                          }
+                          onClick={() => {
+                            if (row.contactId) {
+                              router.push(`/contacts/${row.contactId}`);
+                            } else {
+                              toast.error("Contact not found for this path");
+                            }
+                          }}
                         >
                           Draft intro →
                         </Button>
