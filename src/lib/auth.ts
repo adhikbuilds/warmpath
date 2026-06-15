@@ -33,10 +33,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         },
       },
     }),
-    LinkedIn({
-      clientId: process.env.LINKEDIN_CLIENT_ID ?? "",
-      clientSecret: process.env.LINKEDIN_CLIENT_SECRET ?? "",
-    }),
+    // Only register LinkedIn if both credentials are present — an empty secret
+    // causes NextAuth to throw a Configuration error for all auth operations.
+    ...(process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET
+      ? [
+          LinkedIn({
+            clientId: process.env.LINKEDIN_CLIENT_ID,
+            clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+          }),
+        ]
+      : []),
     Credentials({
       name: "credentials",
       credentials: {
