@@ -693,7 +693,7 @@ class RemoteAIProvider implements AIProvider {
   private client: any; // Anthropic client dynamic import to avoid SSR issues
 
   constructor() {
-    this.apiKey = process.env.ANTHROPIC_API_KEY ?? process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY ?? "";
+    this.apiKey = process.env.ANTHROPIC_API_KEY ?? "";
     this.client = null;
   }
 
@@ -919,7 +919,8 @@ RESPOND ONLY with valid JSON:
 // Calls /api/ai/azure (server-side route) so the API key never reaches the browser.
 // The route uses AZURE_OPENAI_ENDPOINT + AZURE_OPENAI_API_KEY + AZURE_OPENAI_DEPLOYMENT.
 
-const AZURE_DEPLOYMENT = process.env.NEXT_PUBLIC_AZURE_OPENAI_DEPLOYMENT ?? "gpt-4.1-nano";
+const AZURE_DEPLOYMENT =
+  process.env.AZURE_OPENAI_DEPLOYMENT_GENERATE ?? process.env.AZURE_OPENAI_DEPLOYMENT ?? "gpt-4.1";
 
 class AzureAIProvider implements AIProvider {
   getStatus(): AIProviderStatus {

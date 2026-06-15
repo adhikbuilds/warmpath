@@ -1062,10 +1062,34 @@ Thanks,
                               className="h-7 text-xs gap-1 px-3"
                               onClick={async () => {
                                 try {
+                                  // Ensure a persisted WarmPath row exists before queuing.
+                                  // BFS paths are computed client-side and may not be in the DB yet.
+                                  let warmPathId = storeWarmBlue?.id;
+                                  if (!warmPathId && computedPath) {
+                                    const wpRes = await fetch("/api/warm-paths", {
+                                      method: "POST",
+                                      headers: { "content-type": "application/json" },
+                                      body: JSON.stringify({
+                                        account_id: account.id,
+                                        contact_id: topContact?.id,
+                                        path_nodes: computedPath.nodes,
+                                        warmth_score: Math.round(computedPath.warmth),
+                                        recommended_intro_person:
+                                          computedPath.nodes.length >= 2
+                                            ? computedPath.nodes[computedPath.nodes.length - 2].name
+                                            : "",
+                                        recommended_channel: "linkedin",
+                                      }),
+                                    });
+                                    if (wpRes.ok) {
+                                      const wp = (await wpRes.json()) as { id?: string };
+                                      warmPathId = wp.id;
+                                    }
+                                  }
                                   await addMessageToQueue({
                                     account_id: account.id,
                                     contact_id: topContact?.id ?? "",
-                                    warm_path_id: storeWarmBlue?.id,
+                                    warm_path_id: warmPathId,
                                     signal_id: topSignal?.id,
                                     channel: "warm_intro",
                                     subject: topSignal
