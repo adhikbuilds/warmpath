@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, Settings, Sparkles, Target, Users } from "lucide-react";
+import { AlertTriangle, Building2, Settings, Sparkles, Target, Trash2, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -107,8 +107,20 @@ export default function SettingsPage() {
     fetch("/api/workspaces/current")
       .then((r) => r.json())
       .then((ws) => {
-        if (ws.industry) setSelectedIndustries(ws.industry.split(",").map((s: string) => s.trim()).filter(Boolean));
-        if (ws.companySize) setSelectedSizes(ws.companySize.split(",").map((s: string) => s.trim()).filter(Boolean));
+        if (ws.industry)
+          setSelectedIndustries(
+            ws.industry
+              .split(",")
+              .map((s: string) => s.trim())
+              .filter(Boolean),
+          );
+        if (ws.companySize)
+          setSelectedSizes(
+            ws.companySize
+              .split(",")
+              .map((s: string) => s.trim())
+              .filter(Boolean),
+          );
         if (ws.region) setGeographies(ws.region);
         if (ws.name) setWorkspaceName(ws.name);
         if (ws.website) setWorkspaceWebsite(ws.website);
@@ -131,7 +143,8 @@ export default function SettingsPage() {
     fetch("/api/user/preferences")
       .then((r) => r.json())
       .then((prefs) => {
-        if (typeof prefs.dailyEmailDigest === "boolean") setDailyEmailDigest(prefs.dailyEmailDigest);
+        if (typeof prefs.dailyEmailDigest === "boolean")
+          setDailyEmailDigest(prefs.dailyEmailDigest);
       })
       .catch(() => {});
 
@@ -185,12 +198,36 @@ export default function SettingsPage() {
       try {
         localStorage.setItem(
           "warmpath-workspace",
-          JSON.stringify({ name: workspaceName, website: workspaceWebsite, description: workspaceDescription }),
+          JSON.stringify({
+            name: workspaceName,
+            website: workspaceWebsite,
+            description: workspaceDescription,
+          }),
         );
       } catch {}
       toast.error("Failed to save company info");
     } finally {
       setSavingWorkspace(false);
+    }
+  };
+
+  // Admin state
+  const [clearingDemo, setClearingDemo] = useState(false);
+
+  const clearDemoData = async () => {
+    setClearingDemo(true);
+    try {
+      const res = await fetch("/api/admin/clear-demo-data", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed");
+      const d = data.deleted ?? {};
+      toast.success(
+        `Demo data cleared — removed ${d.seed_contacts ?? 0} demo contacts, ${d.signals ?? 0} signals, ${d.seed_accounts ?? 0} accounts.`,
+      );
+    } catch (err) {
+      toast.error(`Clear failed: ${err instanceof Error ? err.message : "Unknown error"}`);
+    } finally {
+      setClearingDemo(false);
     }
   };
 
@@ -607,6 +644,37 @@ export default function SettingsPage() {
                 <Users className="w-3.5 h-3.5 mr-1.5" />
                 Invite team member
               </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="border-destructive/40">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2 text-destructive">
+                <AlertTriangle className="w-4 h-4" />
+                Admin
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-destructive/5 border border-destructive/20">
+                <Trash2 className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">Clear demo data</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Removes seed contacts (Samantha Torres etc.), demo accounts, all signals, and
+                    stale warm paths. Your real Google-imported contacts and relationship edges are
+                    never touched.
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  className="h-8 text-xs flex-shrink-0"
+                  disabled={clearingDemo}
+                  onClick={clearDemoData}
+                >
+                  {clearingDemo ? "Clearing…" : "Clear"}
+                </Button>
+              </div>
             </CardContent>
           </Card>
 

@@ -5,8 +5,11 @@ import { getWorkspaceId } from "@/lib/db/workspace";
 export async function GET() {
   try {
     const workspaceId = await getWorkspaceId();
+    // Cap at 500 for initial load performance — force-graph renders poorly above this.
     const edges = await prisma.relationshipEdge.findMany({
       where: { workspaceId },
+      orderBy: { strengthScore: "desc" },
+      take: 500,
     });
     return NextResponse.json(
       edges.map((e) => ({

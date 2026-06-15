@@ -3,13 +3,20 @@ import { auth } from "@/lib/auth";
 import prisma from "@/lib/db/client";
 import { getWorkspaceId } from "@/lib/db/workspace";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const workspaceId = await getWorkspaceId();
+    const { searchParams } = new URL(req.url);
+    const limitParam = searchParams.get("limit");
+    // Cap at 500 by default to prevent slow initial loads with large workspaces.
+    // Pass ?limit=all to bypass (used by CSV export and admin tools).
+    const take = limitParam === "all" ? undefined : Math.min(Number(limitParam) || 500, 2000);
+
     const contacts = await prisma.contact.findMany({
       where: { workspaceId },
       include: { account: true },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ warmthScore: "desc" }, { createdAt: "desc" }],
+      ...(take ? { take } : {}),
     });
 
     // Try Twenty CRM if configured
