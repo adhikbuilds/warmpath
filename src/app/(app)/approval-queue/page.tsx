@@ -300,8 +300,7 @@ export default function ApprovalQueuePage() {
   const selectedMessage =
     pendingMessages.find((m) => m.id === selectedId) ?? pendingMessages[0] ?? null;
 
-  // Sync edit states when selected message changes
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally reset only on id change
+  // Sync edit states when selected message changes or body is regenerated
   useEffect(() => {
     if (!selectedMessage) {
       setEditedBody("");
@@ -310,7 +309,7 @@ export default function ApprovalQueuePage() {
     }
     setEditedBody(selectedMessage.body ?? "");
     setEditedSubject(selectedMessage.subject ?? "Warm intro request");
-  }, [selectedMessage?.id]);
+  }, [selectedMessage?.id, selectedMessage?.body, selectedMessage?.subject]);
 
   // Group pending messages by connector
   const groups = useMemo(() => {
