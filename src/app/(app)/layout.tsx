@@ -74,10 +74,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, [sessionStatus, session, setAuthenticated, syncUser, router]);
 
   useEffect(() => {
-    if (hydrated && sessionStatus !== "loading" && !isAuthenticated) {
+    // Only redirect when NextAuth explicitly says unauthenticated —
+    // avoids bouncing to /login during the Zustand hydration race.
+    if (hydrated && sessionStatus === "unauthenticated") {
       router.replace("/login");
     }
-  }, [hydrated, isAuthenticated, sessionStatus, router]);
+  }, [hydrated, sessionStatus, router]);
 
   useEffect(() => {
     function handler(e: KeyboardEvent) {
