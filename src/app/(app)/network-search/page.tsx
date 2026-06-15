@@ -184,7 +184,9 @@ export default function NetworkSearchPage() {
         body: JSON.stringify({ contact_id: contactId }),
       });
       if (res.ok) {
-        router.push("/discover");
+        // Auto-draft a message for the newly created warm path so it lands in the queue
+        await fetch("/api/ai/auto-draft-warm-paths", { method: "POST" }).catch(() => null);
+        router.push("/approval-queue");
       } else {
         toast.error("Could not find a warm path to this contact");
       }
