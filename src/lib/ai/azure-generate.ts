@@ -18,6 +18,17 @@ export function isAzureConfigured(): boolean {
   return !!(AZURE_ENDPOINT && AZURE_API_KEY);
 }
 
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/\*\*(.*?)\*\*/gs, "$1")
+    .replace(/\*(.*?)\*/gs, "$1")
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/^[-*+]\s+/gm, "• ")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .trim();
+}
+
 export interface KBItem {
   type: string;
   title: string;
@@ -258,7 +269,7 @@ export async function callAzureOpenAI(req: AzureGenerateRequest): Promise<AzureG
 
   return {
     subject: isEmail ? (parsed.subject ?? null) : null,
-    body: parsed.body ?? "",
+    body: stripMarkdown(parsed.body ?? ""),
     intro_request: isWarmIntro ? (parsed.intro_request ?? null) : null,
     confidence_score: parsed.confidence_score ?? 0.82,
     personalization_reason: parsed.personalization_reason ?? "",
