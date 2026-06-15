@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/db/client";
-import { getWorkspaceContext, getWorkspaceId } from "@/lib/db/workspace";
-import { DEMO_WORKSPACE } from "@/lib/demo-data-extended";
+import { getWorkspaceId } from "@/lib/db/workspace";
 
 export async function GET() {
   try {
-    const { workspaceId, isDemo } = await getWorkspaceContext();
+    const workspaceId = await getWorkspaceId();
+    if (!workspaceId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const workspace = await prisma.workspace.findUnique({
       where: { id: workspaceId },
       include: {
@@ -20,9 +22,7 @@ export async function GET() {
       },
     });
     if (!workspace) {
-      return isDemo
-        ? NextResponse.json(DEMO_WORKSPACE)
-        : NextResponse.json({ error: "Workspace not found" }, { status: 404 });
+      return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
     }
     const { invitations, ...rest } = workspace;
     return NextResponse.json({ ...rest, pendingInvitations: invitations });

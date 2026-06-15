@@ -660,8 +660,7 @@ export default function IntegrationsPage() {
       {/* Email sending (Brevo, bring-your-own SMTP) */}
       <BrevoEmailCard />
 
-      {/* Twenty CRM */}
-      <TwentyCrmCard />
+      {/* Twenty CRM removed — not yet production-ready */}
 
       {/* Main connectors list */}
       <div

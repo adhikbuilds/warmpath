@@ -18,6 +18,7 @@ import {
   Plus,
   Search,
   SlidersHorizontal,
+  Trash2,
   TrendingUp,
   Zap,
 } from "lucide-react";
@@ -939,6 +940,28 @@ export default function RelationshipGraphPage() {
 
   // Map-network state
   const [mappingNetwork, setMappingNetwork] = useState(false);
+  const [clearingData, setClearingData] = useState(false);
+
+  async function handleClearDemoData() {
+    setClearingData(true);
+    try {
+      const res = await fetch("/api/admin/clear-demo-data", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error ?? "Failed to clear data");
+        return;
+      }
+      toast.success(
+        `Cleared ${data.deleted.signals} signals, ${data.deleted.tasks} tasks, ${data.deleted.orphaned_accounts} unused accounts`,
+      );
+      reset();
+      setTimeout(() => initialize(), 100);
+    } catch {
+      toast.error("Clear failed — check your connection");
+    } finally {
+      setClearingData(false);
+    }
+  }
 
   async function handleMapNetwork() {
     setMappingNetwork(true);
@@ -1371,7 +1394,26 @@ export default function RelationshipGraphPage() {
           </button>
           <button
             type="button"
-            disabled={mappingNetwork}
+            disabled={clearingData || mappingNetwork}
+            className="h-8 px-3 rounded border flex items-center gap-1.5 text-xs transition-colors hover:bg-white/5 disabled:opacity-60"
+            style={{ borderColor: "#ef4444", color: "#ef4444" }}
+            onClick={handleClearDemoData}
+          >
+            {clearingData ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                Clearing…
+              </>
+            ) : (
+              <>
+                <Trash2 className="w-3.5 h-3.5" />
+                Clear Demo Data
+              </>
+            )}
+          </button>
+          <button
+            type="button"
+            disabled={mappingNetwork || clearingData}
             className="h-8 px-3 rounded flex items-center gap-1.5 text-xs font-medium transition-opacity hover:opacity-90 disabled:opacity-60"
             style={{ background: "#2563eb", color: "#fff" }}
             onClick={handleMapNetwork}
