@@ -46,6 +46,10 @@ export default function WorkspaceSelectPage() {
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
 
+  // ?enter=<workspaceId> set by invite accept — auto-enter that specific workspace
+  const enterParam =
+    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("enter") : null;
+
   useEffect(() => {
     if (status === "loading") return;
     if (status === "unauthenticated") {
@@ -66,6 +70,12 @@ export default function WorkspaceSelectPage() {
       if (!res.ok) throw new Error();
       const data: Workspace[] = await res.json();
       setWorkspaces(data);
+
+      // If ?enter=<id> is set (coming from invite accept), auto-enter that workspace
+      if (enterParam) {
+        const target = data.find((w) => w.id === enterParam);
+        if (target) { enterWorkspace(target); return; }
+      }
       // Auto-enter if only one workspace
       if (data.length === 1) {
         enterWorkspace(data[0]);

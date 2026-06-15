@@ -84,7 +84,12 @@ export default function InviteAcceptClient() {
       }
       if (data.success) {
         setState({ phase: "done" });
-        setTimeout(() => router.push("/dashboard"), 1500);
+        // Go through workspace-select so it calls setWorkspace() and lands in
+        // the correct workspace — passing workspaceId auto-selects it.
+        const dest = data.workspaceId
+          ? `/workspace-select?enter=${data.workspaceId}`
+          : "/workspace-select";
+        setTimeout(() => router.push(dest), 1500);
       } else {
         setState({ phase: "error", message: data.error ?? "Failed to accept invite." });
       }
