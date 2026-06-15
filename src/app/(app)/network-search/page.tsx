@@ -1,233 +1,344 @@
 "use client";
 
-import {
-  ArrowRight,
-  Building2,
-  ExternalLink,
-  Loader2,
-  Route,
-  Search,
-  Sparkles,
-  Users,
-} from "lucide-react";
+import { Building2, Loader2, Network, Search, Zap } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
-interface NetworkResult {
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+interface NetworkSearchResult {
   id: string;
   name: string;
   title?: string;
+  email?: string;
   company?: string;
-  summary?: string;
+  account_id?: string;
+  seniority?: string;
+  department?: string;
+  warmth_score?: number;
+  fit_score?: number;
   linkedin_url?: string;
-  warm_path?: string;
 }
 
-const EXAMPLE_QUERIES = [
-  "B2B SaaS founders in India",
-  "VP Sales at AI-native GTM companies",
-  "Heads of Revenue scaling 1M → 10M ARR",
-  "Fintech CROs open to warm intros",
-];
+// ── Seniority badge ───────────────────────────────────────────────────────────
+
+const SENIORITY_COLORS: Record<string, string> = {
+  c_suite: "bg-brand/10 text-[#8083ff] border-brand/20",
+  vp: "bg-[#7b6ea8]/10 text-[#c0c1ff] border-[#7b6ea8]/20",
+  director: "bg-[#5db8a6]/10 text-[#4edea3] border-[#5db8a6]/20",
+  manager: "bg-[#5db872]/10 text-[#5db872] border-[#5db872]/20",
+  ic: "bg-muted text-muted-foreground border-muted",
+};
+
+const SENIORITY_LABELS: Record<string, string> = {
+  c_suite: "C-Suite",
+  vp: "VP",
+  director: "Director",
+  manager: "Manager",
+  ic: "IC",
+};
+
+function SeniorityBadge({ seniority }: { seniority?: string }) {
+  if (!seniority) return null;
+  const color = SENIORITY_COLORS[seniority] ?? "bg-muted text-muted-foreground border-muted";
+  const label = SENIORITY_LABELS[seniority] ?? seniority;
+  return (
+    <span
+      className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border ${color}`}
+    >
+      {label}
+    </span>
+  );
+}
+
+// ── Warmth bar ────────────────────────────────────────────────────────────────
+
+function WarmthBar({ score }: { score?: number }) {
+  if (score == null) return null;
+  const color = score >= 70 ? "bg-emerald-500" : score >= 45 ? "bg-yellow-500" : "bg-slate-400";
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+        <div className={`h-full rounded-full ${color}`} style={{ width: `${score}%` }} />
+      </div>
+      <span className="text-[10px] text-[#c7c4d7] w-6 text-right">{score}</span>
+    </div>
+  );
+}
+
+// ── Result card ───────────────────────────────────────────────────────────────
+
+function ResultCard({
+  r,
+  generatingId,
+  onRequestIntro,
+}: {
+  r: NetworkSearchResult;
+  generatingId: string | null;
+  onRequestIntro: (id: string) => void;
+}) {
+  const isGenerating = generatingId === r.id;
+
+  return (
+    <Card className="border-[#464554]/60 hover:border-brand/30 transition-colors">
+      <CardContent className="p-4 flex items-start gap-3">
+        {/* Avatar */}
+        <div className="w-10 h-10 rounded-full bg-[#8083ff]/10 flex items-center justify-center flex-shrink-0 text-sm font-bold text-[#4edea3]">
+          {r.name[0] ?? "?"}
+        </div>
+
+        {/* Info */}
+        <div className="flex-1 min-w-0 space-y-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-semibold text-sm truncate">{r.name}</span>
+            <SeniorityBadge seniority={r.seniority} />
+          </div>
+
+          {r.title && <p className="text-xs text-[#c7c4d7] truncate">{r.title}</p>}
+
+          <div className="flex items-center gap-3 flex-wrap">
+            {r.company && (
+              <span className="flex items-center gap-1 text-[10px] text-[#c7c4d7]">
+                <Building2 className="w-3 h-3" />
+                {r.company}
+              </span>
+            )}
+            {r.department && <span className="text-[10px] text-[#c7c4d7]">{r.department}</span>}
+          </div>
+
+          {r.warmth_score != null && (
+            <div className="pt-1">
+              <p className="text-[10px] text-[#c7c4d7] mb-0.5">Warmth</p>
+              <WarmthBar score={r.warmth_score} />
+            </div>
+          )}
+        </div>
+
+        {/* Action */}
+        <div className="flex-shrink-0">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 text-xs gap-1.5 whitespace-nowrap"
+            disabled={isGenerating}
+            onClick={() => onRequestIntro(r.id)}
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="w-3 h-3 animate-spin" />
+                Finding path…
+              </>
+            ) : (
+              <>
+                <Zap className="w-3 h-3" />
+                Request intro
+              </>
+            )}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function NetworkSearchPage() {
+  const router = useRouter();
   const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<NetworkResult[]>([]);
-  const [noContacts, setNoContacts] = useState(false);
-  const [searched, setSearched] = useState(false);
+  const [searching, setSearching] = useState(false);
+  const [results, setResults] = useState<NetworkSearchResult[]>([]);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [generatingId, setGeneratingId] = useState<string | null>(null);
 
-  async function runSearch(q: string) {
-    const text = q.trim();
-    if (!text) return;
-    setLoading(true);
-    setSearched(true);
+  const handleSearch = async () => {
+    setSearching(true);
+    setHasSearched(true);
     try {
       const res = await fetch("/api/network-search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: text, limit: 25 }),
+        body: JSON.stringify({ query }),
       });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? `Search failed (${res.status})`);
-      }
-      const data = (await res.json()) as {
-        results: NetworkResult[];
-        reason?: string;
-      };
+      if (!res.ok) throw new Error("Search failed");
+      const data = await res.json();
       setResults(data.results ?? []);
-      setNoContacts(data.reason === "no_contacts");
-      if ((data.results ?? []).length === 0 && data.reason !== "no_contacts") {
-        toast.message("No matching people", { description: "Try a broader description." });
-      }
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Search failed");
-      setResults([]);
+    } catch {
+      toast.error("Network search failed");
     } finally {
-      setLoading(false);
+      setSearching(false);
     }
-  }
+  };
+
+  const handleRequestIntro = async (contactId: string) => {
+    setGeneratingId(contactId);
+    try {
+      const res = await fetch("/api/warm-paths/generate-for-contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contact_id: contactId }),
+      });
+      if (res.ok) {
+        router.push("/warm-leads");
+      } else {
+        toast.error("Could not find a warm path to this contact");
+      }
+    } catch {
+      toast.error("Failed to generate warm path");
+    } finally {
+      setGeneratingId(null);
+    }
+  };
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-8">
+    <div
+      className="p-6 space-y-5 max-w-[900px] mx-auto"
+      style={{ backgroundColor: "#131315", color: "#e5e1e4" }}
+    >
       {/* Header */}
-      <div className="mb-6">
+      <div>
         <h1 className="text-xl font-semibold flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-[#2563eb]" />
+          <Network className="w-5 h-5 text-[#4edea3]" />
           Network Search
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Describe who you&apos;re looking for in plain language. We search your connected contacts
-          and rank the best matches with AI.
+        <p className="text-sm text-[#c7c4d7] mt-0.5">
+          Search contacts in your workspace and find warm intro paths through your team's network.
         </p>
       </div>
 
-      {/* Search box */}
-      <Card className="p-4 border-border/60">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            runSearch(query);
-          }}
-          className="flex items-center gap-2"
-        >
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="e.g. B2B SaaS founders in India"
-              className="pl-9 h-11"
-              autoFocus
-            />
-          </div>
-          <Button type="submit" disabled={loading || !query.trim()} className="h-11 px-5">
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
-          </Button>
-        </form>
+      {/* Search bar */}
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-[#c7c4d7]" />
+          <Input
+            placeholder="Search by name, title, company, or department…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            className="pl-8 h-9 text-sm"
+          />
+        </div>
+        <Button onClick={handleSearch} disabled={searching} className="h-9 gap-2">
+          {searching ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          ) : (
+            <Search className="w-3.5 h-3.5" />
+          )}
+          {searching ? "Searching…" : "Search"}
+        </Button>
+      </div>
 
-        {/* Example chips */}
-        {!searched && (
-          <div className="flex flex-wrap gap-2 mt-3">
-            {EXAMPLE_QUERIES.map((ex) => (
-              <button
-                key={ex}
-                type="button"
-                onClick={() => {
-                  setQuery(ex);
-                  runSearch(ex);
-                }}
-                className="text-xs px-2.5 py-1 rounded-md border border-border/60 text-muted-foreground hover:text-foreground hover:border-border transition-colors"
-              >
-                {ex}
-              </button>
-            ))}
-          </div>
-        )}
-      </Card>
-
-      {/* Result meta */}
-      {searched && !loading && !noContacts && (
-        <div className="flex items-center gap-2 mt-5 mb-2 text-sm text-muted-foreground">
-          <Users className="h-4 w-4" />
-          <span>
-            {results.length} {results.length === 1 ? "match" : "matches"} in your contacts
-          </span>
+      {/* Stats row */}
+      {hasSearched && !searching && (
+        <div className="flex items-center gap-3">
+          <Badge variant="outline" className="text-xs bg-muted text-[#c7c4d7] border-[#464554]/60">
+            {results.length} contact{results.length !== 1 ? "s" : ""} found
+          </Badge>
+          {results.length > 0 && (
+            <p className="text-xs text-[#c7c4d7]">
+              Click "Request intro" to find a warm path and add it to Warm Leads.
+            </p>
+          )}
         </div>
       )}
 
-      {/* Loading skeleton */}
-      {loading && (
-        <div className="mt-5 flex flex-col items-center justify-center py-16 text-center">
-          <Loader2 className="h-6 w-6 animate-spin text-[#2563eb]" />
-          <p className="text-sm text-muted-foreground mt-3">
-            Searching your network… this can take up to a minute.
-          </p>
-        </div>
-      )}
-
-      {/* Results */}
-      {!loading && results.length > 0 && (
-        <div className="grid gap-2.5 mt-2">
-          {results.map((r) => (
-            <Card key={r.id} className="p-4 border-border/60 hover:border-border/80 transition-all">
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold">{r.name}</span>
-                    {r.title && <span className="text-sm text-muted-foreground">· {r.title}</span>}
-                  </div>
-                  {r.company && (
-                    <div className="flex items-center gap-1.5 mt-0.5 text-sm text-muted-foreground">
-                      <Building2 className="h-3.5 w-3.5" />
-                      {r.company}
-                    </div>
-                  )}
-                  {r.summary && (
-                    <p className="text-sm text-muted-foreground/90 mt-2 line-clamp-2">
-                      {r.summary}
-                    </p>
-                  )}
-                  {r.warm_path && (
-                    <div className="flex items-center gap-1.5 mt-2.5 text-xs text-[#4edea3] bg-[#4edea3]/10 rounded-md px-2 py-1 w-fit max-w-full">
-                      <Route className="h-3.5 w-3.5 shrink-0" />
-                      <span className="truncate">{r.warm_path}</span>
-                    </div>
-                  )}
+      {/* Loading */}
+      {searching && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-sm text-[#c7c4d7]">
+            <Loader2 className="w-4 h-4 animate-spin text-[#4edea3]" />
+            Searching your network…
+          </div>
+          {[0, 1, 2].map((i) => (
+            <Card key={i} className="border-[#464554]/60">
+              <CardContent className="p-4 flex items-start gap-3">
+                <div className="w-10 h-10 rounded-full bg-muted animate-pulse flex-shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3.5 bg-muted rounded animate-pulse w-1/3" />
+                  <div className="h-2.5 bg-muted rounded animate-pulse w-1/2" />
+                  <div className="h-2.5 bg-muted rounded animate-pulse w-1/4" />
                 </div>
-                <div className="flex flex-col items-end gap-2 shrink-0">
-                  {r.linkedin_url && (
-                    <a
-                      href={r.linkedin_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
-                    >
-                      LinkedIn <ExternalLink className="h-3 w-3" />
-                    </a>
-                  )}
-                  {r.warm_path && (
-                    <Button size="sm" variant="outline" className="h-7 text-xs gap-1">
-                      Request intro <ArrowRight className="h-3 w-3" />
-                    </Button>
-                  )}
-                </div>
-              </div>
+                <div className="w-24 h-8 bg-muted rounded animate-pulse flex-shrink-0" />
+              </CardContent>
             </Card>
           ))}
         </div>
       )}
 
-      {/* No contacts imported yet */}
-      {!loading && searched && noContacts && (
-        <Card className="p-10 mt-2 border-border/60 text-center">
-          <Users className="h-6 w-6 text-muted-foreground mx-auto" />
-          <p className="text-sm font-medium mt-3">No contacts to search yet</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            Import your contacts (LinkedIn CSV or Google) to build a searchable network.
-          </p>
-          <a
-            href="/integrations"
-            className="inline-block mt-4 text-xs font-semibold px-4 py-2 rounded-lg text-white"
-            style={{ backgroundColor: "#2563eb" }}
-          >
-            Go to Integrations
-          </a>
-        </Card>
+      {/* Results */}
+      {!searching && results.length > 0 && (
+        <div className="space-y-2">
+          {results.map((r) => (
+            <ResultCard
+              key={r.id}
+              r={r}
+              generatingId={generatingId}
+              onRequestIntro={handleRequestIntro}
+            />
+          ))}
+        </div>
       )}
 
-      {/* No matches */}
-      {!loading && searched && !noContacts && results.length === 0 && (
-        <Card className="p-10 mt-2 border-border/60 text-center">
-          <Search className="h-6 w-6 text-muted-foreground mx-auto" />
-          <p className="text-sm text-muted-foreground mt-3">
-            No contacts matched. Try a broader description or different role/industry.
+      {/* Empty state */}
+      {!searching && hasSearched && results.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-20 text-center space-y-3">
+          <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center">
+            <Search className="w-6 h-6 text-[#c7c4d7]/50" />
+          </div>
+          <p className="font-medium text-sm">No contacts found</p>
+          <p className="text-xs text-[#c7c4d7] max-w-xs">
+            Try a different search term, or leave it blank to see all contacts.
           </p>
-        </Card>
+        </div>
+      )}
+
+      {/* Initial state */}
+      {!hasSearched && (
+        <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-[#8083ff]/10 flex items-center justify-center">
+            <Network className="w-8 h-8 text-[#4edea3]" />
+          </div>
+          <div className="space-y-1">
+            <p className="font-semibold text-base">Search your network</p>
+            <p className="text-sm text-[#c7c4d7] max-w-sm">
+              Find any contact in your workspace by name, title, or company. Then request a warm
+              intro path with one click.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-2 max-w-lg w-full text-left">
+            {[
+              {
+                icon: Search,
+                title: "Smart search",
+                desc: "Search by name, title, company, or department",
+              },
+              {
+                icon: Network,
+                title: "BFS pathfinding",
+                desc: "Finds the warmest intro path through your team's graph",
+              },
+              {
+                icon: Zap,
+                title: "One-click intro",
+                desc: "Request intro generates a warm path and adds it to Warm Leads",
+              },
+            ].map((feat) => (
+              <div
+                key={feat.title}
+                className="p-3 rounded-lg border border-[#464554]/50 bg-[#201f22] space-y-1"
+              >
+                <feat.icon className="w-4 h-4 text-[#4edea3]" />
+                <p className="text-xs font-medium">{feat.title}</p>
+                <p className="text-[11px] text-[#c7c4d7]">{feat.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );
