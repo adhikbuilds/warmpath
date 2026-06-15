@@ -1552,10 +1552,21 @@ export default function RelationshipGraphPage() {
                       <h3 className="text-base font-semibold text-white mb-2">
                         Your network isn&apos;t mapped yet
                       </h3>
-                      <p className="text-sm text-white/50 mb-5 leading-relaxed">
-                        WarmBlue will analyse your {contacts.length} contacts and compute warm intro
-                        paths across {accounts.length} target accounts.
+                      <p className="text-sm text-white/50 mb-1 leading-relaxed">
+                        WarmBlue will analyse your {contacts.length} contact
+                        {contacts.length !== 1 ? "s" : ""} and compute warm intro paths across{" "}
+                        {accounts.length} target accounts.
                       </p>
+                      {contacts.length === 0 && (
+                        <p className="text-xs text-yellow-400/70 mb-4">
+                          No contacts yet — connect Google or import a LinkedIn CSV first.
+                        </p>
+                      )}
+                      {contacts.length > 0 && (
+                        <p className="text-xs text-white/35 mb-4">
+                          If you just imported new contacts, re-map to include them.
+                        </p>
+                      )}
                       <button
                         type="button"
                         onClick={handleMapNetwork}

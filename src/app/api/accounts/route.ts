@@ -8,7 +8,8 @@ export async function GET() {
     const workspaceId = await getWorkspaceId();
     const accounts = await prisma.bizAccount.findMany({
       where: { workspaceId },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ warmthScore: "desc" }, { createdAt: "desc" }],
+      take: 500,
     });
 
     // Try Twenty CRM if configured

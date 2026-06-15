@@ -186,13 +186,24 @@ export default function NetworkSearchPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ contact_id: contactId }),
       });
-      if (res.ok) {
-        // Auto-draft a message for the newly created warm path so it lands in the queue
-        await fetch("/api/ai/auto-draft-warm-paths", { method: "POST" }).catch(() => null);
-        router.push("/approval-queue");
-      } else {
+      if (!res.ok) {
         toast.error("Could not find a warm path to this contact");
+        return;
       }
+      const data = await res.json();
+      const hasPath = Array.isArray(data.path_nodes) && data.path_nodes.length > 1;
+
+      if (!hasPath) {
+        toast.info(
+          "No warm path found — your relationship graph has no connections yet. Import your LinkedIn CSV on the Integrations page to unlock intro paths.",
+          { duration: 6000 },
+        );
+        return;
+      }
+
+      // A real path exists — auto-draft and redirect to queue
+      await fetch("/api/ai/auto-draft-warm-paths", { method: "POST" }).catch(() => null);
+      router.push("/approval-queue");
     } catch {
       toast.error("Failed to generate warm path");
     } finally {
