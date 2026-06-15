@@ -2,7 +2,6 @@
 
 import {
   ArrowLeft,
-  CheckCircle,
   ChevronRight,
   Clock,
   Edit2,
@@ -463,80 +462,30 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
 
   // ── Email Accounts tab ─────────────────────────────────────────────────────
   const renderEmailAccounts = () => {
-    const demoAccounts = [
-      {
-        name: "Adhik Agarwal",
-        email: "adhik@seedlinglabs.com",
-        vendor: "Smartlead",
-        dailyLimit: 40,
-        warmup: true,
-        reputation: 94,
-      },
-      {
-        name: "Adhik Outreach",
-        email: "adhik.outreach@seedlinglabs.com",
-        vendor: "Smartlead",
-        dailyLimit: 35,
-        warmup: true,
-        reputation: 87,
-      },
-    ];
     return (
       <div className="p-5 space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-[14px] font-semibold">Email Accounts ({demoAccounts.length})</h2>
+          <h2 className="text-[14px] font-semibold">Email Accounts</h2>
           <Button size="sm" variant="outline" className="h-7 text-[11px]">
             <Plus className="w-3 h-3 mr-1" />
             Add Account
           </Button>
         </div>
-        <div className="border border-border/60 rounded-xl overflow-hidden">
-          <table className="w-full text-[12px]">
-            <thead>
-              <tr className="border-b border-border/40 bg-muted/20">
-                <th className="px-4 py-2.5 text-left font-semibold text-muted-foreground">Name</th>
-                <th className="px-4 py-2.5 text-left font-semibold text-muted-foreground">Email</th>
-                <th className="px-4 py-2.5 text-left font-semibold text-muted-foreground">
-                  Vendor
-                </th>
-                <th className="px-4 py-2.5 text-right font-semibold text-muted-foreground">
-                  Daily Limit
-                </th>
-                <th className="px-4 py-2.5 text-center font-semibold text-muted-foreground">
-                  Warmup
-                </th>
-                <th className="px-4 py-2.5 text-right font-semibold text-muted-foreground">
-                  Reputation
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {demoAccounts.map((acc) => (
-                <tr
-                  key={acc.email}
-                  className="border-b border-border/40 last:border-0 hover:bg-muted/10"
-                >
-                  <td className="px-4 py-3 font-medium">{acc.name}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{acc.email}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{acc.vendor}</td>
-                  <td className="px-4 py-3 text-right">{acc.dailyLimit}</td>
-                  <td className="px-4 py-3 text-center">
-                    <span className="inline-flex items-center gap-1 text-emerald-600 text-[11px] font-medium">
-                      <CheckCircle className="w-3 h-3" />
-                      Yes
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <span
-                      className={`font-semibold ${acc.reputation >= 90 ? "text-emerald-500" : "text-amber-500"}`}
-                    >
-                      {acc.reputation}%
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="flex flex-col items-center justify-center py-14 gap-3 text-center border border-border/60 rounded-xl bg-muted/10">
+          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+            <Mail className="w-4 h-4 text-muted-foreground" />
+          </div>
+          <div>
+            <p className="text-[13px] font-medium">No email accounts connected</p>
+            <p className="text-[11px] text-muted-foreground mt-1 max-w-xs">
+              Connect a sending account (e.g. Smartlead, Instantly) to start sending from this
+              campaign.
+            </p>
+          </div>
+          <Button size="sm" className="h-7 text-[11px] mt-1">
+            <Plus className="w-3 h-3 mr-1" />
+            Connect Account
+          </Button>
         </div>
       </div>
     );

@@ -49,86 +49,8 @@ interface ResearchHook {
   relevance: "high" | "medium";
 }
 
-function getResearchHooks(contactId: string, contactName: string): ResearchHook[] {
-  const hooks: Record<string, ResearchHook[]> = {
-    "con-1": [
-      {
-        id: "h1",
-        source: "LinkedIn",
-        text: "Priya posted about scaling RevOps tooling 3 days ago directly aligns with WarmBlue's workflow positioning.",
-        relevance: "high",
-      },
-      {
-        id: "h2",
-        source: "G2",
-        text: "Her company left a 3-star review of Apollo citing 'too much noise, not enough signal' opening for warm-path differentiation.",
-        relevance: "high",
-      },
-      {
-        id: "h3",
-        source: "Job Posting",
-        text: "TechCorp is hiring a 'Sales Intelligence Manager' signals active investment in outbound tooling stack.",
-        relevance: "medium",
-      },
-    ],
-    "con-3": [
-      {
-        id: "h1",
-        source: "LinkedIn",
-        text: "Elena shared a post on 'relationship-based selling' last week with 200+ likes she's a warm-intro advocate.",
-        relevance: "high",
-      },
-      {
-        id: "h2",
-        source: "News",
-        text: "Innovate Solutions closed a $22M Series B Elena's team likely under pressure to show pipeline ROI to new investors.",
-        relevance: "high",
-      },
-      {
-        id: "h3",
-        source: "Website",
-        text: "innovatesolutions.com added a /partnerships page in the last 30 days possible expansion into channel sales.",
-        relevance: "medium",
-      },
-    ],
-    "con-7": [
-      {
-        id: "h1",
-        source: "LinkedIn",
-        text: "Liam commented on a Clay post asking about 'enrichment at scale without burning list quality' exact pain WarmBlue solves.",
-        relevance: "high",
-      },
-      {
-        id: "h2",
-        source: "Crunchbase",
-        text: "DataStream raised seed funding 60 days ago Liam likely building the GTM stack from scratch, high buy-in authority.",
-        relevance: "high",
-      },
-      {
-        id: "h3",
-        source: "Job Posting",
-        text: "DataStream is hiring an SDR Liam is actively scaling outbound, needs infrastructure before headcount.",
-        relevance: "medium",
-      },
-    ],
-  };
-
-  return (
-    hooks[contactId] ?? [
-      {
-        id: "h1",
-        source: "LinkedIn",
-        text: `${contactName} recently engaged with posts about B2B outreach efficiency likely evaluating new tooling.`,
-        relevance: "high",
-      },
-      {
-        id: "h2",
-        source: "News",
-        text: "Their company has shown recent growth signals good timing for pipeline tooling conversations.",
-        relevance: "medium",
-      },
-    ]
-  );
+function getResearchHooks(_contactId: string, _contactName: string): ResearchHook[] {
+  return [];
 }
 
 function getPainPoints(title: string): string[] {
@@ -157,7 +79,7 @@ function getPainPoints(title: string): string[] {
 export default function ContactDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { contacts, accounts, signals, warmPaths, messages } = useSalesStore();
-  const [selectedHooks, setSelectedHooks] = useState<Set<string>>(new Set(["h1"]));
+  const [selectedHooks, setSelectedHooks] = useState<Set<string>>(new Set());
 
   const contact = contacts.find((c) => c.id === id);
   if (!contact)
@@ -404,52 +326,66 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
                 </span>
               </div>
 
-              {researchHooks.map((hook) => {
-                const selected = selectedHooks.has(hook.id);
-                return (
-                  <Card
-                    key={hook.id}
-                    className={`border-border/60 cursor-pointer transition-all ${selected ? "border-brand/40 bg-brand/3" : ""}`}
-                    onClick={() => toggleHook(hook.id)}
-                  >
-                    <CardContent className="p-3">
-                      <div className="flex items-start gap-3">
-                        <button type="button" className="mt-0.5 text-brand flex-shrink-0">
-                          {selected ? (
-                            <CheckSquare className="w-4 h-4" />
-                          ) : (
-                            <Square className="w-4 h-4 text-muted-foreground" />
-                          )}
-                        </button>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Badge
-                              variant="outline"
-                              className={`text-[10px] ${sourceColor[hook.source] ?? "bg-muted text-muted-foreground"}`}
-                            >
-                              {hook.source}
-                            </Badge>
-                            {hook.relevance === "high" && (
+              {researchHooks.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 gap-2 text-center border border-border/40 rounded-xl bg-muted/10">
+                  <Sparkles className="w-6 h-6 text-muted-foreground/40" />
+                  <p className="text-[12px] font-medium text-muted-foreground">
+                    No research hooks yet
+                  </p>
+                  <p className="text-[11px] text-muted-foreground/70 max-w-xs">
+                    Run the intelligence service to pull live signals — LinkedIn activity, news
+                    mentions, job postings — for this contact.
+                  </p>
+                </div>
+              ) : (
+                researchHooks.map((hook) => {
+                  const selected = selectedHooks.has(hook.id);
+                  return (
+                    <Card
+                      key={hook.id}
+                      className={`border-border/60 cursor-pointer transition-all ${selected ? "border-brand/40 bg-brand/3" : ""}`}
+                      onClick={() => toggleHook(hook.id)}
+                    >
+                      <CardContent className="p-3">
+                        <div className="flex items-start gap-3">
+                          <button type="button" className="mt-0.5 text-brand flex-shrink-0">
+                            {selected ? (
+                              <CheckSquare className="w-4 h-4" />
+                            ) : (
+                              <Square className="w-4 h-4 text-muted-foreground" />
+                            )}
+                          </button>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
                               <Badge
                                 variant="outline"
-                                className="text-[10px] bg-brand/10 text-brand border-brand/20"
+                                className={`text-[10px] ${sourceColor[hook.source] ?? "bg-muted text-muted-foreground"}`}
                               >
-                                High relevance
+                                {hook.source}
                               </Badge>
-                            )}
+                              {hook.relevance === "high" && (
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] bg-brand/10 text-brand border-brand/20"
+                                >
+                                  High relevance
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                              {hook.text}
+                            </p>
                           </div>
-                          <p className="text-xs text-muted-foreground leading-relaxed">
-                            {hook.text}
-                          </p>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+                      </CardContent>
+                    </Card>
+                  );
+                })
+              )}
 
               <Button
                 className="w-full gap-2"
+                disabled={researchHooks.length === 0}
                 onClick={() =>
                   toast.success(
                     `Outreach drafted using ${selectedHooks.size} hook${selectedHooks.size !== 1 ? "s" : ""}`,
