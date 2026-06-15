@@ -184,7 +184,7 @@ export default function NetworkSearchPage() {
         body: JSON.stringify({ contact_id: contactId }),
       });
       if (res.ok) {
-        router.push("/warm-leads");
+        router.push("/discover");
       } else {
         toast.error("Could not find a warm path to this contact");
       }
