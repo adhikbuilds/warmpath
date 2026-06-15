@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   const workspaceId = await getWorkspaceId();
 
   const body = await req.json().catch(() => ({}));
-  const { accountId, contactId, signalId, warmPathId, channel = "email", tone } = body;
+  const { accountId, contactId, signalId, warmPathId, channel = "email", tone, instruction, currentBody } = body;
 
   if (!accountId || !contactId) {
     logger.warn("Missing required IDs", { route: ROUTE, accountId, contactId });
@@ -122,6 +122,8 @@ export async function POST(req: NextRequest) {
       content: k.content,
       approved_for_ai: k.approvedForAi,
     })),
+    ...(instruction ? { instruction: String(instruction) } : {}),
+    ...(currentBody ? { current_body: String(currentBody) } : {}),
   };
 
   if (signal) {

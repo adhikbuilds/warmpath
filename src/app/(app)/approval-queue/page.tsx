@@ -286,6 +286,7 @@ export default function ApprovalQueuePage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editedBody, setEditedBody] = useState("");
   const [editedSubject, setEditedSubject] = useState("");
+  const [customInstruction, setCustomInstruction] = useState("");
   const [isGeneratingDrafts, setIsGeneratingDrafts] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
@@ -354,9 +355,12 @@ export default function ApprovalQueuePage() {
   function handleRegenerate() {
     if (!selectedMessage) return;
     if (regenerateMessage) {
-      regenerateMessage(selectedMessage.id);
+      regenerateMessage(selectedMessage.id, {
+        instruction: customInstruction.trim() || undefined,
+        currentBody: editedBody || undefined,
+      });
     } else {
-      toast.info("Regenerating tone...");
+      toast.info("Regenerating...");
     }
   }
 
@@ -773,37 +777,65 @@ export default function ApprovalQueuePage() {
                   />
                 </div>
 
-                {/* AI Footer */}
+                {/* Custom instruction input */}
                 <div
-                  className="px-4 py-2 flex items-center justify-between border-t"
+                  className="border-t px-4 py-3 flex flex-col gap-2"
                   style={{ borderColor: "#27272a", backgroundColor: "#18181b" }}
                 >
                   <div className="flex items-center gap-2">
-                    <span
-                      className="w-2 h-2 rounded-full animate-pulse"
-                      style={{ backgroundColor: "#10b981" }}
-                    />
-                    <span className="text-xs" style={{ color: "#a1a1aa" }}>
-                      Draft optimized for high response rate
+                    <Sparkles className="w-3 h-3 shrink-0" style={{ color: "#818cf8" }} />
+                    <span className="text-xs font-medium" style={{ color: "#a1a1aa" }}>
+                      Custom instruction
                     </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleRegenerate}
-                    className="text-xs flex items-center gap-1 transition-colors"
-                    style={{ color: "#2563eb" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = "#818cf8")}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "#2563eb")}
-                    disabled={generatingIds?.has(selectedMessage.id)}
-                  >
-                    <RefreshCw
-                      className={cn(
-                        "w-3 h-3",
-                        generatingIds?.has(selectedMessage.id) && "animate-spin",
-                      )}
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={customInstruction}
+                      onChange={(e) => setCustomInstruction(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleRegenerate();
+                      }}
+                      placeholder='e.g. "make it shorter", "more casual", "add a PS line"'
+                      className="flex-1 rounded border px-3 py-1.5 text-xs outline-none transition-colors"
+                      style={{
+                        backgroundColor: "#09090b",
+                        borderColor: "#27272a",
+                        color: "#e5e5e5",
+                      }}
+                      onFocus={(e) => (e.currentTarget.style.borderColor = "#818cf8")}
+                      onBlur={(e) => (e.currentTarget.style.borderColor = "#27272a")}
                     />
-                    Regenerate Tone
-                  </button>
+                    <button
+                      type="button"
+                      onClick={handleRegenerate}
+                      disabled={generatingIds?.has(selectedMessage.id)}
+                      className="h-7 px-3 rounded text-xs font-semibold flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                      style={{ backgroundColor: "#27272a", color: "#e5e5e5" }}
+                      onMouseEnter={(e) => {
+                        if (!generatingIds?.has(selectedMessage.id))
+                          e.currentTarget.style.backgroundColor = "#3f3f46";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#27272a";
+                      }}
+                    >
+                      <RefreshCw
+                        className={cn(
+                          "w-3 h-3",
+                          generatingIds?.has(selectedMessage.id) && "animate-spin",
+                        )}
+                      />
+                      {customInstruction.trim()
+                        ? "Apply"
+                        : generatingIds?.has(selectedMessage.id)
+                          ? "Generating…"
+                          : "Regenerate"}
+                    </button>
+                  </div>
+                  <p className="text-[10px]" style={{ color: "#52525b" }}>
+                    Leave blank to regenerate from scratch · Press Enter to apply
+                  </p>
                 </div>
               </div>
             </div>
