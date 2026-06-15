@@ -286,7 +286,7 @@ function FilterChip({
       onClick={onToggle}
       className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-all whitespace-nowrap ${
         selected
-          ? "bg-[#8083ff]/12 text-[#4edea3] border-brand/40"
+          ? "bg-[#2563eb]/12 text-[#4edea3] border-brand/40"
           : "bg-transparent text-muted-foreground border-border/50 hover:border-brand/30 hover:text-foreground"
       }`}
     >
@@ -344,7 +344,7 @@ function LeadCard({
       <CardContent className="p-4 flex flex-col gap-3 flex-1">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-9 h-9 rounded-lg bg-[#8083ff]/10 flex items-center justify-center flex-shrink-0 text-sm font-bold text-[#4edea3]">
+            <div className="w-9 h-9 rounded-lg bg-[#2563eb]/10 flex items-center justify-center flex-shrink-0 text-sm font-bold text-[#4edea3]">
               {lead.name?.[0] ?? "?"}
             </div>
             <div className="min-w-0">
@@ -782,7 +782,7 @@ export default function DiscoverPage() {
           </Badge>
           <Badge
             variant="outline"
-            className="text-xs bg-[#8083ff]/10 text-[#4edea3] border-brand/20"
+            className="text-xs bg-[#2563eb]/10 text-[#4edea3] border-brand/20"
           >
             <Eye className="w-3 h-3 mr-1" />
             Visitor ID
@@ -804,7 +804,7 @@ export default function DiscoverPage() {
           <Eye className="w-3.5 h-3.5" />
           Website Visitors
           {highIntentVisitors > 0 && (
-            <span className="w-4 h-4 rounded-full bg-[#8083ff] text-white text-[10px] font-bold flex items-center justify-center">
+            <span className="w-4 h-4 rounded-full bg-[#2563eb] text-white text-[10px] font-bold flex items-center justify-center">
               {highIntentVisitors}
             </span>
           )}
@@ -962,7 +962,7 @@ export default function DiscoverPage() {
                         </td>
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-lg bg-[#8083ff]/10 flex items-center justify-center text-xs font-bold text-[#4edea3] flex-shrink-0">
+                            <div className="w-8 h-8 rounded-lg bg-[#2563eb]/10 flex items-center justify-center text-xs font-bold text-[#4edea3] flex-shrink-0">
                               {v.company[0]}
                             </div>
                             <div>
@@ -1356,7 +1356,7 @@ export default function DiscoverPage() {
 
           {!searching && !hasSearched && (
             <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-              <div className="w-16 h-16 rounded-2xl bg-[#8083ff]/10 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-2xl bg-[#2563eb]/10 flex items-center justify-center">
                 <Target className="w-8 h-8 text-[#4edea3]" />
               </div>
               <div className="space-y-1">

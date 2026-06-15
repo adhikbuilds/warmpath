@@ -166,7 +166,7 @@ function buildInviteEmail({
         <strong style="color:#111">${workspaceName}</strong> on WarmPath — the AI outbound platform
         that routes every prospect through your team's real relationship graph.
       </p>
-      <a href="${acceptUrl}" style="display:inline-block;background:#8083ff;color:#fff;padding:13px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;letter-spacing:-0.2px">
+      <a href="${acceptUrl}" style="display:inline-block;background:#2563eb;color:#fff;padding:13px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;letter-spacing:-0.2px">
         Accept invitation →
       </a>
       <p style="margin:24px 0 0;font-size:13px;color:#999;line-height:1.6">
@@ -175,7 +175,7 @@ function buildInviteEmail({
     </div>
     <div style="padding:16px 32px;border-top:1px solid #e8e8ea;text-align:center">
       <p style="margin:0;font-size:12px;color:#aaa">
-        WarmPath · AI-first B2B outbound · <a href="${APP_URL}" style="color:#8083ff;text-decoration:none">warmpath.ai</a>
+        WarmPath · AI-first B2B outbound · <a href="${APP_URL}" style="color:#2563eb;text-decoration:none">warmpath.ai</a>
       </p>
     </div>
   </div>

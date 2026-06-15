@@ -45,7 +45,7 @@ function LoginPageContent() {
       >
         <div
           className="w-5 h-5 border-2 rounded-full animate-spin"
-          style={{ borderColor: "#2a2a2e", borderTopColor: "#8083ff" }}
+          style={{ borderColor: "#2a2a2e", borderTopColor: "#2563eb" }}
         />
       </div>
     );
@@ -352,7 +352,7 @@ function LoginPageContent() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   style={inputStyle}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = "#5456d4")}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = "#2563eb")}
                   onBlur={(e) => (e.currentTarget.style.borderColor = "#e0e0e4")}
                 />
               </div>
@@ -370,7 +370,7 @@ function LoginPageContent() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   style={inputStyle}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = "#5456d4")}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = "#2563eb")}
                   onBlur={(e) => (e.currentTarget.style.borderColor = "#e0e0e4")}
                 />
               </div>
@@ -406,7 +406,7 @@ function LoginPageContent() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   style={inputStyle}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = "#5456d4")}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = "#2563eb")}
                   onBlur={(e) => (e.currentTarget.style.borderColor = "#e0e0e4")}
                 />
               </div>
@@ -424,7 +424,7 @@ function LoginPageContent() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   style={inputStyle}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = "#5456d4")}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = "#2563eb")}
                   onBlur={(e) => (e.currentTarget.style.borderColor = "#e0e0e4")}
                 />
               </div>
@@ -442,7 +442,7 @@ function LoginPageContent() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   style={inputStyle}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = "#5456d4")}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = "#2563eb")}
                   onBlur={(e) => (e.currentTarget.style.borderColor = "#e0e0e4")}
                 />
               </div>

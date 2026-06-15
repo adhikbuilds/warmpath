@@ -77,7 +77,7 @@ export default function NetworkSearchPage() {
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-xl font-semibold flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-[#8083ff]" />
+          <Sparkles className="h-5 w-5 text-[#2563eb]" />
           Network Search
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
@@ -143,7 +143,7 @@ export default function NetworkSearchPage() {
       {/* Loading skeleton */}
       {loading && (
         <div className="mt-5 flex flex-col items-center justify-center py-16 text-center">
-          <Loader2 className="h-6 w-6 animate-spin text-[#8083ff]" />
+          <Loader2 className="h-6 w-6 animate-spin text-[#2563eb]" />
           <p className="text-sm text-muted-foreground mt-3">
             Searching your network… this can take up to a minute.
           </p>
@@ -213,7 +213,7 @@ export default function NetworkSearchPage() {
           <a
             href="/integrations"
             className="inline-block mt-4 text-xs font-semibold px-4 py-2 rounded-lg text-white"
-            style={{ backgroundColor: "#5456d4" }}
+            style={{ backgroundColor: "#2563eb" }}
           >
             Go to Integrations
           </a>

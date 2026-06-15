@@ -116,7 +116,7 @@ export default function WorkspaceSelectPage() {
         className="min-h-screen flex items-center justify-center"
         style={{ backgroundColor: "#fafafa" }}
       >
-        <Loader2 className="w-6 h-6 animate-spin" style={{ color: "#5456d4" }} />
+        <Loader2 className="w-6 h-6 animate-spin" style={{ color: "#2563eb" }} />
       </div>
     );
   }
@@ -182,7 +182,7 @@ export default function WorkspaceSelectPage() {
                   }}
                   onMouseEnter={(e) => {
                     if (entering !== ws.id)
-                      (e.currentTarget as HTMLButtonElement).style.borderColor = "#5456d4";
+                      (e.currentTarget as HTMLButtonElement).style.borderColor = "#2563eb";
                   }}
                   onMouseLeave={(e) => {
                     (e.currentTarget as HTMLButtonElement).style.borderColor = "#e0e0e4";
@@ -194,8 +194,8 @@ export default function WorkspaceSelectPage() {
                     style={{
                       width: 44,
                       height: 44,
-                      backgroundColor: "#eeeeff",
-                      color: "#5456d4",
+                      backgroundColor: "#eff6ff",
+                      color: "#2563eb",
                       fontSize: 16,
                       fontWeight: 700,
                     }}
@@ -245,7 +245,7 @@ export default function WorkspaceSelectPage() {
                   {entering === ws.id ? (
                     <Loader2
                       className="w-4 h-4 animate-spin shrink-0"
-                      style={{ color: "#5456d4" }}
+                      style={{ color: "#2563eb" }}
                     />
                   ) : (
                     <ArrowRight size={16} className="shrink-0" style={{ color: "#9090a0" }} />
@@ -274,7 +274,7 @@ export default function WorkspaceSelectPage() {
             style={{
               backgroundColor: "#fafafa",
               border: "1px solid #e0e0e4",
-              color: "#5456d4",
+              color: "#2563eb",
               cursor: "pointer",
             }}
           >
@@ -309,7 +309,7 @@ export default function WorkspaceSelectPage() {
                   border: "1px solid #e0e0e4",
                   color: "#111113",
                 }}
-                onFocus={(e) => (e.currentTarget.style.borderColor = "#5456d4")}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "#2563eb")}
                 onBlur={(e) => (e.currentTarget.style.borderColor = "#e0e0e4")}
               />
             </div>
@@ -331,7 +331,7 @@ export default function WorkspaceSelectPage() {
                 type="submit"
                 disabled={creating || !newName.trim()}
                 className="flex-1 h-10 rounded-lg text-[14px] font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-60"
-                style={{ backgroundColor: "#5456d4", cursor: "pointer" }}
+                style={{ backgroundColor: "#2563eb", cursor: "pointer" }}
               >
                 {creating && <Loader2 className="w-4 h-4 animate-spin" />}
                 Create

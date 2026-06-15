@@ -318,9 +318,9 @@ function DemoCard() {
                     borderRadius: "50%",
                     flexShrink: 0,
                     background:
-                      i === 0 ? "#2563eb" : i === p.path.length - 1 ? "#10b981" : "#8083ff",
+                      i === 0 ? "#2563eb" : i === p.path.length - 1 ? "#10b981" : "#2563eb",
                     border: "2px solid #fff",
-                    boxShadow: `0 0 0 1px ${i === 0 ? "#2563eb" : i === p.path.length - 1 ? "#10b981" : "#8083ff"}`,
+                    boxShadow: `0 0 0 1px ${i === 0 ? "#2563eb" : i === p.path.length - 1 ? "#10b981" : "#2563eb"}`,
                   }}
                 />
                 <span
@@ -931,7 +931,7 @@ export default function LandingPage() {
   const muted = "#64748b";
   const primary = "#2563eb";
   const accent = "#10b981";
-  const indigo = "#8083ff";
+  const indigo = "#2563eb";
 
   const FEATURES = [
     {

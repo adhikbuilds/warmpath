@@ -7,7 +7,7 @@ export default function InviteAcceptPage() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-[#131315] flex items-center justify-center">
-          <Loader2 className="w-6 h-6 text-[#8083ff] animate-spin" />
+          <Loader2 className="w-6 h-6 text-[#2563eb] animate-spin" />
         </div>
       }
     >

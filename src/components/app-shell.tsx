@@ -23,7 +23,7 @@ export function AppShell({ children, activeNav }: { children: ReactNode; activeN
         <div className="flex items-center gap-3 px-3 py-4 mb-6">
           <div
             className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white"
-            style={{ backgroundColor: "#8083ff" }}
+            style={{ backgroundColor: "#2563eb" }}
           >
             W
           </div>
@@ -36,7 +36,7 @@ export function AppShell({ children, activeNav }: { children: ReactNode; activeN
         {/* Quick Search */}
         <button
           className="w-full h-8 mb-4 rounded text-sm font-medium text-white flex items-center justify-center gap-2 transition-opacity hover:opacity-90"
-          style={{ backgroundColor: "#8083ff" }}
+          style={{ backgroundColor: "#2563eb" }}
         >
           🔍 Quick Search
         </button>

@@ -1,39 +1,39 @@
-// WarmBlue Design System - Updated Color Palette
+// WarmPath Design System - Light + Blue (matches landing page)
 export const COLORS = {
   // Backgrounds
   bg: {
-    primary: "#131315", // Main background
-    secondary: "#1c1b1d", // Surface-container-low
-    tertiary: "#201f22", // Surface-container
-    quaternary: "#2a2a2c", // Surface-container-high
-    variant: "#353437", // Surface-variant
-    lowest: "#0e0e10", // Surface-container-lowest
+    primary: "#ffffff",
+    secondary: "#f8f9fb",
+    tertiary: "#f1f5f9",
+    quaternary: "#e2e8f0",
+    variant: "#e2e8f0",
+    lowest: "#f8fafc",
   },
 
   // Text
   text: {
-    primary: "#e5e1e4", // on-surface
-    secondary: "#c7c4d7", // on-surface-variant
-    tertiary: "#908fa0", // outline/muted
+    primary: "#0f172a",
+    secondary: "#475569",
+    tertiary: "#64748b",
   },
 
   // Borders
   border: {
-    primary: "#464554", // outline-variant
-    secondary: "#27272a", // micro-border
+    primary: "#e2e8f0",
+    secondary: "#f1f5f9",
   },
 
   // Accent Colors
   accent: {
-    blue: "#2563eb", // primary/blue
-    emerald: "#4edea3", // secondary
-    emeraldContainer: "#00a572", // secondary-container
+    blue: "#2563eb",
+    emerald: "#10b981",
+    emeraldContainer: "#d1fae5",
   },
 
   // Light Variants
   light: {
-    indigo: "#c0c1ff", // primary light
-    emerald: "#6ffbbe", // secondary fixed
+    blue: "#eff6ff",
+    emerald: "#d1fae5",
   },
 };
 
@@ -41,25 +41,24 @@ export const COLORS = {
 export const STYLE_CLASSES = {
   // Cards
   card: `rounded-md border`,
-  cardBg: (isDark = true) =>
-    isDark ? `bg-[#201f22] border-[#464554]` : `bg-[#18181b] border-[#27272a]`,
+  cardBg: (_isDark = false) => `bg-white border-[#e2e8f0]`,
 
   // Buttons
   buttonPrimary: `bg-[#2563eb] text-white hover:bg-[#1d4ed8]`,
-  buttonSecondary: `border border-[#464554] text-[#e5e1e4] hover:bg-[#2a2a2c]`,
-  buttonGhost: `text-[#c7c4d7] hover:text-[#e5e1e4]`,
+  buttonSecondary: `border border-[#e2e8f0] text-[#0f172a] hover:bg-[#f1f5f9]`,
+  buttonGhost: `text-[#64748b] hover:text-[#0f172a]`,
 
   // Text
-  textPrimary: `text-[#e5e1e4]`,
-  textSecondary: `text-[#c7c4d7]`,
-  textTertiary: `text-[#908fa0]`,
+  textPrimary: `text-[#0f172a]`,
+  textSecondary: `text-[#475569]`,
+  textTertiary: `text-[#64748b]`,
 
   // Backgrounds
-  bgPrimary: `bg-[#131315]`,
-  bgCard: `bg-[#201f22]`,
-  bgSurface: `bg-[#1c1b1d]`,
+  bgPrimary: `bg-white`,
+  bgCard: `bg-white`,
+  bgSurface: `bg-[#f8f9fb]`,
 
   // Borders
-  borderPrimary: `border-[#464554]`,
-  borderSecondary: `border-[#27272a]`,
+  borderPrimary: `border-[#e2e8f0]`,
+  borderSecondary: `border-[#f1f5f9]`,
 };

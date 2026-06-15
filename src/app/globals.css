@@ -84,11 +84,11 @@
   --outline: #9090a0;
   --outline-variant: #d0d0d8;
 
-  /* Stitch primary – Indigo */
-  --primary: #5456d4;
-  --primary-container: #eeeeff;
+  /* Primary – Blue (matches landing page) */
+  --primary: #2563eb;
+  --primary-container: #eff6ff;
   --on-primary: #ffffff;
-  --on-primary-container: #2a2aaa;
+  --on-primary-container: #1d4ed8;
 
   /* Stitch secondary – Emerald */
   --secondary: #059669;
@@ -118,7 +118,7 @@
   --accent-foreground: #111113;
   --border: #e0e0e4;
   --input: #f4f4f6;
-  --ring: #8083ff;
+  --ring: #2563eb;
 
   /* Brand = blue */
   --brand: #2563eb;
@@ -128,18 +128,18 @@
   --chart-1: #2563eb;
   --chart-2: #059669;
   --chart-3: #d97706;
-  --chart-4: #8083ff;
+  --chart-4: #3b82f6;
   --chart-5: #00a572;
 
   /* Sidebar */
   --sidebar: #f4f4f6;
   --sidebar-foreground: #111113;
-  --sidebar-primary: #5456d4;
+  --sidebar-primary: #2563eb;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #e8e8ec;
   --sidebar-accent-foreground: #111113;
   --sidebar-border: #e0e0e4;
-  --sidebar-ring: #8083ff;
+  --sidebar-ring: #2563eb;
 }
 
 /* ── Dark mode – Stitch dark tokens ──────────────────────────────── */
@@ -157,10 +157,10 @@
   --outline: #908fa0;
   --outline-variant: #464554;
 
-  --primary: #c0c1ff;
-  --primary-container: #8083ff;
-  --on-primary: #1000a9;
-  --on-primary-container: #0d0096;
+  --primary: #93c5fd;
+  --primary-container: #2563eb;
+  --on-primary: #ffffff;
+  --on-primary-container: #1d4ed8;
 
   --secondary: #4edea3;
   --secondary-container: #00a572;
@@ -186,7 +186,7 @@
   --accent-foreground: #e5e1e4;
   --border: #464554;
   --input: #1c1b1d;
-  --ring: #c0c1ff;
+  --ring: #93c5fd;
 
   --brand: #2563eb;
   --brand-foreground: #ffffff;
@@ -194,17 +194,17 @@
   --chart-1: #93c5fd;
   --chart-2: #4edea3;
   --chart-3: #ffb783;
-  --chart-4: #2563eb;
+  --chart-4: #60a5fa;
   --chart-5: #00a572;
 
   --sidebar: #1c1b1d;
   --sidebar-foreground: #e5e1e4;
-  --sidebar-primary: #c0c1ff;
-  --sidebar-primary-foreground: #1000a9;
+  --sidebar-primary: #93c5fd;
+  --sidebar-primary-foreground: #0f172a;
   --sidebar-accent: #2a2a2c;
   --sidebar-accent-foreground: #e5e1e4;
   --sidebar-border: #464554;
-  --sidebar-ring: #c0c1ff;
+  --sidebar-ring: #60a5fa;
 }
 
 @layer base {
@@ -248,8 +248,8 @@
 /* Brand / warmth glows */
 .glow-brand {
   box-shadow:
-    0 0 20px rgba(84, 86, 212, 0.12),
-    0 0 0 1px rgba(84, 86, 212, 0.08);
+    0 0 20px rgba(37, 99, 235, 0.12),
+    0 0 0 1px rgba(37, 99, 235, 0.08);
 }
 .glow-emerald {
   box-shadow:
@@ -258,8 +258,8 @@
 }
 .warm-glow {
   box-shadow:
-    0 0 0 1px rgba(84, 86, 212, 0.15),
-    0 4px 20px rgba(84, 86, 212, 0.08);
+    0 0 0 1px rgba(37, 99, 235, 0.15),
+    0 4px 20px rgba(37, 99, 235, 0.08);
 }
 
 /* Fade-up entrance */

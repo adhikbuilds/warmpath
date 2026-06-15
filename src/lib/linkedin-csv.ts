@@ -318,7 +318,7 @@ export function parseLinkedInCsv(text: string): ImportResult {
 export const ICP_META: Record<IcpSegment, { label: string; color: string; emailHook: string }> = {
   founder_ceo: {
     label: "Founders & CEOs",
-    color: "#8083ff",
+    color: "#2563eb",
     emailHook: "cold email isn't cutting it anymore — warm intros close 3× faster",
   },
   sales_leader: {
