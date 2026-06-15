@@ -11,6 +11,7 @@ import {
   GitFork,
   Info,
   LayoutGrid,
+  Loader2,
   Maximize2,
   Minimize2,
   Network,
@@ -924,7 +925,8 @@ function ActivityTab() {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function RelationshipGraphPage() {
-  const { contacts, accounts, teamMembers, relationshipEdges, warmPaths } = useSalesStore();
+  const { contacts, accounts, teamMembers, relationshipEdges, warmPaths, initialize, reset } =
+    useSalesStore();
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -934,6 +936,32 @@ export default function RelationshipGraphPage() {
   // Pipeline sub-view (graph vs coverage)
   const view = (searchParams.get("view") as ViewMode) ?? "graph";
   const setView = (v: ViewMode) => router.replace(`/relationship-graph?view=${v}`);
+
+  // Map-network state
+  const [mappingNetwork, setMappingNetwork] = useState(false);
+
+  async function handleMapNetwork() {
+    setMappingNetwork(true);
+    try {
+      const res = await fetch("/api/relationship-edges/compute", { method: "POST" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        toast.error(body.error ?? "Failed to map network");
+        return;
+      }
+      const data = await res.json();
+      toast.success(
+        `Network mapped — ${data.edges_created} connections found across ${data.warm_paths_created} accounts`,
+      );
+      // Reset initialized flag so re-fetch actually runs
+      reset();
+      setTimeout(() => initialize(), 100);
+    } catch {
+      toast.error("Network mapping failed — check your connection");
+    } finally {
+      setMappingNetwork(false);
+    }
+  }
 
   // Graph state
   const [selectedNode, setSelectedNode] = useState<(GraphNode & { type: string }) | null>(null);
@@ -1343,12 +1371,22 @@ export default function RelationshipGraphPage() {
           </button>
           <button
             type="button"
-            className="h-8 px-3 rounded flex items-center gap-1.5 text-xs font-medium transition-opacity hover:opacity-90"
+            disabled={mappingNetwork}
+            className="h-8 px-3 rounded flex items-center gap-1.5 text-xs font-medium transition-opacity hover:opacity-90 disabled:opacity-60"
             style={{ background: "#2563eb", color: "#fff" }}
-            onClick={() => toast.info("Add contact coming soon")}
+            onClick={handleMapNetwork}
           >
-            <Plus className="w-3.5 h-3.5" />
-            Add Entry
+            {mappingNetwork ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                Mapping…
+              </>
+            ) : (
+              <>
+                <Network className="w-3.5 h-3.5" />
+                {relationshipEdges.length === 0 ? "Map My Network" : "Re-map Network"}
+              </>
+            )}
           </button>
         </div>
       </header>
@@ -1455,6 +1493,49 @@ export default function RelationshipGraphPage() {
                     backgroundSize: "30px 30px",
                   }}
                 />
+
+                {/* Empty state overlay when no edges computed yet */}
+                {relationshipEdges.length === 0 && !mappingNetwork && (
+                  <div className="absolute inset-0 flex items-center justify-center z-10">
+                    <div className="text-center max-w-sm px-6">
+                      <div
+                        className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                        style={{
+                          background: "rgba(79,70,229,0.15)",
+                          border: "1px solid rgba(79,70,229,0.3)",
+                        }}
+                      >
+                        <Network className="w-7 h-7" style={{ color: "#8083ff" }} />
+                      </div>
+                      <h3 className="text-base font-semibold text-white mb-2">
+                        Your network isn&apos;t mapped yet
+                      </h3>
+                      <p className="text-sm text-white/50 mb-5 leading-relaxed">
+                        WarmBlue will analyse your {contacts.length} contacts and compute warm intro
+                        paths across {accounts.length} target accounts.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleMapNetwork}
+                        className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                        style={{ background: "#2563eb" }}
+                      >
+                        Map My Network
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {mappingNetwork && (
+                  <div className="absolute inset-0 flex items-center justify-center z-10">
+                    <div className="text-center">
+                      <Loader2
+                        className="w-8 h-8 animate-spin mx-auto mb-3"
+                        style={{ color: "#8083ff" }}
+                      />
+                      <p className="text-sm text-white/60">Computing relationship graph…</p>
+                    </div>
+                  </div>
+                )}
 
                 <ForceGraph2D
                   ref={fgRef}
