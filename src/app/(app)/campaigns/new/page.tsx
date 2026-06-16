@@ -571,7 +571,7 @@ export default function CampaignBuilderPage() {
             {step === "warmth_routing" && (
               <div className="space-y-3">
                 <div className="text-xs text-muted-foreground leading-relaxed">
-                  WarmPath routes contacts automatically based on your network coverage.
+                  WarmBlue routes contacts automatically based on your network coverage.
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-brand/30 bg-brand/8">
