@@ -189,7 +189,7 @@ export function WarmpathWorkflow({
         <div className="wpw-brand">
           <span className="wpw-brand-mark"></span>
           <span className="wpw-brand-word">
-            <strong>WarmPath</strong>&nbsp;·&nbsp;How it works
+            <strong>WarmBlue</strong>&nbsp;·&nbsp;How it works
           </span>
         </div>
 

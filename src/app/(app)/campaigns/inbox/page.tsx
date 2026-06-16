@@ -192,7 +192,7 @@ We just posted the role yesterday, so your timing is spot on! Let's schedule a c
     email: "sneha.g@enterprise.com",
     company: "Enterprise Co",
     campaign: "Series A GTM Scaling",
-    subject: "Re: WarmPath intro",
+    subject: "Re: WarmBlue intro",
     preview: "I've forwarded your message to our VP of Sales who handles vendor evals.",
     time: "Jun 3, 10:22 AM",
     isRead: true,

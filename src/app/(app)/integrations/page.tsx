@@ -91,6 +91,7 @@ function BrevoCard() {
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [connectError, setConnectError] = useState<string | null>(null);
   const [form, setForm] = useState({
     smtp_user: "",
     smtp_password: "",
@@ -113,6 +114,7 @@ function BrevoCard() {
     e.preventDefault();
     if (!form.smtp_user || !form.smtp_password || !form.sender_email) return;
     setSaving(true);
+    setConnectError(null);
     try {
       const res = await fetch("/api/integrations/brevo/connect", {
         method: "POST",
@@ -141,7 +143,9 @@ function BrevoCard() {
       setShowForm(false);
       toast.success("Brevo connected — SMTP verified successfully");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to connect Brevo");
+      const msg = err instanceof Error ? err.message : "Failed to connect Brevo";
+      setConnectError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -324,6 +328,11 @@ function BrevoCard() {
                 "Connect Brevo"
               )}
             </Button>
+            {connectError && (
+              <div className="mt-2 rounded-md bg-red-500/10 border border-red-500/20 px-3 py-2 text-[11px] text-red-400 leading-relaxed">
+                {connectError}
+              </div>
+            )}
           </form>
         )}
       </CardContent>

@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     where: { id: workspaceId },
     select: { name: true },
   });
-  const workspaceName = workspace?.name ?? "WarmPath";
+  const workspaceName = workspace?.name ?? "WarmBlue";
   const inviterName = session.user.name ?? session.user.email;
 
   const existingMembers = await prisma.workspaceMember.findMany({
@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
 
     const sendError = await sendEmail(
       email,
-      `${inviterName} invited you to join ${workspaceName} on WarmPath`,
+      `${inviterName} invited you to join ${workspaceName} on WarmBlue`,
       buildInviteEmail({ inviterName, workspaceName, acceptUrl }),
     );
 
@@ -157,13 +157,13 @@ function buildInviteEmail({
 <body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fafafa">
   <div style="max-width:520px;margin:40px auto;background:#fff;border-radius:12px;border:1px solid #e8e8ea;overflow:hidden">
     <div style="background:#131315;padding:24px 32px">
-      <span style="font-size:18px;font-weight:800;color:#fff;letter-spacing:-0.5px">WarmPath</span>
+      <span style="font-size:18px;font-weight:800;color:#fff;letter-spacing:-0.5px">WarmBlue</span>
     </div>
     <div style="padding:32px">
       <h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#111">You're invited</h1>
       <p style="margin:0 0 24px;font-size:15px;color:#555;line-height:1.6">
         <strong style="color:#111">${inviterName}</strong> has invited you to join
-        <strong style="color:#111">${workspaceName}</strong> on WarmPath — the AI outbound platform
+        <strong style="color:#111">${workspaceName}</strong> on WarmBlue — the AI outbound platform
         that routes every prospect through your team's real relationship graph.
       </p>
       <a href="${acceptUrl}" style="display:inline-block;background:#2563eb;color:#fff;padding:13px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;letter-spacing:-0.2px">

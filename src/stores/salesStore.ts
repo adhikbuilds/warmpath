@@ -46,8 +46,8 @@ const DEFAULT_AI_SETTINGS: WorkspaceAISettings = {
 
 const DEFAULT_WORKSPACE: Workspace = {
   id: "",
-  name: "WarmPath",
-  domain: "warmpath.ai",
+  name: "WarmBlue",
+  domain: "warmblue.ai",
   industry: "AI / Sales Tech",
   company_size: "1–10",
   website: "https://warmpath.ai",
@@ -732,7 +732,7 @@ export const useSalesStore = create<SalesState>()((set, get) => ({
       const workspaceData: Workspace = rawWorkspace
         ? {
             id: rawWorkspace.id as string,
-            name: (rawWorkspace.name as string) ?? "WarmPath",
+            name: (rawWorkspace.name as string) ?? "WarmBlue",
             domain: (rawWorkspace.domain as string) ?? "",
             industry: (rawWorkspace.industry as string) ?? "",
             company_size: ((rawWorkspace.company_size ?? rawWorkspace.companySize) as string) ?? "",

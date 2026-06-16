@@ -68,7 +68,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const sendResult = await sendViaSmtp(smtpConfig, {
       toName: message.contact!.name,
       toEmail: recipientEmail,
-      subject: message.subject ?? "A message from WarmPath",
+      subject: message.subject ?? "A message from WarmBlue",
       htmlContent: `<p>${message.body.replace(/\n/g, "<br>")}</p>`,
       textContent: message.body,
     });
