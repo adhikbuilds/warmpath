@@ -1,16 +1,15 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/db/client";
 import { getWorkspaceContext } from "@/lib/db/workspace";
-import { DEMO_INTEGRATIONS } from "@/lib/demo-data-omnichannel";
 
 export async function GET() {
   try {
-    const { workspaceId, isDemo } = await getWorkspaceContext();
+    const { workspaceId } = await getWorkspaceContext();
     const integrations = await prisma.integrationConnection.findMany({
       where: { workspaceId },
     });
     if (integrations.length === 0) {
-      return NextResponse.json(isDemo ? DEMO_INTEGRATIONS : []);
+      return NextResponse.json([]);
     }
     return NextResponse.json(
       integrations.map((i) => ({

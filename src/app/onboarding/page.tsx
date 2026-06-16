@@ -316,7 +316,7 @@ export default function OnboardingPage() {
                 is_ai_generated: true,
                 subject_a: `${exampleName}, quick one re: your outbound at ${exampleCompany}`,
                 subject_b: `How ${exampleCompany} could close 3× more with warm intros`,
-                email_body: `Hey ${exampleName},\n\nI noticed we're connected on LinkedIn — saw what you're building at ${exampleCompany} and thought the timing was right.\n\n${meta.emailHook}.\n\nWarmPath maps your existing network (LinkedIn + email graph) and finds the 1–2-hop path to any prospect. Instead of cold email, every touch goes through someone they already trust.\n\nMost teams see 3–4× higher reply rates in the first month. Worth a 20-min call to see if it fits ${exampleCompany}'s motion?\n\nBest,\n{{sender_name}}`,
+                email_body: `Hey ${exampleName},\n\nI noticed we're connected on LinkedIn — saw what you're building at ${exampleCompany} and thought the timing was right.\n\n${meta.emailHook}.\n\nWarmBlue maps your existing network (LinkedIn + email graph) and finds the 1–2-hop path to any prospect. Instead of cold email, every touch goes through someone they already trust.\n\nMost teams see 3–4× higher reply rates in the first month. Worth a 20-min call to see if it fits ${exampleCompany}'s motion?\n\nBest,\n{{sender_name}}`,
               },
               {
                 id: `li-step-2-${i}`,
@@ -535,7 +535,7 @@ export default function OnboardingPage() {
           }}
         >
           <Logo size={22} />
-          <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.3px" }}>WarmPath</span>
+          <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.3px" }}>WarmBlue</span>
         </Link>
 
         {/* Step pills — centered */}
@@ -652,7 +652,7 @@ export default function OnboardingPage() {
                 What best describes you?
               </h1>
               <p style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", marginBottom: 26 }}>
-                We'll set up WarmPath around your workflow.
+                We'll set up WarmBlue around your workflow.
               </p>
               <div
                 style={{
@@ -1356,7 +1356,7 @@ export default function OnboardingPage() {
                   maxWidth: 420,
                 }}
               >
-                WarmPath will surface warm intro opportunities as signals arrive. Head to your
+                WarmBlue will surface warm intro opportunities as signals arrive. Head to your
                 dashboard to see what's ready.
               </p>
               <div
@@ -1473,7 +1473,7 @@ export default function OnboardingPage() {
                 cursor: "pointer",
               }}
             >
-              Open WarmPath <ArrowRight size={15} />
+              Open WarmBlue <ArrowRight size={15} />
             </button>
           )}
 

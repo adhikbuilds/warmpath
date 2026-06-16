@@ -54,7 +54,7 @@ export async function POST(req: Request) {
       smtpPort: port,
       smtpUser: smtp_user.trim(),
       smtpPassword: smtp_password,
-      senderName: sender_name?.trim() || "WarmPath",
+      senderName: sender_name?.trim() || "WarmBlue",
       senderEmail: sender_email.trim(),
       replyTo: reply_to?.trim() || undefined,
     });
@@ -71,7 +71,7 @@ export async function POST(req: Request) {
       smtpPort: port,
       smtpUser: smtp_user.trim(),
       smtpPasswordEnc: encryptSecret(smtp_password),
-      senderName: sender_name?.trim() || "WarmPath",
+      senderName: sender_name?.trim() || "WarmBlue",
       senderEmail: sender_email.trim(),
       replyTo: reply_to?.trim() || undefined,
     });

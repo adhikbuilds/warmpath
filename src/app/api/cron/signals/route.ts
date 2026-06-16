@@ -75,7 +75,7 @@ function parseRssItems(xml: string, source: string): RssItem[] {
 async function fetchFeed(feedUrl: string, source: string): Promise<RssItem[]> {
   try {
     const res = await fetch(feedUrl, {
-      headers: { "User-Agent": "WarmPath/1.0 Signal Ingestion" },
+      headers: { "User-Agent": "WarmBlue/1.0 Signal Ingestion" },
       signal: AbortSignal.timeout(8000),
     });
     if (!res.ok) return [];

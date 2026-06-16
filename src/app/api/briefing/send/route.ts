@@ -44,7 +44,7 @@ export async function POST() {
     const { Resend } = await import("resend");
     const resend = new Resend(resendKey);
 
-    const workspaceName = workspace?.name ?? "WarmPath";
+    const workspaceName = workspace?.name ?? "WarmBlue";
     const recipientName = session.user.name ?? session.user.email.split("@")[0];
 
     const html = buildBriefingEmail({

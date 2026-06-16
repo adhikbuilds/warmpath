@@ -104,7 +104,7 @@ export default function InviteAcceptClient() {
     <div className="min-h-screen bg-[#131315] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <span className="text-2xl font-extrabold text-white tracking-tight">WarmPath</span>
+          <span className="text-2xl font-extrabold text-white tracking-tight">WarmBlue</span>
         </div>
 
         <div className="bg-[#1a1a1f] border border-white/10 rounded-2xl overflow-hidden">

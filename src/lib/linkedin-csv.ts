@@ -324,12 +324,12 @@ export const ICP_META: Record<IcpSegment, { label: string; color: string; emailH
   sales_leader: {
     label: "Sales Leaders",
     color: "#10b981",
-    emailHook: "your AEs are burning quota on cold lists — WarmPath finds the warm path",
+    emailHook: "your AEs are burning quota on cold lists — WarmBlue finds the warm path",
   },
   marketing_leader: {
     label: "Marketing Leaders",
     color: "#ec4899",
-    emailHook: "ABM without relationship data is guesswork — WarmPath maps the signal",
+    emailHook: "ABM without relationship data is guesswork — WarmBlue maps the signal",
   },
   product_leader: {
     label: "Product Leaders",
@@ -339,7 +339,7 @@ export const ICP_META: Record<IcpSegment, { label: string; color: string; emailH
   eng_leader: {
     label: "Engineering Leaders",
     color: "#06b6d4",
-    emailHook: "your team's best hires came through network referrals — WarmPath scales that",
+    emailHook: "your team's best hires came through network referrals — WarmBlue scales that",
   },
   investor_vc: {
     label: "Investors & VCs",
@@ -349,7 +349,7 @@ export const ICP_META: Record<IcpSegment, { label: string; color: string; emailH
   gtm_growth: {
     label: "GTM & Growth",
     color: "#4edea3",
-    emailHook: "outbound that feels inbound — WarmPath routes every touch through a relationship",
+    emailHook: "outbound that feels inbound — WarmBlue routes every touch through a relationship",
   },
   other: {
     label: "General Network",

@@ -81,7 +81,7 @@ export function parseSenderIdentity(
     const caps = JSON.parse(capabilitiesJson) as Record<string, unknown>;
     if (caps.senderEmail && typeof caps.senderEmail === "string") {
       return {
-        senderName: (caps.senderName as string) ?? "WarmPath",
+        senderName: (caps.senderName as string) ?? "WarmBlue",
         senderEmail: caps.senderEmail,
         replyTo: (caps.replyTo as string | undefined) ?? undefined,
       };
@@ -118,7 +118,7 @@ export function parseSmtpConfig(capabilitiesJson: string | null): WorkspaceSmtpC
       smtpPort: Number(caps.smtpPort) || DEFAULT_BREVO_SMTP_PORT,
       smtpUser: user,
       smtpPassword: decryptSecret(passEnc),
-      senderName: (caps.senderName as string) ?? "WarmPath",
+      senderName: (caps.senderName as string) ?? "WarmBlue",
       senderEmail,
       replyTo: (caps.replyTo as string | undefined) ?? undefined,
     };
@@ -167,7 +167,7 @@ export async function sendViaSmtp(
       headers: {
         "List-Unsubscribe": unsubMailto,
         "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-        "X-Mailer": "WarmPath",
+        "X-Mailer": "WarmBlue",
       },
     });
     return { ok: true, messageId: info.messageId ?? "unknown" };
