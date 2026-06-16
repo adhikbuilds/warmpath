@@ -407,7 +407,7 @@ function ApolloCard() {
 
         <p className="text-xs text-muted-foreground leading-relaxed mb-3">
           Pull verified ICP contacts (VP Sales, CMO, CRO, etc.) directly from Apollo's database into
-          your WarmPath contact list with relationship edges pre-seeded.
+          your WarmBlue contact list with relationship edges pre-seeded.
         </p>
 
         <div className="flex flex-wrap gap-1 mb-4">
@@ -538,7 +538,7 @@ function TwentyCrmCard() {
         </div>
 
         <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-          Sync companies and people from your self-hosted Twenty CRM into WarmPath contacts and
+          Sync companies and people from your self-hosted Twenty CRM into WarmBlue contacts and
           accounts — keeping your pipeline data in one place.
         </p>
 

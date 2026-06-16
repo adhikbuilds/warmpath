@@ -826,7 +826,7 @@ export default function OnboardingPage() {
                 Set up your workspace
               </h1>
               <p style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", marginBottom: 28 }}>
-                Your workspace is shared with your team. Anyone with the same domain can join.
+                Your workspace is invite-only. Invite teammates from the Team page after setup.
               </p>
               <div
                 style={{
@@ -887,11 +887,8 @@ export default function OnboardingPage() {
                     }}
                   >
                     <p style={{ fontSize: 11, color: "rgba(255,255,255,0.38)" }}>
-                      Team members with a{" "}
-                      <strong style={{ color: "#2563eb" }}>
-                        @{session.user.email.split("@")[1]}
-                      </strong>{" "}
-                      email can join this workspace.
+                      Admin account:{" "}
+                      <strong style={{ color: "#4edea3" }}>{session.user.email}</strong>
                     </p>
                   </div>
                 )}

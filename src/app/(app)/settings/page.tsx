@@ -88,8 +88,8 @@ export default function SettingsPage() {
   );
 
   // Workspace / company info state
-  const [workspaceName, setWorkspaceName] = useState("WarmPath");
-  const [workspaceWebsite, setWorkspaceWebsite] = useState("warmpath.ai");
+  const [workspaceName, setWorkspaceName] = useState("");
+  const [workspaceWebsite, setWorkspaceWebsite] = useState("");
   const [workspaceDescription, setWorkspaceDescription] = useState(
     "AI sales agent that routes outreach through your team's relationship graph",
   );

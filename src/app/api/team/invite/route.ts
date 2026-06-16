@@ -175,7 +175,7 @@ function buildInviteEmail({
     </div>
     <div style="padding:16px 32px;border-top:1px solid #e8e8ea;text-align:center">
       <p style="margin:0;font-size:12px;color:#aaa">
-        WarmPath · AI-first B2B outbound · <a href="${APP_URL}" style="color:#2563eb;text-decoration:none">warmpath.ai</a>
+        WarmBlue · AI-first B2B outbound · <a href="${APP_URL}" style="color:#2563eb;text-decoration:none">warmblue.ai</a>
       </p>
     </div>
   </div>
