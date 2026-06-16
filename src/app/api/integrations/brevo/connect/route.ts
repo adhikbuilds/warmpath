@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const { smtp_host, smtp_port, smtp_user, smtp_password, sender_name, sender_email, reply_to } =
+    const { smtp_host, smtp_port, smtp_user, smtp_password, sender_name, sender_email, reply_to, skip_verify } =
       body as {
         smtp_host?: string;
         smtp_port?: number | string;
@@ -25,6 +25,7 @@ export async function POST(req: Request) {
         sender_name?: string;
         sender_email?: string;
         reply_to?: string;
+        skip_verify?: boolean;
       };
 
     if (!smtp_user?.trim() || !smtp_password?.trim()) {
@@ -48,22 +49,25 @@ export async function POST(req: Request) {
     const host = smtp_host?.trim() || DEFAULT_BREVO_SMTP_HOST;
     const port = Number(smtp_port) || DEFAULT_BREVO_SMTP_PORT;
 
-    // Verify the credentials before saving so the customer gets real feedback.
-    const verification = await verifySmtp({
-      smtpHost: host,
-      smtpPort: port,
-      smtpUser: smtp_user.trim(),
-      smtpPassword: smtp_password,
-      senderName: sender_name?.trim() || "WarmBlue",
-      senderEmail: sender_email.trim(),
-      replyTo: reply_to?.trim() || undefined,
-    });
+    // Verify credentials unless skip_verify is set (useful when the server
+    // can't reach the SMTP host due to network restrictions).
+    if (!skip_verify) {
+      const verification = await verifySmtp({
+        smtpHost: host,
+        smtpPort: port,
+        smtpUser: smtp_user.trim(),
+        smtpPassword: smtp_password,
+        senderName: sender_name?.trim() || "WarmBlue",
+        senderEmail: sender_email.trim(),
+        replyTo: reply_to?.trim() || undefined,
+      });
 
-    if (!verification.ok) {
-      return NextResponse.json(
-        { error: `SMTP verification failed: ${verification.error}` },
-        { status: 400 },
-      );
+      if (!verification.ok) {
+        return NextResponse.json(
+          { error: `SMTP verification failed: ${verification.error}` },
+          { status: 400 },
+        );
+      }
     }
 
     const capabilities = JSON.stringify({
