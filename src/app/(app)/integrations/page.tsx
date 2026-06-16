@@ -110,7 +110,7 @@ function BrevoCard() {
       .finally(() => setLoading(false));
   }, []);
 
-  async function handleConnect(e: React.FormEvent) {
+  async function handleConnect(e: React.FormEvent, skipVerify = false) {
     e.preventDefault();
     if (!form.smtp_user || !form.smtp_password || !form.sender_email) return;
     setSaving(true);
@@ -127,6 +127,7 @@ function BrevoCard() {
           sender_name: form.sender_name || form.smtp_user,
           sender_email: form.sender_email,
           reply_to: form.sender_email,
+          skip_verify: skipVerify,
         }),
       });
       const data = await res.json();
@@ -141,7 +142,7 @@ function BrevoCard() {
         ready: true,
       });
       setShowForm(false);
-      toast.success("Brevo connected — SMTP verified successfully");
+      toast.success(skipVerify ? "Brevo saved — credentials will be verified on first send" : "Brevo connected — SMTP verified successfully");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to connect Brevo";
       setConnectError(msg);
@@ -331,6 +332,13 @@ function BrevoCard() {
             {connectError && (
               <div className="mt-2 rounded-md bg-red-500/10 border border-red-500/20 px-3 py-2 text-[11px] text-red-400 leading-relaxed">
                 {connectError}
+                <button
+                  type="button"
+                  className="block mt-1.5 text-[11px] text-red-300 underline underline-offset-2 hover:text-red-200"
+                  onClick={(e) => handleConnect(e as unknown as React.FormEvent, true)}
+                >
+                  Save anyway (skip verification)
+                </button>
               </div>
             )}
           </form>
